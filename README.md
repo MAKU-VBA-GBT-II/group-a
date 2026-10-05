@@ -21,7 +21,7 @@ Rol ilanları ve değerlendirme sonuçları: BE [#1](https://github.com/MAKU-VBA
 Kendi satırınızı başlangıç rolünüzle ekleyin. Lider `PM`'dir; diğer üç üye PM'nin işe alımıyla başlangıç rollerine yerleştirilir. Roller Görev 1–3 boyunca dönem planı §1.3'e göre döner:
 
 - Ali Haydar Polat — PM (lider)
-- Ad Soyad — BE (başlangıç rolü)
+- Hilal Elçin Şahin — BE (başlangıç rolü)
 - Ad Soyad — FE (başlangıç rolü)
 - Ad Soyad — DQ (başlangıç rolü, veri analisti ve kalite)
 
