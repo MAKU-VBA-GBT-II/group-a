@@ -1,26 +1,18 @@
-# <Şirket Adı> — Grup A
+# Sepetix Analitik — Grup A
 
 VBA II (Veri Bilimi ve Analitik) dersi kapsamındaki **veri şirketi simülasyonu** çalışma deposu.
 
-## 📢 Açık Pozisyonlar — Ekip İlanları
+## Ekip Seçimi
 
-Şirket A (E-ticaret) ekibini kuruyor. Her rolün görevleri, değerlendirme ölçütleri ve başvuru yöntemi ilgili Issue'da:
-
-| Rol | İlan |
-|---|---|
-| BE — Backend / Veri Üretici | [#1](https://github.com/MAKU-VBA-GBT-II/group-a/issues/1) |
-| FE — Frontend / Görselleştirici | [#2](https://github.com/MAKU-VBA-GBT-II/group-a/issues/2) |
-| DQ — Veri Analisti ve Kalite | [#3](https://github.com/MAKU-VBA-GBT-II/group-a/issues/3) |
-
-**Son başvuru:** 5 Ekim 2026, 23:59 · Birden fazla role başvurabilirsiniz.
+Rol ilanları ve değerlendirme sonuçları: BE [#1](https://github.com/MAKU-VBA-GBT-II/group-a/issues/1) · FE [#2](https://github.com/MAKU-VBA-GBT-II/group-a/issues/2) · DQ [#3](https://github.com/MAKU-VBA-GBT-II/group-a/issues/3) (ilanlar kapandı).
 
 ## Şirket
 
 | Alan | Değer |
 |---|---|
-| Şirket adı | <Hafta 1'de seçilecek> |
+| Şirket adı | Sepetix Analitik |
 | Sektör | E-ticaret |
-| Teknoloji kararı | <dil + kütüphaneler, örn. "Python · pandas · matplotlib"> |
+| Teknoloji kararı | Dil: Python · Kütüphaneler: pandas, matplotlib · Görselleştirme: PNG grafikleri |
 
 > Teknoloji serbesttir; karar Hafta 1'de şirketçe verilip buraya yazılır.
 
@@ -28,7 +20,7 @@ VBA II (Veri Bilimi ve Analitik) dersi kapsamındaki **veri şirketi simülasyon
 
 Kendi satırınızı başlangıç rolünüzle ekleyin. Lider `PM`'dir; diğer üç üye PM'nin işe alımıyla başlangıç rollerine yerleştirilir. Roller Görev 1–3 boyunca dönem planı §1.3'e göre döner:
 
-- Ad Soyad — PM (lider)
+- Ali Haydar Polat — PM (lider)
 - Ad Soyad — BE (başlangıç rolü)
 - Ad Soyad — FE (başlangıç rolü)
 - Ad Soyad — DQ (başlangıç rolü, veri analisti ve kalite)
