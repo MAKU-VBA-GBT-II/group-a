@@ -22,7 +22,7 @@ Kendi satırınızı başlangıç rolünüzle ekleyin. Lider `PM`'dir; diğer ü
 
 - Ali Haydar Polat — PM (lider)
 - Ad Soyad — BE (başlangıç rolü)
-- Ad Soyad — FE (başlangıç rolü)
+- Sema Nur Doğan — FE (başlangıç rolü)
 - Ad Soyad — DQ (başlangıç rolü, veri analisti ve kalite)
 
 ## Klasör Yapısı
