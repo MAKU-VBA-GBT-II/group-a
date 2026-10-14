@@ -24,6 +24,7 @@ Kendi satırınızı başlangıç rolünüzle ekleyin. Lider `PM`'dir; diğer ü
 - Hilal Elçin Şahin - BE (başlangıç rolü, Backend / Veri Üretici)
 - Sema Nur Doğan — FE (başlangıç rolü)
 - Tuğba Tuana Kaygısız — DQ (başlangıç rolü, veri analisti ve kalite)
+- Ebru Türk — Junior
 
 ## Klasör Yapısı
 
