@@ -1,0 +1,102 @@
+name: Haftalık PM sprint raporu (taslak)
+
+on:
+  schedule:
+    # UTC 06:00, 12:00, 18:00 = İstanbul 09:00, 15:00, 21:00
+    - cron: "0 6,12,18 * * *"
+  workflow_dispatch:
+    inputs:
+      zorla:
+        description: "Teslime 30 saatten fazla olsa da raporu derle"
+        type: choice
+        options:
+          - hayir
+          - evet
+        default: hayir
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+concurrency:
+  group: haftalik-pm-rapor
+  cancel-in-progress: false
+
+jobs:
+  rapor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Git kimliği
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: pm-rapor skill'i ile taslak rapor
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TZ: Europe/Istanbul
+          ZORLA: ${{ github.event.inputs.zorla || 'hayir' }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: "--allowedTools Bash,Read,Write,Edit,Glob,Grep --max-turns 40"
+          prompt: |
+            Sen Sepetix Analitik (Grup A, MAKU-VBA-GBT-II/group-a) deposunda PM Ali Haydar Polat adına
+            haftalık sprint raporu TASLAĞI hazırlayan bir ajansın. Saat dilimi Europe/Istanbul.
+            "zorla" girdisi: ${{ github.event.inputs.zorla || 'hayir' }} (ayrıca $ZORLA ortam değişkeninde).
+
+            Adımları sırayla uygula. Bir "çık" koşulu sağlanırsa nedenini tek satırla yaz ve başka hiçbir şey yapma.
+
+            a) AGENTS.md ve skills/pm-rapor/SKILL.md dosyalarını oku. Rapor bu skill'deki adımlara ve şablona birebir uymalı.
+
+            b) `gh api repos/MAKU-VBA-GBT-II/ders/contents --jq '.[].name'` ile `Duyuru-N_YYYY-MM-DD.md`
+               dosyalarını listele; N sayısal olarak en büyük olanı (eşitse tarihi en yeni olanı) seç ve
+               `gh api repos/MAKU-VBA-GBT-II/ders/contents/<dosya> -H 'Accept: application/vnd.github.raw'` ile oku.
+               Duyurudan hafta numarasını (iki haneli NN, örn. 03) ve "Son tarih" satırındaki teslim anını çıkar
+               (Türkçe ay adları olabilir, örn. "20 Ekim Salı 23:59"; yıl yazmıyorsa duyuru tarihinin yılını kullan,
+               saat yoksa 23:59 kabul et; tümü Europe/Istanbul). Hafta başı = duyurudaki **Tarih** (yoksa dosya adındaki tarih).
+               Hafta numarası ya da son tarih çıkarılamıyorsa çık.
+
+            c) Şimdiki zamanı `date` ile al. "zorla" "evet" DEĞİLSE:
+               - teslime 30 saatten fazla varsa HİÇBİR ŞEY YAPMADAN çık;
+               - teslim anı geçmişse de çık (teslimden sonra taslak güncellenmez).
+
+            d) `git fetch origin` yap.
+               - `git show origin/main:reports/report-wNN.md` dosyası varsa ve içinde `<!-- pm-rapor:otomatik -->`
+                 işareti YOKSA (bir insan yazmış demektir) dokunmadan çık.
+               - `gh pr list --head rapor/wNN --state open --json number,url` ile açık PR ara.
+                 Açık PR varsa `git checkout -B rapor/wNN origin/rapor/wNN` ile o dalda çalış ve o PR'ı güncelle; yeni PR açma.
+                 Açık PR yoksa `git checkout -B rapor/wNN origin/main` ile dalı main'den (yeniden) oluştur.
+
+            e) Veriyi topla:
+               - `gh issue list --repo MAKU-VBA-GBT-II/group-a --state all --limit 200 --json number,title,state,assignees,author,labels,createdAt,closedAt,body,url`
+               - Haftayla ilgili Issue'lar (örn. G1-veri, G1-analiz, G1-gorsel, G1-test) için `gh issue view N --comments`
+                 (kanıt yorumları, "Veri hazır" / "Analiz hazır" devir yorumları, cevapsız @mention'lar).
+               - `gh pr list --state all --limit 100 --json number,title,state,author,mergedAt,headRefName,url`
+               - `git log origin/main --since=<hafta başı> --pretty='%h %an %ad %s' --date=short`
+               - Kabul kriterlerini dosyaları okuyarak doğrula (dosya var mı, satır sayısı vb.).
+               UYDURMA BİLGİ YAZMA: her satır bir Issue numarasına (#N) veya commit hash'ine dayansın;
+               bilgi yoksa ilgili hücreye/satıra "kayıt yok" yaz. Rol bilgisini yalnızca Issue/AGENTS.md'den al.
+
+            f) Raporu skill'deki şablonla `reports/report-wNN.md` olarak yaz (başlıktaki tarih aralığı: hafta başı–son tarih).
+               Dosyanın en sonuna, boş bir satırdan sonra şu iki satırı aynen ekle:
+               <!-- pm-rapor:otomatik -->
+               _Bu taslak pm-rapor skill'i ile otomatik derlendi; PM tarafından gözden geçirilip merge edilir._
+
+            g) Raporu ASLA main'e doğrudan push etme.
+               - `git status --porcelain` boşsa (değişiklik yoksa) commit atma ve çık.
+               - Yalnızca `git add reports/report-wNN.md` yap; commit mesajı: `Hafta NN sprint raporu eklendi`.
+               - `git push --force-with-lease origin rapor/wNN` (rapor/wNN otomasyona ait taslak dalıdır; asla main'e push etme).
+               - Açık PR yoksa: `gh pr create --base main --head rapor/wNN --title "Hafta NN sprint raporu (taslak)" --body "pm-rapor skill'i ile otomatik derlendi. @plt0051ct-rgb gözden geçirip merge etsin."`
+               - PR'ı ASLA merge etme, onaylama ya da kapatma. Sonunda PR linkini yaz.
+
+            h) reports/ dışındaki hiçbir dosyayı değiştirme veya commit'leme. Issue açma, kapatma, düzenleme ya da yorumlama.
+               Hiçbir token, anahtar veya şifreyi dosyaya, commit'e ya da çıktıya yazma.

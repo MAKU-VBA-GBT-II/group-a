@@ -13,7 +13,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 
 | Skill | Yol | Sahibi (rol) | Ne işe yarar | Nasıl kullanılır |
 |---|---|---|---|---|
-| pm-rapor | [`skills/pm-rapor/SKILL.md`](skills/pm-rapor/SKILL.md) | Ali Haydar Polat (PM) | Haftalık sprint raporunu (`reports/report-wXX.md`) GitHub'daki Issue, commit ve PR izlerinden derler. | Ajana: "pm-rapor skill'ini kullanarak report-w03.md yaz" |
+| pm-rapor | [`skills/pm-rapor/SKILL.md`](skills/pm-rapor/SKILL.md) | Ali Haydar Polat (PM) | Haftalık sprint raporunu (`reports/report-wXX.md`) GitHub'daki Issue, commit ve PR izlerinden derler. | Ajana: "pm-rapor skill'ini kullanarak report-w03.md yaz" · Otomatik: `.github/workflows/haftalik-pm-rapor.yml` teslimden önce taslak PR açar. |
 | be-veri | `skills/be-veri/SKILL.md` | BE | Sipariş verisini sabit tohumla üretir, şemayı yazar. | _BE ekleyecek_ |
 | dq-analiz | `skills/dq-analiz/SKILL.md` | DQ | Metrikleri hesaplar, bulguları `docs/analiz-g1.md`'ye yazar. | _DQ ekleyecek_ |
 | fe-gorsel | `skills/fe-gorsel/SKILL.md` | FE | Zaman serisi ve kırılım grafiklerini PNG olarak üretir. | _FE ekleyecek_ |
