@@ -17,7 +17,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 | be-veri | `skills/be-veri/SKILL.md` | BE | Sipariş verisini sabit tohumla üretir, şemayı yazar. | _BE ekleyecek_ |
 | dq-analiz | `skills/dq-analiz/SKILL.md` | DQ | Metrikleri hesaplar, bulguları `docs/analiz-g1.md`'ye yazar. | _DQ ekleyecek_ |
 | fe-gorsel | `skills/fe-gorsel/SKILL.md` | FE | Zaman serisi ve kırılım grafiklerini PNG olarak üretir. | _FE ekleyecek_ |
-| dq-test | `skills/dq-test/SKILL.md` | DQ | Veri kalitesi test senaryolarını yazar ve çalıştırır. | _DQ ekleyecek_ |
+| dq-test | [`skills/dq-test/SKILL.md`](skills/dq-test/SKILL.md) | Tuğba Tuana Kaygısız (DQ) | Veri kalitesi test senaryolarını (`tests/test-cases.md`) şemaya göre yazar; `src/dq_test.py` ile çalıştırıp sonuçları işler. | Ajana: "dq-test skill'ini kullanarak docs/veri-sozlugu-g1.md şemasına göre tests/test-cases.md yaz" · Elle: `python src/dq_test.py` |
 
 > Kural: Roller görevden göreve döner (plan §1.3); skill'ler rolle birlikte el değiştirir. Yeni sahibi skill'i günceller ve bu tablodaki "Sahibi" sütununu değiştirir.
 
