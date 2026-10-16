@@ -24,10 +24,10 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
    - TC-03 — Sütun adları ve sırası şemayla aynı mı?
    - TC-04 — Tipler, aralıklar ve birimler doğru mu?
    - TC-05 — Ana kategorik alanda yalnızca şemadaki değerler mi var?
-3. **Ek senaryolar ekle** (önerilen): TC-06 eksik değer, TC-07 kimlik benzersizliği.
+3. **Ek senaryolar ekle** (önerilen): TC-06 eksik değer, TC-07 kimlik benzersizliği, TC-08 türetilmiş alan tutarlılığı (`toplam_tutar = adet × birim_fiyat`).
 4. **Beklenen sonuçları ölçülebilir yaz:** "doğru olmalı" değil, "aralık dışı değer sayısı = 0" gibi somut bir eşik ver.
 5. **"Gerçekleşen sonuç" ve "Geçti/Kaldı" sütunlarını boş bırak.**
-6. **`src/dq_test.py` içindeki şema sabitlerini** (`SUTUNLAR`, `KATEGORILER`, aralıklar, `HEDEF_SATIR`) şemayla eşitle.
+6. **`src/dq_test.py` içindeki şema sabitlerini** (`SUTUNLAR`, `KATEGORILER`, aralıklar, `SEMA_SATIR`) şemayla eşitle.
 7. **Commit at:** `G1-test: test-cases.md, dq-test skill'i ve test betiği eklendi (#16)`
 8. **Issue'ya kanıt yorumu yaz** (commit hash + dosya + senaryo sayısı) ve Issue'yu kapat.
 
