@@ -2,25 +2,25 @@
 
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** DQ — Tuğba Tuana Kaygısız · **Issue:** #16
 **Test edilen dosya:** `data/siparisler.csv` · **Referans şema:** `docs/veri-sozlugu-g1.md`
-**Çalıştırma:** `python src/dq_test.py` (Hafta 4'te çalıştırılacak; sonuçlar `tests/test-log.md`'ye yazılacak)
+**Çalıştırma:** `python src/dq_test.py` (sonuçlar aşağıda; çalıştırma kaydı `tests/test-log.md`)
 
 > Not: Beklenen sonuçlar, BE ile kesinleştirilen şemaya göredir (#13). Şemada değişiklik olursa bu dosyadaki "Beklenen sonuç" hücreleri güncellenir.
 
 ## Referans şema (özet)
 
-BE'nin #13'teki önerisine göre güncellendi (16 Ekim 2026). `urun` alanı #14'teki "Top-3 ürün" metriği için BE'den ayrıca istendi. `sehir` ve `odeme_tipi` değerleri `docs/veri-sozlugu-g1.md` yazılınca buraya eklenecek.
+#13'te BE ile kesinleştirildi; ayrıntılar `docs/veri-sozlugu-g1.md`'de (tohum 42).
 
 | # | Alan | Tip | Geçerli aralık / değerler | Birim |
 |---|---|---|---|---|
 | 1 | `siparis_id` | int | ≥ 1, benzersiz | – |
 | 2 | `siparis_tarihi` | tarih (`YYYY-MM-DD`) | 2026-01-01 – 2026-09-30 | – |
 | 3 | `kategori` | metin | Elektronik, Giyim, Kitap, Ev & Yaşam, Kozmetik | – |
-| 4 | `urun` | metin | boş olmayan ürün adı | – |
+| 4 | `urun` | metin | 25 ürün (kategori başına 5; liste veri sözlüğünde) | – |
 | 5 | `adet` | int | 1 – 10 | adet |
 | 6 | `birim_fiyat` | float (2 ondalık) | 50 – 5000 | TL |
 | 7 | `toplam_tutar` | float (2 ondalık) | = `adet × birim_fiyat` (50 – 50000) | TL |
-| 8 | `sehir` | metin | boş olmayan şehir adı (değer listesi BE'den) | – |
-| 9 | `odeme_tipi` | metin | boş olmayan ödeme tipi (değer listesi BE'den) | – |
+| 8 | `sehir` | metin | İstanbul, Ankara, İzmir, Burdur, Antalya | – |
+| 9 | `odeme_tipi` | metin | Kredi Kartı, Banka Kartı, Havale/EFT, Kapıda Ödeme | – |
 
 Dosya biçimi: virgül ayraçlı, nokta ondalıklı, UTF-8, binlik ayırıcı yok.
 Hedef satır sayısı: **400** (başlık satırı hariç; ödevdeki alt sınır ≥ 100).
