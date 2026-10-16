@@ -1,4 +1,4 @@
-"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-07).
+"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-08).
 
 Kullanım:
     python src/dq_test.py                      # varsayılan: data/siparisler.csv
@@ -13,12 +13,16 @@ import sys
 import pandas as pd
 
 # --- Şema (docs/veri-sozlugu-g1.md ile aynı tutulmalı) ---
-SUTUNLAR = ["siparis_id", "tarih", "kategori", "urun", "adet", "birim_fiyat", "sehir"]
-HEDEF_SATIR = 100
-KATEGORILER = {"Elektronik", "Giyim", "Ev & Yaşam", "Kozmetik", "Kitap"}
+SUTUNLAR = ["siparis_id", "siparis_tarihi", "kategori", "urun", "adet",
+            "birim_fiyat", "toplam_tutar", "sehir", "odeme_tipi"]
+MIN_SATIR = 100      # ödevdeki alt sınır
+SEMA_SATIR = 400     # docs/veri-sozlugu-g1.md'deki satır sayısı
+KATEGORILER = {"Elektronik", "Giyim", "Kitap", "Ev & Yaşam", "Kozmetik"}
 ADET_ARALIK = (1, 10)
-FIYAT_ARALIK = (20, 5000)
-TARIH_ARALIK = ("2026-09-01", "2026-09-30")
+FIYAT_ARALIK = (50, 5000)
+TUTAR_ARALIK = (50, 50000)
+TARIH_ARALIK = ("2026-01-01", "2026-09-30")
+TUTAR_TOLERANS = 0.01  # TL
 
 
 def tc01(yol):
@@ -32,7 +36,8 @@ def tc01(yol):
 
 
 def tc02(df):
-    return len(df) >= HEDEF_SATIR, f"{len(df)} satır (hedef ≥ {HEDEF_SATIR})"
+    ok = len(df) >= MIN_SATIR and len(df) == SEMA_SATIR
+    return ok, f"{len(df)} satır (hedef: ≥ {MIN_SATIR} ve = {SEMA_SATIR})"
 
 
 def tc03(df):
@@ -55,13 +60,19 @@ def tc04(df):
     n = int((~fiyat.between(*FIYAT_ARALIK)).sum())
     if n:
         hatalar.append(f"birim_fiyat aralık dışı: {n}")
-    tarih = pd.to_datetime(df["tarih"], format="%Y-%m-%d", errors="coerce")
+    tutar = pd.to_numeric(df["toplam_tutar"], errors="coerce")
+    if tutar.isna().any():
+        hatalar.append(f"toplam_tutar sayısal olmayan: {int(tutar.isna().sum())}")
+    n = int((~tutar.between(*TUTAR_ARALIK)).sum())
+    if n:
+        hatalar.append(f"toplam_tutar aralık dışı: {n}")
+    tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="coerce")
     n = int(tarih.isna().sum())
     if n:
-        hatalar.append(f"tarih ayrıştırılamayan: {n}")
+        hatalar.append(f"siparis_tarihi ayrıştırılamayan: {n}")
     n = int((~tarih.between(*TARIH_ARALIK)).sum()) - n
     if n:
-        hatalar.append(f"tarih aralık dışı: {n}")
+        hatalar.append(f"siparis_tarihi aralık dışı: {n}")
     return not hatalar, "; ".join(hatalar) or "tüm tip ve aralıklar doğru"
 
 
@@ -87,6 +98,14 @@ def tc07(df):
     )
 
 
+def tc08(df):
+    adet = pd.to_numeric(df["adet"], errors="coerce")
+    fiyat = pd.to_numeric(df["birim_fiyat"], errors="coerce")
+    tutar = pd.to_numeric(df["toplam_tutar"], errors="coerce")
+    n = int((~((adet * fiyat - tutar).abs() <= TUTAR_TOLERANS)).sum())
+    return n == 0, f"adet × birim_fiyat ile uyuşmayan satır: {n}"
+
+
 def main():
     yol = sys.argv[1] if len(sys.argv) > 1 else "data/siparisler.csv"
     sonuclar = []
@@ -95,7 +114,8 @@ def main():
     if ok:
         df = pd.read_csv(yol)
         for ad, fn in [("TC-02", tc02), ("TC-03", tc03), ("TC-04", tc04),
-                       ("TC-05", tc05), ("TC-06", tc06), ("TC-07", tc07)]:
+                       ("TC-05", tc05), ("TC-06", tc06), ("TC-07", tc07),
+                       ("TC-08", tc08)]:
             try:
                 ok, mesaj = fn(df)
             except KeyError as e:
