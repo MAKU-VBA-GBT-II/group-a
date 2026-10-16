@@ -14,7 +14,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 | Skill | Yol | Sahibi (rol) | Ne işe yarar | Nasıl kullanılır |
 |---|---|---|---|---|
 | pm-rapor | [`skills/pm-rapor/SKILL.md`](skills/pm-rapor/SKILL.md) | Ali Haydar Polat (PM) | Haftalık sprint raporunu (`reports/report-wXX.md`) GitHub'daki Issue, commit ve PR izlerinden derler. | Ajana: "pm-rapor skill'ini kullanarak report-w03.md yaz" · Otomatik: `.github/workflows/haftalik-pm-rapor.yml` teslimden önce taslak PR açar. |
-| be-veri | `skills/be-veri/SKILL.md` | BE | Sipariş verisini sabit tohumla üretir, şemayı yazar. | _BE ekleyecek_ |
+| be-veri | [`skills/be-veri/SKILL.md`](skills/be-veri/SKILL.md) | Hilal Elçin Şahin (BE) | Sipariş verisini (`data/siparisler.csv`) sabit tohumla üretir, şemayı `docs/veri-sozlugu-g1.md`'ye yazar. | Ajana: "be-veri skill'ini kullanarak data/siparisler.csv ve docs/veri-sozlugu-g1.md dosyalarını üret" · Elle: `python src/veri_uret.py` |
 | dq-analiz | `skills/dq-analiz/SKILL.md` | DQ | Metrikleri hesaplar, bulguları `docs/analiz-g1.md`'ye yazar. | _DQ ekleyecek_ |
 | fe-gorsel | `skills/fe-gorsel/SKILL.md` | FE | Zaman serisi ve kırılım grafiklerini PNG olarak üretir. | _FE ekleyecek_ |
 | dq-test | [`skills/dq-test/SKILL.md`](skills/dq-test/SKILL.md) | Tuğba Tuana Kaygısız (DQ) | Veri kalitesi test senaryolarını (`tests/test-cases.md`) şemaya göre yazar; `src/dq_test.py` ile çalıştırıp sonuçları işler. | Ajana: "dq-test skill'ini kullanarak docs/veri-sozlugu-g1.md şemasına göre tests/test-cases.md yaz" · Elle: `python src/dq_test.py` |
