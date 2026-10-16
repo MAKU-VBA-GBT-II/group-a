@@ -1,0 +1,401 @@
+siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odeme_tipi
+1,2026-01-01,Kitap,Şiir Kitabı,5,333.48,1667.4,Burdur,Kapıda Ödeme
+2,2026-01-01,Ev & Yaşam,Battaniye,1,2661.24,2661.24,İzmir,Banka Kartı
+3,2026-01-02,Kozmetik,Güneş Kremi,2,1194.05,2388.1,Ankara,Kredi Kartı
+4,2026-01-02,Kozmetik,Şampuan,5,840.66,4203.3,İstanbul,Kapıda Ödeme
+5,2026-01-03,Kozmetik,Güneş Kremi,8,935.72,7485.76,Burdur,Banka Kartı
+6,2026-01-03,Elektronik,Klavye,2,1150.16,2300.32,Antalya,Kredi Kartı
+7,2026-01-03,Kitap,Şiir Kitabı,1,234.37,234.37,İstanbul,Havale/EFT
+8,2026-01-06,Ev & Yaşam,Saklama Kabı Seti,1,500.66,500.66,Ankara,Kapıda Ödeme
+9,2026-01-06,Ev & Yaşam,Halı,6,1482.12,8892.72,İzmir,Havale/EFT
+10,2026-01-07,Giyim,Kot Pantolon,1,222.11,222.11,İstanbul,Kapıda Ödeme
+11,2026-01-07,Ev & Yaşam,Kahve Makinesi,2,143.62,287.24,İzmir,Havale/EFT
+12,2026-01-08,Elektronik,Bluetooth Hoparlör,4,4072.79,16291.16,Ankara,Banka Kartı
+13,2026-01-08,Elektronik,Klavye,8,1942.95,15543.6,İstanbul,Banka Kartı
+14,2026-01-09,Elektronik,Bluetooth Hoparlör,1,2585.52,2585.52,Ankara,Banka Kartı
+15,2026-01-09,Giyim,Kot Pantolon,10,1630.26,16302.6,Antalya,Havale/EFT
+16,2026-01-09,Ev & Yaşam,Masa Lambası,3,806.67,2420.01,İstanbul,Havale/EFT
+17,2026-01-10,Kozmetik,Parfüm,6,906.98,5441.88,İzmir,Havale/EFT
+18,2026-01-11,Elektronik,Kablosuz Kulaklık,4,2623.28,10493.12,Burdur,Banka Kartı
+19,2026-01-12,Elektronik,Klavye,5,1358.34,6791.7,İzmir,Kredi Kartı
+20,2026-01-12,Kitap,Çocuk Kitabı,7,193.16,1352.12,Burdur,Banka Kartı
+21,2026-01-13,Ev & Yaşam,Masa Lambası,4,924.74,3698.96,İstanbul,Havale/EFT
+22,2026-01-13,Giyim,Kot Pantolon,6,101.36,608.16,İstanbul,Havale/EFT
+23,2026-01-13,Giyim,Mont,6,1603.93,9623.58,İzmir,Kredi Kartı
+24,2026-01-14,Ev & Yaşam,Saklama Kabı Seti,3,134.01,402.03,İzmir,Havale/EFT
+25,2026-01-15,Kitap,Roman,3,75.92,227.76,Antalya,Kredi Kartı
+26,2026-01-16,Giyim,Spor Ayakkabı,7,2179.86,15259.02,Burdur,Kredi Kartı
+27,2026-01-16,Ev & Yaşam,Masa Lambası,7,2979.9,20859.3,İzmir,Kredi Kartı
+28,2026-01-16,Kozmetik,Şampuan,7,174.97,1224.79,Ankara,Banka Kartı
+29,2026-01-17,Giyim,Spor Ayakkabı,8,1746.52,13972.16,İzmir,Havale/EFT
+30,2026-01-17,Giyim,Tişört,2,985.57,1971.14,Burdur,Banka Kartı
+31,2026-01-17,Elektronik,Powerbank,5,3468.72,17343.6,Antalya,Kredi Kartı
+32,2026-01-19,Elektronik,Powerbank,1,4041.48,4041.48,İzmir,Kredi Kartı
+33,2026-01-19,Giyim,Spor Ayakkabı,9,2462.04,22158.36,Antalya,Kredi Kartı
+34,2026-01-19,Kozmetik,Ruj,5,524.23,2621.15,Antalya,Kapıda Ödeme
+35,2026-01-19,Elektronik,Akıllı Saat,10,4199.1,41991.0,Antalya,Havale/EFT
+36,2026-01-19,Kozmetik,Parfüm,10,332.4,3324.0,İzmir,Havale/EFT
+37,2026-01-19,Ev & Yaşam,Saklama Kabı Seti,8,2321.62,18572.96,İzmir,Banka Kartı
+38,2026-01-20,Giyim,Sweatshirt,8,1463.6,11708.8,Antalya,Banka Kartı
+39,2026-01-20,Kozmetik,Güneş Kremi,10,1091.66,10916.6,Antalya,Kapıda Ödeme
+40,2026-01-21,Elektronik,Powerbank,5,4365.97,21829.85,İstanbul,Havale/EFT
+41,2026-01-22,Kozmetik,Şampuan,6,706.84,4241.04,İstanbul,Kredi Kartı
+42,2026-01-22,Elektronik,Bluetooth Hoparlör,2,934.68,1869.36,Burdur,Banka Kartı
+43,2026-01-23,Kozmetik,Parfüm,10,589.36,5893.6,Burdur,Banka Kartı
+44,2026-01-23,Kozmetik,Güneş Kremi,4,914.55,3658.2,İstanbul,Banka Kartı
+45,2026-01-25,Elektronik,Bluetooth Hoparlör,8,445.2,3561.6,İstanbul,Kapıda Ödeme
+46,2026-01-26,Giyim,Tişört,1,1294.35,1294.35,İstanbul,Kapıda Ödeme
+47,2026-01-26,Ev & Yaşam,Saklama Kabı Seti,3,1837.1,5511.3,Ankara,Banka Kartı
+48,2026-01-26,Kozmetik,Güneş Kremi,2,983.79,1967.58,İstanbul,Banka Kartı
+49,2026-01-27,Ev & Yaşam,Saklama Kabı Seti,8,2363.97,18911.76,Burdur,Kapıda Ödeme
+50,2026-01-27,Kozmetik,Nemlendirici,9,775.55,6979.95,Antalya,Kredi Kartı
+51,2026-01-27,Elektronik,Kablosuz Kulaklık,5,2723.73,13618.65,İstanbul,Banka Kartı
+52,2026-01-27,Elektronik,Powerbank,7,1246.34,8724.38,İstanbul,Havale/EFT
+53,2026-01-27,Kozmetik,Nemlendirici,2,1165.73,2331.46,Burdur,Kapıda Ödeme
+54,2026-01-28,Kozmetik,Şampuan,10,278.37,2783.7,Antalya,Havale/EFT
+55,2026-01-28,Ev & Yaşam,Saklama Kabı Seti,3,3933.31,11799.93,Burdur,Kapıda Ödeme
+56,2026-01-28,Kozmetik,Ruj,8,601.77,4814.16,Burdur,Banka Kartı
+57,2026-01-29,Kozmetik,Ruj,5,529.84,2649.2,Ankara,Kapıda Ödeme
+58,2026-01-29,Kitap,Roman,4,216.21,864.84,İstanbul,Kapıda Ödeme
+59,2026-01-30,Giyim,Kot Pantolon,2,653.63,1307.26,Antalya,Kredi Kartı
+60,2026-01-30,Giyim,Spor Ayakkabı,1,1154.03,1154.03,Ankara,Kapıda Ödeme
+61,2026-01-31,Giyim,Kot Pantolon,1,1353.1,1353.1,Antalya,Banka Kartı
+62,2026-01-31,Ev & Yaşam,Masa Lambası,10,453.14,4531.4,İstanbul,Havale/EFT
+63,2026-02-03,Giyim,Tişört,4,2301.75,9207.0,Burdur,Kapıda Ödeme
+64,2026-02-03,Elektronik,Bluetooth Hoparlör,3,2872.23,8616.69,Burdur,Havale/EFT
+65,2026-02-03,Elektronik,Powerbank,4,4174.75,16699.0,İstanbul,Banka Kartı
+66,2026-02-04,Elektronik,Klavye,10,2546.35,25463.5,İzmir,Kapıda Ödeme
+67,2026-02-06,Ev & Yaşam,Battaniye,4,972.43,3889.72,Burdur,Kapıda Ödeme
+68,2026-02-06,Kitap,Çocuk Kitabı,3,224.72,674.16,İzmir,Kredi Kartı
+69,2026-02-07,Ev & Yaşam,Halı,10,1208.39,12083.9,İstanbul,Banka Kartı
+70,2026-02-07,Elektronik,Klavye,7,3136.01,21952.07,Burdur,Kapıda Ödeme
+71,2026-02-10,Elektronik,Bluetooth Hoparlör,1,1218.83,1218.83,İzmir,Havale/EFT
+72,2026-02-10,Ev & Yaşam,Halı,1,743.01,743.01,Antalya,Kredi Kartı
+73,2026-02-10,Ev & Yaşam,Masa Lambası,6,419.91,2519.46,Burdur,Havale/EFT
+74,2026-02-11,Kitap,Şiir Kitabı,9,213.91,1925.19,Burdur,Kapıda Ödeme
+75,2026-02-11,Elektronik,Kablosuz Kulaklık,6,4862.34,29174.04,Antalya,Havale/EFT
+76,2026-02-12,Kitap,Ders Kitabı,8,384.62,3076.96,İstanbul,Havale/EFT
+77,2026-02-12,Elektronik,Kablosuz Kulaklık,3,3723.36,11170.08,İzmir,Banka Kartı
+78,2026-02-13,Giyim,Mont,1,439.93,439.93,İstanbul,Kapıda Ödeme
+79,2026-02-15,Giyim,Sweatshirt,2,2332.01,4664.02,Burdur,Banka Kartı
+80,2026-02-16,Kozmetik,Şampuan,9,595.02,5355.18,İstanbul,Kredi Kartı
+81,2026-02-17,Kitap,Ders Kitabı,3,274.79,824.37,Antalya,Kapıda Ödeme
+82,2026-02-18,Giyim,Spor Ayakkabı,3,1467.96,4403.88,Antalya,Havale/EFT
+83,2026-02-19,Elektronik,Powerbank,7,718.5,5029.5,İstanbul,Havale/EFT
+84,2026-02-21,Kozmetik,Nemlendirici,3,600.17,1800.51,Burdur,Kredi Kartı
+85,2026-02-21,Giyim,Mont,6,2016.28,12097.68,İstanbul,Kapıda Ödeme
+86,2026-02-21,Ev & Yaşam,Halı,1,3074.27,3074.27,Burdur,Banka Kartı
+87,2026-02-22,Kozmetik,Güneş Kremi,7,474.66,3322.62,İzmir,Kapıda Ödeme
+88,2026-02-22,Ev & Yaşam,Kahve Makinesi,5,3950.27,19751.35,Antalya,Banka Kartı
+89,2026-02-22,Kozmetik,Şampuan,9,596.6,5369.4,İstanbul,Kredi Kartı
+90,2026-02-23,Kozmetik,Şampuan,2,657.82,1315.64,İstanbul,Kapıda Ödeme
+91,2026-02-23,Ev & Yaşam,Masa Lambası,3,1950.75,5852.25,Burdur,Kredi Kartı
+92,2026-02-24,Ev & Yaşam,Battaniye,8,1310.28,10482.24,İstanbul,Banka Kartı
+93,2026-02-24,Kozmetik,Şampuan,4,1028.65,4114.6,Antalya,Kredi Kartı
+94,2026-02-24,Ev & Yaşam,Halı,5,3723.93,18619.65,Ankara,Havale/EFT
+95,2026-02-25,Kozmetik,Nemlendirici,7,949.54,6646.78,İzmir,Banka Kartı
+96,2026-02-25,Elektronik,Klavye,2,605.25,1210.5,İzmir,Havale/EFT
+97,2026-02-25,Elektronik,Kablosuz Kulaklık,4,522.65,2090.6,Burdur,Kredi Kartı
+98,2026-02-27,Kozmetik,Güneş Kremi,3,245.27,735.81,İzmir,Kredi Kartı
+99,2026-02-27,Kitap,Roman,4,324.02,1296.08,Antalya,Kredi Kartı
+100,2026-02-27,Kitap,Şiir Kitabı,10,369.6,3696.0,Ankara,Banka Kartı
+101,2026-02-27,Ev & Yaşam,Saklama Kabı Seti,5,3332.62,16663.1,İzmir,Havale/EFT
+102,2026-02-28,Kitap,Ders Kitabı,3,361.42,1084.26,İstanbul,Kapıda Ödeme
+103,2026-03-01,Kitap,Çocuk Kitabı,2,145.41,290.82,Antalya,Kapıda Ödeme
+104,2026-03-02,Kozmetik,Parfüm,4,196.31,785.24,Ankara,Kredi Kartı
+105,2026-03-06,Giyim,Sweatshirt,8,689.68,5517.44,Ankara,Havale/EFT
+106,2026-03-06,Elektronik,Kablosuz Kulaklık,10,2563.48,25634.8,İzmir,Kredi Kartı
+107,2026-03-06,Elektronik,Akıllı Saat,2,3950.25,7900.5,İstanbul,Banka Kartı
+108,2026-03-07,Giyim,Spor Ayakkabı,10,2378.3,23783.0,Ankara,Kredi Kartı
+109,2026-03-09,Kozmetik,Şampuan,6,113.18,679.08,İstanbul,Kapıda Ödeme
+110,2026-03-10,Ev & Yaşam,Saklama Kabı Seti,2,2798.68,5597.36,Ankara,Kapıda Ödeme
+111,2026-03-12,Elektronik,Bluetooth Hoparlör,1,4932.42,4932.42,Ankara,Kredi Kartı
+112,2026-03-13,Kozmetik,Ruj,4,308.39,1233.56,Antalya,Banka Kartı
+113,2026-03-13,Kitap,Roman,9,141.25,1271.25,Antalya,Banka Kartı
+114,2026-03-13,Giyim,Spor Ayakkabı,2,849.31,1698.62,Ankara,Havale/EFT
+115,2026-03-14,Kitap,Çocuk Kitabı,1,291.12,291.12,Antalya,Kapıda Ödeme
+116,2026-03-15,Giyim,Tişört,4,501.68,2006.72,Antalya,Banka Kartı
+117,2026-03-16,Elektronik,Powerbank,7,4350.53,30453.71,İzmir,Havale/EFT
+118,2026-03-16,Giyim,Mont,1,414.21,414.21,Antalya,Havale/EFT
+119,2026-03-17,Giyim,Tişört,5,414.14,2070.7,Ankara,Kredi Kartı
+120,2026-03-19,Kozmetik,Ruj,6,597.55,3585.3,Ankara,Havale/EFT
+121,2026-03-19,Giyim,Spor Ayakkabı,3,1617.65,4852.95,Antalya,Havale/EFT
+122,2026-03-20,Giyim,Tişört,10,1084.12,10841.2,İzmir,Havale/EFT
+123,2026-03-20,Kozmetik,Şampuan,9,1066.06,9594.54,İstanbul,Havale/EFT
+124,2026-03-21,Ev & Yaşam,Battaniye,5,1800.18,9000.9,Antalya,Kredi Kartı
+125,2026-03-21,Kozmetik,Şampuan,5,354.29,1771.45,İzmir,Kredi Kartı
+126,2026-03-21,Kozmetik,Nemlendirici,10,512.35,5123.5,İstanbul,Banka Kartı
+127,2026-03-21,Elektronik,Kablosuz Kulaklık,10,4188.1,41881.0,İzmir,Havale/EFT
+128,2026-03-22,Ev & Yaşam,Saklama Kabı Seti,6,3095.43,18572.58,İzmir,Banka Kartı
+129,2026-03-23,Ev & Yaşam,Saklama Kabı Seti,10,398.12,3981.2,Burdur,Kapıda Ödeme
+130,2026-03-23,Elektronik,Kablosuz Kulaklık,5,2390.03,11950.15,Ankara,Banka Kartı
+131,2026-03-24,Ev & Yaşam,Halı,1,3784.98,3784.98,Antalya,Havale/EFT
+132,2026-03-25,Ev & Yaşam,Saklama Kabı Seti,3,3641.74,10925.22,Burdur,Kredi Kartı
+133,2026-03-25,Ev & Yaşam,Kahve Makinesi,4,3017.46,12069.84,Burdur,Havale/EFT
+134,2026-03-25,Kozmetik,Parfüm,6,751.89,4511.34,Antalya,Banka Kartı
+135,2026-03-25,Kozmetik,Şampuan,4,1038.97,4155.88,İzmir,Banka Kartı
+136,2026-03-26,Giyim,Tişört,6,1254.7,7528.2,İzmir,Kredi Kartı
+137,2026-03-27,Giyim,Spor Ayakkabı,4,927.14,3708.56,Antalya,Havale/EFT
+138,2026-03-27,Kitap,Roman,6,234.61,1407.66,Burdur,Kapıda Ödeme
+139,2026-03-30,Kitap,Roman,8,142.65,1141.2,Ankara,Banka Kartı
+140,2026-03-30,Ev & Yaşam,Battaniye,5,2581.84,12909.2,İzmir,Banka Kartı
+141,2026-03-30,Ev & Yaşam,Battaniye,10,1027.46,10274.6,Antalya,Banka Kartı
+142,2026-03-31,Kozmetik,Şampuan,3,383.31,1149.93,Burdur,Kredi Kartı
+143,2026-04-01,Kozmetik,Nemlendirici,10,785.14,7851.4,İzmir,Banka Kartı
+144,2026-04-01,Ev & Yaşam,Masa Lambası,2,3226.79,6453.58,İstanbul,Havale/EFT
+145,2026-04-02,Kitap,Roman,4,274.55,1098.2,İzmir,Kredi Kartı
+146,2026-04-03,Ev & Yaşam,Kahve Makinesi,7,1288.67,9020.69,Burdur,Kapıda Ödeme
+147,2026-04-03,Ev & Yaşam,Saklama Kabı Seti,7,2125.76,14880.32,Burdur,Kapıda Ödeme
+148,2026-04-04,Ev & Yaşam,Battaniye,4,957.87,3831.48,Antalya,Kredi Kartı
+149,2026-04-05,Giyim,Spor Ayakkabı,7,1111.07,7777.49,Ankara,Banka Kartı
+150,2026-04-06,Kozmetik,Ruj,8,929.78,7438.24,Burdur,Kapıda Ödeme
+151,2026-04-06,Elektronik,Powerbank,10,386.66,3866.6,İzmir,Banka Kartı
+152,2026-04-07,Ev & Yaşam,Battaniye,1,1536.45,1536.45,İstanbul,Kredi Kartı
+153,2026-04-09,Elektronik,Bluetooth Hoparlör,8,3037.49,24299.92,İzmir,Kredi Kartı
+154,2026-04-10,Kitap,Çocuk Kitabı,4,75.92,303.68,Antalya,Havale/EFT
+155,2026-04-11,Ev & Yaşam,Saklama Kabı Seti,8,2130.51,17044.08,Antalya,Kapıda Ödeme
+156,2026-04-11,Kozmetik,Şampuan,4,1034.87,4139.48,Burdur,Banka Kartı
+157,2026-04-13,Kitap,Şiir Kitabı,8,204.43,1635.44,İstanbul,Banka Kartı
+158,2026-04-14,Elektronik,Klavye,5,3358.73,16793.65,İzmir,Kapıda Ödeme
+159,2026-04-16,Kozmetik,Ruj,2,289.2,578.4,Ankara,Kapıda Ödeme
+160,2026-04-17,Elektronik,Kablosuz Kulaklık,1,2675.86,2675.86,İstanbul,Kredi Kartı
+161,2026-04-17,Kozmetik,Ruj,3,253.55,760.65,İstanbul,Kapıda Ödeme
+162,2026-04-17,Ev & Yaşam,Masa Lambası,9,2472.78,22255.02,İzmir,Kapıda Ödeme
+163,2026-04-18,Elektronik,Bluetooth Hoparlör,8,481.63,3853.04,Ankara,Kredi Kartı
+164,2026-04-19,Elektronik,Powerbank,5,2176.22,10881.1,Burdur,Havale/EFT
+165,2026-04-19,Kozmetik,Parfüm,6,1092.02,6552.12,Burdur,Banka Kartı
+166,2026-04-20,Giyim,Spor Ayakkabı,9,897.19,8074.71,Antalya,Kredi Kartı
+167,2026-04-21,Kitap,Şiir Kitabı,3,143.11,429.33,İzmir,Banka Kartı
+168,2026-04-21,Kozmetik,Şampuan,7,503.18,3522.26,Antalya,Kredi Kartı
+169,2026-04-23,Elektronik,Kablosuz Kulaklık,10,1874.72,18747.2,İstanbul,Kredi Kartı
+170,2026-04-24,Kozmetik,Parfüm,9,618.17,5563.53,İzmir,Kredi Kartı
+171,2026-04-25,Kitap,Şiir Kitabı,4,297.86,1191.44,Antalya,Banka Kartı
+172,2026-04-25,Ev & Yaşam,Halı,7,1278.74,8951.18,İzmir,Kapıda Ödeme
+173,2026-04-25,Ev & Yaşam,Kahve Makinesi,5,3380.91,16904.55,Burdur,Kapıda Ödeme
+174,2026-04-27,Elektronik,Kablosuz Kulaklık,6,2663.51,15981.06,Antalya,Havale/EFT
+175,2026-04-27,Elektronik,Akıllı Saat,7,3796.78,26577.46,İstanbul,Kapıda Ödeme
+176,2026-04-27,Kozmetik,Nemlendirici,5,704.16,3520.8,Antalya,Kredi Kartı
+177,2026-04-28,Kozmetik,Şampuan,1,671.55,671.55,Antalya,Banka Kartı
+178,2026-04-28,Ev & Yaşam,Halı,10,1162.73,11627.3,Ankara,Banka Kartı
+179,2026-04-30,Ev & Yaşam,Halı,7,832.33,5826.31,Antalya,Kapıda Ödeme
+180,2026-04-30,Kitap,Ders Kitabı,6,222.73,1336.38,İzmir,Kapıda Ödeme
+181,2026-04-30,Kozmetik,Şampuan,4,1022.55,4090.2,İstanbul,Kredi Kartı
+182,2026-05-02,Ev & Yaşam,Masa Lambası,6,2072.12,12432.72,Burdur,Kredi Kartı
+183,2026-05-02,Kitap,Deneme,2,281.89,563.78,Ankara,Kredi Kartı
+184,2026-05-04,Elektronik,Kablosuz Kulaklık,7,4661.46,32630.22,İzmir,Kredi Kartı
+185,2026-05-06,Kitap,Çocuk Kitabı,6,377.83,2266.98,Antalya,Banka Kartı
+186,2026-05-07,Giyim,Kot Pantolon,5,2283.51,11417.55,Antalya,Kapıda Ödeme
+187,2026-05-08,Kozmetik,Nemlendirici,3,687.08,2061.24,İstanbul,Kapıda Ödeme
+188,2026-05-08,Giyim,Spor Ayakkabı,8,2144.13,17153.04,İzmir,Banka Kartı
+189,2026-05-09,Giyim,Kot Pantolon,9,568.45,5116.05,İzmir,Banka Kartı
+190,2026-05-09,Ev & Yaşam,Saklama Kabı Seti,8,186.55,1492.4,Antalya,Kapıda Ödeme
+191,2026-05-11,Kitap,Roman,4,253.08,1012.32,İstanbul,Kredi Kartı
+192,2026-05-12,Elektronik,Powerbank,4,1614.29,6457.16,İzmir,Banka Kartı
+193,2026-05-12,Kozmetik,Parfüm,4,575.03,2300.12,Burdur,Havale/EFT
+194,2026-05-13,Ev & Yaşam,Kahve Makinesi,10,1659.29,16592.9,İstanbul,Banka Kartı
+195,2026-05-13,Giyim,Kot Pantolon,10,945.31,9453.1,Antalya,Havale/EFT
+196,2026-05-14,Elektronik,Kablosuz Kulaklık,5,3874.57,19372.85,Ankara,Kredi Kartı
+197,2026-05-14,Giyim,Spor Ayakkabı,1,2231.34,2231.34,İstanbul,Kredi Kartı
+198,2026-05-16,Kitap,Ders Kitabı,6,134.26,805.56,Burdur,Kredi Kartı
+199,2026-05-16,Kozmetik,Parfüm,2,332.76,665.52,Ankara,Banka Kartı
+200,2026-05-16,Elektronik,Klavye,1,3208.91,3208.91,Antalya,Havale/EFT
+201,2026-05-17,Kitap,Şiir Kitabı,3,252.51,757.53,İzmir,Kapıda Ödeme
+202,2026-05-17,Kozmetik,Nemlendirici,4,1146.12,4584.48,İstanbul,Havale/EFT
+203,2026-05-17,Ev & Yaşam,Battaniye,9,1997.92,17981.28,İzmir,Kredi Kartı
+204,2026-05-18,Giyim,Mont,3,870.04,2610.12,İzmir,Kredi Kartı
+205,2026-05-19,Kitap,Deneme,10,67.79,677.9,Antalya,Kredi Kartı
+206,2026-05-22,Giyim,Spor Ayakkabı,2,781.72,1563.44,İzmir,Kapıda Ödeme
+207,2026-05-23,Elektronik,Klavye,8,3485.23,27881.84,İstanbul,Havale/EFT
+208,2026-05-23,Elektronik,Kablosuz Kulaklık,6,1746.03,10476.18,Burdur,Kredi Kartı
+209,2026-05-24,Ev & Yaşam,Saklama Kabı Seti,9,2062.59,18563.31,İzmir,Banka Kartı
+210,2026-05-24,Kitap,Şiir Kitabı,4,57.6,230.4,Antalya,Kapıda Ödeme
+211,2026-05-25,Ev & Yaşam,Halı,10,482.97,4829.7,Antalya,Kapıda Ödeme
+212,2026-05-26,Kozmetik,Güneş Kremi,8,62.67,501.36,Antalya,Banka Kartı
+213,2026-05-27,Kitap,Deneme,5,175.88,879.4,Burdur,Banka Kartı
+214,2026-05-27,Kozmetik,Parfüm,6,436.73,2620.38,İstanbul,Kapıda Ödeme
+215,2026-05-28,Kozmetik,Nemlendirici,10,549.97,5499.7,İstanbul,Kapıda Ödeme
+216,2026-05-28,Kozmetik,Parfüm,8,681.92,5455.36,İzmir,Kredi Kartı
+217,2026-05-28,Ev & Yaşam,Battaniye,3,1809.02,5427.06,İzmir,Kapıda Ödeme
+218,2026-05-29,Ev & Yaşam,Battaniye,2,3551.96,7103.92,Burdur,Kredi Kartı
+219,2026-05-30,Ev & Yaşam,Battaniye,8,3837.38,30699.04,Burdur,Havale/EFT
+220,2026-06-01,Kitap,Roman,10,269.39,2693.9,Burdur,Kredi Kartı
+221,2026-06-01,Kitap,Çocuk Kitabı,1,328.33,328.33,Ankara,Kredi Kartı
+222,2026-06-01,Kitap,Ders Kitabı,7,272.83,1909.81,İstanbul,Havale/EFT
+223,2026-06-01,Elektronik,Powerbank,8,4289.32,34314.56,Ankara,Havale/EFT
+224,2026-06-02,Kitap,Şiir Kitabı,7,132.34,926.38,İstanbul,Banka Kartı
+225,2026-06-03,Giyim,Sweatshirt,5,1148.0,5740.0,Burdur,Kapıda Ödeme
+226,2026-06-03,Kitap,Çocuk Kitabı,3,396.6,1189.8,Burdur,Havale/EFT
+227,2026-06-04,Kozmetik,Nemlendirici,8,1154.72,9237.76,Burdur,Kapıda Ödeme
+228,2026-06-05,Ev & Yaşam,Halı,2,1846.26,3692.52,Antalya,Kapıda Ödeme
+229,2026-06-06,Giyim,Mont,1,221.29,221.29,Burdur,Kapıda Ödeme
+230,2026-06-06,Giyim,Kot Pantolon,7,316.0,2212.0,Antalya,Havale/EFT
+231,2026-06-06,Ev & Yaşam,Kahve Makinesi,10,1932.42,19324.2,İstanbul,Kapıda Ödeme
+232,2026-06-06,Kitap,Roman,2,180.8,361.6,İstanbul,Kredi Kartı
+233,2026-06-08,Ev & Yaşam,Saklama Kabı Seti,3,3140.89,9422.67,İstanbul,Banka Kartı
+234,2026-06-09,Elektronik,Klavye,4,2793.07,11172.28,Antalya,Kapıda Ödeme
+235,2026-06-09,Kozmetik,Parfüm,4,642.4,2569.6,İstanbul,Kredi Kartı
+236,2026-06-10,Kozmetik,Güneş Kremi,1,1047.25,1047.25,Antalya,Kredi Kartı
+237,2026-06-10,Ev & Yaşam,Saklama Kabı Seti,1,3449.48,3449.48,Antalya,Kapıda Ödeme
+238,2026-06-10,Kitap,Roman,2,168.91,337.82,İstanbul,Kapıda Ödeme
+239,2026-06-11,Giyim,Mont,5,990.19,4950.95,İzmir,Kredi Kartı
+240,2026-06-11,Giyim,Sweatshirt,2,2139.35,4278.7,İstanbul,Havale/EFT
+241,2026-06-12,Ev & Yaşam,Saklama Kabı Seti,6,3737.1,22422.6,İstanbul,Kredi Kartı
+242,2026-06-12,Giyim,Sweatshirt,2,900.52,1801.04,İzmir,Banka Kartı
+243,2026-06-13,Ev & Yaşam,Saklama Kabı Seti,8,3144.49,25155.92,Ankara,Havale/EFT
+244,2026-06-13,Kozmetik,Ruj,4,544.45,2177.8,Burdur,Havale/EFT
+245,2026-06-14,Kitap,Deneme,9,241.03,2169.27,İzmir,Banka Kartı
+246,2026-06-15,Ev & Yaşam,Masa Lambası,1,1886.85,1886.85,Antalya,Kredi Kartı
+247,2026-06-15,Ev & Yaşam,Halı,10,1853.83,18538.3,Antalya,Banka Kartı
+248,2026-06-16,Elektronik,Akıllı Saat,6,4994.5,29967.0,Antalya,Havale/EFT
+249,2026-06-17,Giyim,Spor Ayakkabı,5,1614.56,8072.8,İzmir,Havale/EFT
+250,2026-06-17,Elektronik,Powerbank,4,3821.12,15284.48,Ankara,Havale/EFT
+251,2026-06-18,Giyim,Spor Ayakkabı,6,360.78,2164.68,Ankara,Havale/EFT
+252,2026-06-18,Elektronik,Akıllı Saat,2,2078.09,4156.18,Burdur,Havale/EFT
+253,2026-06-18,Giyim,Mont,8,1910.98,15287.84,İzmir,Havale/EFT
+254,2026-06-19,Ev & Yaşam,Kahve Makinesi,10,3774.22,37742.2,Burdur,Banka Kartı
+255,2026-06-20,Kitap,Şiir Kitabı,10,205.73,2057.3,Burdur,Havale/EFT
+256,2026-06-21,Giyim,Spor Ayakkabı,9,1127.61,10148.49,Ankara,Havale/EFT
+257,2026-06-22,Ev & Yaşam,Halı,6,1071.9,6431.4,Burdur,Kredi Kartı
+258,2026-06-22,Elektronik,Akıllı Saat,1,2520.6,2520.6,İstanbul,Havale/EFT
+259,2026-06-25,Kozmetik,Güneş Kremi,4,377.53,1510.12,İstanbul,Havale/EFT
+260,2026-06-27,Ev & Yaşam,Kahve Makinesi,1,2155.21,2155.21,Burdur,Havale/EFT
+261,2026-06-28,Ev & Yaşam,Kahve Makinesi,8,3678.01,29424.08,Ankara,Havale/EFT
+262,2026-06-29,Kozmetik,Şampuan,6,165.33,991.98,Burdur,Havale/EFT
+263,2026-07-01,Kitap,Çocuk Kitabı,9,299.46,2695.14,İzmir,Kredi Kartı
+264,2026-07-01,Kitap,Roman,4,313.82,1255.28,Burdur,Kapıda Ödeme
+265,2026-07-03,Elektronik,Akıllı Saat,9,4260.84,38347.56,Ankara,Havale/EFT
+266,2026-07-06,Ev & Yaşam,Halı,10,668.16,6681.6,İstanbul,Kredi Kartı
+267,2026-07-07,Giyim,Sweatshirt,3,1222.37,3667.11,Ankara,Havale/EFT
+268,2026-07-08,Kitap,Ders Kitabı,4,335.28,1341.12,İstanbul,Kapıda Ödeme
+269,2026-07-08,Elektronik,Powerbank,6,2156.98,12941.88,Antalya,Havale/EFT
+270,2026-07-08,Kozmetik,Parfüm,3,563.22,1689.66,Burdur,Kapıda Ödeme
+271,2026-07-08,Ev & Yaşam,Kahve Makinesi,1,374.07,374.07,Ankara,Kredi Kartı
+272,2026-07-08,Kitap,Ders Kitabı,6,98.93,593.58,Antalya,Havale/EFT
+273,2026-07-09,Giyim,Spor Ayakkabı,5,1245.28,6226.4,İstanbul,Banka Kartı
+274,2026-07-09,Elektronik,Akıllı Saat,10,2611.52,26115.2,İzmir,Kapıda Ödeme
+275,2026-07-10,Kitap,Roman,10,278.62,2786.2,Antalya,Banka Kartı
+276,2026-07-10,Giyim,Tişört,2,325.14,650.28,İzmir,Banka Kartı
+277,2026-07-10,Kitap,Deneme,4,267.65,1070.6,Antalya,Kredi Kartı
+278,2026-07-10,Elektronik,Akıllı Saat,8,1512.1,12096.8,Antalya,Banka Kartı
+279,2026-07-12,Kozmetik,Ruj,8,126.85,1014.8,İstanbul,Havale/EFT
+280,2026-07-12,Kozmetik,Şampuan,5,682.78,3413.9,Antalya,Kredi Kartı
+281,2026-07-12,Kitap,Roman,2,296.76,593.52,Antalya,Kredi Kartı
+282,2026-07-13,Giyim,Tişört,3,2247.25,6741.75,İzmir,Havale/EFT
+283,2026-07-13,Kitap,Çocuk Kitabı,9,224.28,2018.52,Ankara,Kredi Kartı
+284,2026-07-13,Ev & Yaşam,Battaniye,10,2022.77,20227.7,İzmir,Banka Kartı
+285,2026-07-14,Kozmetik,Ruj,3,936.39,2809.17,İzmir,Havale/EFT
+286,2026-07-14,Ev & Yaşam,Kahve Makinesi,5,1912.54,9562.7,Burdur,Kapıda Ödeme
+287,2026-07-16,Giyim,Kot Pantolon,7,2362.16,16535.12,İstanbul,Kapıda Ödeme
+288,2026-07-16,Ev & Yaşam,Saklama Kabı Seti,8,167.29,1338.32,Burdur,Kapıda Ödeme
+289,2026-07-17,Kozmetik,Ruj,3,1081.27,3243.81,Ankara,Havale/EFT
+290,2026-07-17,Kitap,Deneme,4,167.9,671.6,Ankara,Havale/EFT
+291,2026-07-18,Giyim,Sweatshirt,1,1425.19,1425.19,Ankara,Havale/EFT
+292,2026-07-18,Ev & Yaşam,Halı,8,3168.15,25345.2,Ankara,Kredi Kartı
+293,2026-07-18,Elektronik,Kablosuz Kulaklık,3,3184.99,9554.97,İstanbul,Banka Kartı
+294,2026-07-19,Kozmetik,Ruj,3,411.5,1234.5,İzmir,Kapıda Ödeme
+295,2026-07-20,Kitap,Ders Kitabı,1,133.42,133.42,İstanbul,Banka Kartı
+296,2026-07-20,Ev & Yaşam,Masa Lambası,7,3134.74,21943.18,Ankara,Havale/EFT
+297,2026-07-23,Kitap,Çocuk Kitabı,3,139.15,417.45,Ankara,Havale/EFT
+298,2026-07-23,Elektronik,Kablosuz Kulaklık,5,3150.86,15754.3,İzmir,Kredi Kartı
+299,2026-07-24,Kozmetik,Şampuan,2,385.03,770.06,İstanbul,Kredi Kartı
+300,2026-07-24,Ev & Yaşam,Battaniye,3,1696.05,5088.15,Burdur,Havale/EFT
+301,2026-07-25,Elektronik,Powerbank,6,3086.9,18521.4,Ankara,Havale/EFT
+302,2026-07-25,Giyim,Kot Pantolon,3,1712.45,5137.35,Ankara,Banka Kartı
+303,2026-07-25,Giyim,Mont,9,646.88,5821.92,İstanbul,Banka Kartı
+304,2026-07-25,Elektronik,Powerbank,8,4647.32,37178.56,Antalya,Kredi Kartı
+305,2026-07-26,Kitap,Şiir Kitabı,2,244.95,489.9,Antalya,Kapıda Ödeme
+306,2026-07-26,Elektronik,Klavye,6,1648.39,9890.34,Ankara,Banka Kartı
+307,2026-07-26,Giyim,Sweatshirt,7,2426.7,16986.9,Burdur,Kapıda Ödeme
+308,2026-07-26,Kitap,Ders Kitabı,6,206.24,1237.44,Burdur,Kapıda Ödeme
+309,2026-07-26,Kozmetik,Şampuan,3,75.11,225.33,Antalya,Havale/EFT
+310,2026-07-28,Kitap,Roman,4,187.22,748.88,İstanbul,Kapıda Ödeme
+311,2026-07-28,Ev & Yaşam,Kahve Makinesi,4,3008.54,12034.16,Burdur,Kredi Kartı
+312,2026-07-28,Elektronik,Akıllı Saat,1,2235.66,2235.66,Ankara,Havale/EFT
+313,2026-07-28,Kitap,Roman,9,328.8,2959.2,İstanbul,Kredi Kartı
+314,2026-07-28,Giyim,Sweatshirt,2,1860.32,3720.64,İstanbul,Banka Kartı
+315,2026-07-28,Kitap,Roman,4,111.83,447.32,İzmir,Havale/EFT
+316,2026-07-28,Kozmetik,Nemlendirici,5,1144.72,5723.6,İzmir,Kapıda Ödeme
+317,2026-07-29,Giyim,Sweatshirt,9,1625.34,14628.06,İstanbul,Banka Kartı
+318,2026-07-29,Kozmetik,Nemlendirici,1,205.34,205.34,Ankara,Kredi Kartı
+319,2026-08-01,Ev & Yaşam,Kahve Makinesi,10,1349.69,13496.9,Burdur,Havale/EFT
+320,2026-08-03,Giyim,Mont,5,436.13,2180.65,İstanbul,Kredi Kartı
+321,2026-08-04,Elektronik,Akıllı Saat,6,4667.06,28002.36,Antalya,Havale/EFT
+322,2026-08-05,Elektronik,Bluetooth Hoparlör,10,1186.95,11869.5,İzmir,Banka Kartı
+323,2026-08-06,Kozmetik,Parfüm,9,566.96,5102.64,Burdur,Kredi Kartı
+324,2026-08-06,Giyim,Mont,3,201.63,604.89,İzmir,Kapıda Ödeme
+325,2026-08-07,Giyim,Spor Ayakkabı,8,505.3,4042.4,İzmir,Kredi Kartı
+326,2026-08-08,Ev & Yaşam,Battaniye,4,2651.02,10604.08,Antalya,Kapıda Ödeme
+327,2026-08-09,Kitap,Şiir Kitabı,6,204.34,1226.04,İzmir,Havale/EFT
+328,2026-08-14,Elektronik,Klavye,9,320.24,2882.16,Burdur,Kapıda Ödeme
+329,2026-08-14,Ev & Yaşam,Saklama Kabı Seti,10,3699.52,36995.2,Burdur,Havale/EFT
+330,2026-08-14,Elektronik,Klavye,10,3800.42,38004.2,Ankara,Kapıda Ödeme
+331,2026-08-14,Elektronik,Powerbank,10,1457.86,14578.6,İstanbul,Havale/EFT
+332,2026-08-15,Giyim,Kot Pantolon,5,388.27,1941.35,Burdur,Kredi Kartı
+333,2026-08-15,Elektronik,Akıllı Saat,4,1121.59,4486.36,Ankara,Banka Kartı
+334,2026-08-16,Kozmetik,Şampuan,9,119.38,1074.42,Burdur,Havale/EFT
+335,2026-08-16,Kitap,Ders Kitabı,3,94.9,284.7,Antalya,Kredi Kartı
+336,2026-08-16,Giyim,Spor Ayakkabı,1,1727.13,1727.13,İzmir,Havale/EFT
+337,2026-08-17,Kozmetik,Parfüm,10,113.49,1134.9,Antalya,Kapıda Ödeme
+338,2026-08-17,Kitap,Ders Kitabı,4,317.06,1268.24,İzmir,Banka Kartı
+339,2026-08-17,Elektronik,Powerbank,2,3187.61,6375.22,İstanbul,Banka Kartı
+340,2026-08-18,Giyim,Mont,9,1120.2,10081.8,İzmir,Banka Kartı
+341,2026-08-19,Elektronik,Powerbank,4,1242.64,4970.56,Ankara,Banka Kartı
+342,2026-08-19,Kozmetik,Şampuan,4,352.3,1409.2,Antalya,Kapıda Ödeme
+343,2026-08-19,Elektronik,Akıllı Saat,6,4290.2,25741.2,Antalya,Banka Kartı
+344,2026-08-20,Giyim,Sweatshirt,8,1870.04,14960.32,Ankara,Kapıda Ödeme
+345,2026-08-20,Giyim,Mont,10,1914.62,19146.2,İzmir,Kapıda Ödeme
+346,2026-08-21,Kozmetik,Nemlendirici,4,307.13,1228.52,Burdur,Kredi Kartı
+347,2026-08-21,Kitap,Çocuk Kitabı,4,182.24,728.96,Ankara,Kredi Kartı
+348,2026-08-22,Ev & Yaşam,Saklama Kabı Seti,1,926.43,926.43,Antalya,Kapıda Ödeme
+349,2026-08-23,Ev & Yaşam,Kahve Makinesi,4,685.34,2741.36,Ankara,Havale/EFT
+350,2026-08-24,Ev & Yaşam,Kahve Makinesi,1,2870.72,2870.72,Antalya,Kapıda Ödeme
+351,2026-08-25,Ev & Yaşam,Saklama Kabı Seti,8,2755.75,22046.0,Burdur,Havale/EFT
+352,2026-08-26,Kitap,Ders Kitabı,6,337.77,2026.62,Burdur,Kredi Kartı
+353,2026-08-26,Kozmetik,Ruj,4,897.06,3588.24,İstanbul,Kredi Kartı
+354,2026-08-26,Kitap,Çocuk Kitabı,4,136.35,545.4,Burdur,Banka Kartı
+355,2026-08-27,Giyim,Tişört,3,1735.19,5205.57,İstanbul,Havale/EFT
+356,2026-08-27,Kozmetik,Şampuan,5,904.34,4521.7,Burdur,Havale/EFT
+357,2026-08-27,Giyim,Spor Ayakkabı,5,272.31,1361.55,İstanbul,Kredi Kartı
+358,2026-08-29,Kitap,Ders Kitabı,5,125.34,626.7,İstanbul,Kredi Kartı
+359,2026-08-30,Ev & Yaşam,Saklama Kabı Seti,5,3538.13,17690.65,Antalya,Havale/EFT
+360,2026-08-31,Kozmetik,Ruj,4,464.93,1859.72,İstanbul,Kredi Kartı
+361,2026-08-31,Giyim,Kot Pantolon,3,718.27,2154.81,Burdur,Kapıda Ödeme
+362,2026-08-31,Elektronik,Kablosuz Kulaklık,4,1247.21,4988.84,İzmir,Kapıda Ödeme
+363,2026-08-31,Ev & Yaşam,Kahve Makinesi,10,3891.6,38916.0,Ankara,Kredi Kartı
+364,2026-09-01,Kozmetik,Güneş Kremi,2,74.33,148.66,Burdur,Kredi Kartı
+365,2026-09-01,Elektronik,Bluetooth Hoparlör,6,2480.43,14882.58,İzmir,Havale/EFT
+366,2026-09-02,Kitap,Şiir Kitabı,8,145.7,1165.6,İstanbul,Kapıda Ödeme
+367,2026-09-03,Ev & Yaşam,Kahve Makinesi,6,3403.52,20421.12,Antalya,Kredi Kartı
+368,2026-09-03,Giyim,Sweatshirt,2,1961.9,3923.8,İstanbul,Havale/EFT
+369,2026-09-03,Elektronik,Klavye,9,2886.52,25978.68,İstanbul,Banka Kartı
+370,2026-09-06,Ev & Yaşam,Halı,8,2667.15,21337.2,Antalya,Havale/EFT
+371,2026-09-08,Kitap,Çocuk Kitabı,3,84.23,252.69,İzmir,Banka Kartı
+372,2026-09-08,Elektronik,Powerbank,2,1926.5,3853.0,Ankara,Kredi Kartı
+373,2026-09-08,Kozmetik,Güneş Kremi,8,102.86,822.88,İstanbul,Banka Kartı
+374,2026-09-09,Kozmetik,Parfüm,9,1115.67,10041.03,Ankara,Havale/EFT
+375,2026-09-10,Kitap,Ders Kitabı,2,349.68,699.36,İzmir,Banka Kartı
+376,2026-09-11,Ev & Yaşam,Saklama Kabı Seti,9,3411.17,30700.53,İstanbul,Kredi Kartı
+377,2026-09-12,Elektronik,Klavye,2,1139.44,2278.88,Antalya,Kredi Kartı
+378,2026-09-12,Elektronik,Kablosuz Kulaklık,4,2438.0,9752.0,Ankara,Kredi Kartı
+379,2026-09-15,Giyim,Kot Pantolon,5,2475.58,12377.9,İzmir,Kapıda Ödeme
+380,2026-09-16,Giyim,Spor Ayakkabı,8,2451.95,19615.6,Ankara,Banka Kartı
+381,2026-09-16,Kozmetik,Ruj,3,218.75,656.25,İzmir,Kapıda Ödeme
+382,2026-09-17,Elektronik,Powerbank,8,3149.61,25196.88,Burdur,Havale/EFT
+383,2026-09-18,Kitap,Çocuk Kitabı,10,361.46,3614.6,Burdur,Banka Kartı
+384,2026-09-18,Kozmetik,Parfüm,9,382.84,3445.56,Antalya,Banka Kartı
+385,2026-09-19,Kozmetik,Güneş Kremi,9,223.19,2008.71,İzmir,Kapıda Ödeme
+386,2026-09-22,Kozmetik,Ruj,1,742.3,742.3,Antalya,Banka Kartı
+387,2026-09-23,Ev & Yaşam,Battaniye,4,1005.11,4020.44,Antalya,Banka Kartı
+388,2026-09-23,Kozmetik,Şampuan,1,555.78,555.78,Antalya,Kapıda Ödeme
+389,2026-09-24,Elektronik,Bluetooth Hoparlör,5,3706.64,18533.2,Burdur,Kredi Kartı
+390,2026-09-24,Kitap,Ders Kitabı,6,299.1,1794.6,Ankara,Banka Kartı
+391,2026-09-27,Kitap,Çocuk Kitabı,3,130.03,390.09,Ankara,Kapıda Ödeme
+392,2026-09-27,Elektronik,Kablosuz Kulaklık,7,1560.0,10920.0,Antalya,Kapıda Ödeme
+393,2026-09-27,Ev & Yaşam,Halı,4,217.66,870.64,Antalya,Kapıda Ödeme
+394,2026-09-27,Elektronik,Kablosuz Kulaklık,9,1025.13,9226.17,İzmir,Kapıda Ödeme
+395,2026-09-28,Kozmetik,Parfüm,8,418.84,3350.72,İstanbul,Havale/EFT
+396,2026-09-28,Elektronik,Klavye,5,1334.74,6673.7,Burdur,Havale/EFT
+397,2026-09-28,Kozmetik,Nemlendirici,5,1088.33,5441.65,Antalya,Kapıda Ödeme
+398,2026-09-28,Ev & Yaşam,Battaniye,9,3344.72,30102.48,Burdur,Banka Kartı
+399,2026-09-29,Ev & Yaşam,Saklama Kabı Seti,6,3353.69,20122.14,İzmir,Kapıda Ödeme
+400,2026-09-30,Kitap,Şiir Kitabı,3,90.56,271.68,İzmir,Havale/EFT
