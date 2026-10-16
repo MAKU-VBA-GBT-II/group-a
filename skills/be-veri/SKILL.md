@@ -22,12 +22,12 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 | # | Alan | Tip | Geçerli aralık / değerler | Birim |
 |---|---|---|---|---|
 | 1 | `siparis_id` | int | 1'den başlar, 1'er artar, benzersiz | – |
-| 2 | `siparis_tarihi` | tarih (`YYYY-MM-DD`) | 2026-09-01 – 2026-09-30 | – |
+| 2 | `siparis_tarihi` | tarih (`YYYY-MM-DD`) | 2026-01-01 – 2026-09-30 | – |
 | 3 | `kategori` | metin | Elektronik, Giyim, Ev & Yaşam, Kozmetik, Kitap | – |
 | 4 | `urun` | metin | kategorisine ait ürün adı (her kategoride 5 ürün) | – |
 | 5 | `adet` | int | 1 – 10 | adet |
-| 6 | `birim_fiyat` | float | 20.00 – 5000.00, 2 ondalık | TL |
-| 7 | `toplam_tutar` | float | `adet × birim_fiyat`, 2 ondalığa yuvarlı | TL |
+| 6 | `birim_fiyat` | float | 50.00 – 5000.00, 2 ondalık | TL |
+| 7 | `toplam_tutar` | float | `adet × birim_fiyat`, 2 ondalığa yuvarlı (50 – 50000) | TL |
 | 8 | `sehir` | metin | İstanbul, Ankara, İzmir, Burdur, Antalya | – |
 | 9 | `odeme_tipi` | metin | Kredi Kartı, Banka Kartı, Havale/EFT, Kapıda Ödeme | – |
 
@@ -50,7 +50,7 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 
 1. **Kategori adları birebir aynı yazılır.** `Ev & Yaşam` her satırda tam olarak böyledir — büyük/küçük harf, boşluk veya `&` farkı olmaz.
 2. **`urun` daima kendi kategorisinden seçilir.** Kategoriler arası karışma olmaz.
-3. **`birim_fiyat` kategoriye göre makul aralıkta üretilir** (ör. Kitap 20–300, Elektronik 300–5000); ama hepsi şemadaki 20–5000 sınırları içinde kalır.
+3. **`birim_fiyat` kategoriye göre makul aralıkta üretilir** (ör. Kitap 50–400, Elektronik 300–5000); ama hepsi şemadaki 50–5000 sınırları içinde kalır.
 4. **`toplam_tutar` hesaplanır, rastgele üretilmez:** `round(adet * birim_fiyat, 2)`. DQ bunu TC-08'de test eder.
 5. **Fiyatlarda biçimlendirme yok:** binlik ayırıcı yok, "TL" yazısı yok, sadece sayı (`1249.90`).
 6. **Her kategori ve her şehir en az bir kez geçer**; dağılım tamamen düzgün olmak zorunda değil.
