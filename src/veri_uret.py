@@ -158,7 +158,7 @@ def main() -> None:
     df = uret()
     dogrula(df)
     CIKTI.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(CIKTI, index=False, encoding="utf-8", lineterminator="\n")
+    df.to_csv(CIKTI, index=False, encoding="utf-8", lineterminator="\n", float_format="%.2f")
 
     print(f"Yazıldı: {CIKTI.relative_to(CIKTI.parent.parent)}")
     print(f"  Satır      : {len(df)}")
