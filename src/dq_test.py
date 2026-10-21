@@ -1,4 +1,4 @@
-"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-08).
+"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-09).
 
 Kullanım:
     python src/dq_test.py                      # varsayılan: data/siparisler.csv
@@ -8,6 +8,7 @@ Her senaryo için GEÇTİ/KALDI ve gerçekleşen sonucu yazdırır.
 Çıkış kodu: tüm testler geçerse 0, aksi halde 1.
 """
 import os
+import re
 import sys
 
 import pandas as pd
@@ -106,6 +107,19 @@ def tc08(df):
     return n == 0, f"adet × birim_fiyat ile uyuşmayan satır: {n}"
 
 
+def tc09(yol):
+    """Para alanları dosyada tam 2 ondalıkla mı yazılmış? (sözlük: "float, 2 ondalık")"""
+    ham = pd.read_csv(yol, dtype=str, keep_default_na=False)
+    desen = re.compile(r"^\d+\.\d{2}$")
+    hatali = {}
+    for alan in ("birim_fiyat", "toplam_tutar"):
+        n = int((~ham[alan].str.match(desen)).sum())
+        if n:
+            hatali[alan] = n
+    satir = int((~ham["birim_fiyat"].str.match(desen) | ~ham["toplam_tutar"].str.match(desen)).sum())
+    return satir == 0, f"2 ondalıklı olmayan satır: {satir} {hatali or ''}".strip()
+
+
 def main():
     yol = sys.argv[1] if len(sys.argv) > 1 else "data/siparisler.csv"
     sonuclar = []
@@ -121,6 +135,11 @@ def main():
             except KeyError as e:
                 ok, mesaj = False, f"sütun bulunamadı: {e}"
             sonuclar.append((ad, ok, mesaj))
+        try:
+            ok, mesaj = tc09(yol)
+        except KeyError as e:
+            ok, mesaj = False, f"sütun bulunamadı: {e}"
+        sonuclar.append(("TC-09", ok, mesaj))
 
     print(f"Dosya: {yol}\n")
     print("| ID | Gerçekleşen sonuç | Geçti/Kaldı |")
