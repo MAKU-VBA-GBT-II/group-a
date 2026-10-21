@@ -3,6 +3,7 @@
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** DQ — Tuğba Tuana Kaygısız · **Issue:** #16
 **Test edilen dosya:** `data/siparisler.csv` · **Referans şema:** `docs/veri-sozlugu-g1.md`
 **Çalıştırma:** `python src/dq_test.py` (sonuçlar aşağıda; çalıştırma kaydı `tests/test-log.md`)
+**Son çalıştırma:** 2026-10-21 · Hafta 4 test turu · TC-01…TC-08 nihai veride yeniden çalıştırıldı (sonuçlar değişmedi), TC-09 eklendi.
 
 > Not: Beklenen sonuçlar, BE ile kesinleştirilen şemaya göredir (#13). Şemada değişiklik olursa bu dosyadaki "Beklenen sonuç" hücreleri güncellenir.
 
@@ -37,9 +38,11 @@ Hedef satır sayısı: **400** (başlık satırı hariç; ödevdeki alt sınır 
 | TC-06 | Eksik (boş) değer var mı? | 1) Her sütun için `isna().sum()` hesapla. 2) Boş metin (`""`) değerlerini de say. | Tüm sütunlar | Hiçbir sütunda boş/eksik değer yok (toplam = 0). | Toplam eksik değer = 0. | ✅ Geçti |
 | TC-07 | Sipariş kimliği benzersiz mi? | 1) `siparis_id` tekrarlarını say (`duplicated().sum()`). 2) Tamamen aynı satır var mı kontrol et. | `siparis_id` sütunu | Tekrarlanan `siparis_id` = 0; birebir tekrar eden satır = 0. | Tekrarlanan `siparis_id` = 0, tekrarlanan satır = 0. | ✅ Geçti |
 | TC-08 | `toplam_tutar` tutarlı mı? | 1) Her satır için `adet × birim_fiyat` hesapla. 2) `toplam_tutar` ile farkını al. | `adet`, `birim_fiyat`, `toplam_tutar` sütunları | Farkı 0,01 TL'den büyük olan satır sayısı = 0. | `adet × birim_fiyat` ile uyuşmayan satır = 0. | ✅ Geçti |
+| TC-09 | Para alanları dosyada tam 2 ondalıkla mı yazılmış? | 1) Dosyayı metin olarak oku (`dtype=str`). 2) `birim_fiyat` ve `toplam_tutar` değerlerini `^\d+\.\d{2}$` desenine göre kontrol et. 3) Desene uymayan satırları say. | `birim_fiyat`, `toplam_tutar` sütunları (ham metin) | Veri sözlüğündeki "2 ondalık" biçimine uymayan satır sayısı = 0 (ör. `1667.40`, `1667.4` değil). | 128 satır biçim dışı (`toplam_tutar`: 128, `birim_fiyat`: 43; ör. 1. satır `1667.4`). Hata #27 ile BE'ye (@hilalelcin-stack) bildirildi. | ❌ Kaldı |
 
 ## Özet
 
 | Toplam senaryo | Geçti | Kaldı | Test tarihi | Test edilen commit |
 |---|---|---|---|---|
 | 8 | 8 | 0 | 2026-10-17 | `fa3b368` (`data/siparisler.csv`) |
+| 9 | 8 | 1 (TC-09 → #27) | 2026-10-21 | `main` @ `ec7db3c` (veri `fa3b368`) |
