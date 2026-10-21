@@ -75,7 +75,7 @@ def haftalik(df):
 def zaman_serisi(df, yol):
     h, kismi = haftalik(df)
     tam = h.drop(index=kismi)
-    ort = tam["sum"].mean()
+    ort = h["sum"].mean()
 
     fig, ax = plt.subplots(figsize=(11, 5))
     ax.plot(h.index, h["sum"], color=RENK_ANA, lw=2, marker="o", ms=4, label="Haftalık ciro")
@@ -83,10 +83,10 @@ def zaman_serisi(df, yol):
         ax.plot(kismi, h.loc[kismi, "sum"], ls="none", marker="o", ms=8, mfc="white",
                 mec=RENK_VURGU, mew=2, label="Kısmi hafta (7 günün tamamı veride yok)")
     ax.axhline(ort, color=RENK_GRI, ls="--", lw=1.2,
-               label=f"Ortalama (tam haftalar): {tl(ort)}")
+               label=f"Ortalama (40 hafta): {tl(ort)}")
 
     en_iyi = tam["sum"].idxmax()
-    ax.annotate(f"En yüksek: {en_iyi:%d.%m} haftası\n{tl(tam['sum'].max())}",
+    ax.annotate(f"En yüksek: {en_iyi:%d.%m.%Y} haftası\n{tl(tam['sum'].max())}",
                 xy=(en_iyi, tam["sum"].max()), xytext=(15, 0), textcoords="offset points",
                 fontsize=9, va="center", color=RENK_ANA)
 
