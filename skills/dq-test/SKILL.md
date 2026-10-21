@@ -24,7 +24,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
    - TC-03 — Sütun adları ve sırası şemayla aynı mı?
    - TC-04 — Tipler, aralıklar ve birimler doğru mu?
    - TC-05 — Ana kategorik alanda yalnızca şemadaki değerler mi var?
-3. **Ek senaryolar ekle** (önerilen): TC-06 eksik değer, TC-07 kimlik benzersizliği, TC-08 türetilmiş alan tutarlılığı (`toplam_tutar = adet × birim_fiyat`).
+3. **Ek senaryolar ekle** (önerilen): TC-06 eksik değer, TC-07 kimlik benzersizliği, TC-08 türetilmiş alan tutarlılığı (`toplam_tutar = adet × birim_fiyat`), TC-09 para alanlarının dosyada sözlükteki biçimde (2 ondalık) yazılması — bu kontrol dosyayı ham metin olarak okur (`dtype=str`), çünkü pandas sayıya çevirince sondaki sıfır görünmez.
 4. **Beklenen sonuçları ölçülebilir yaz:** "doğru olmalı" değil, "aralık dışı değer sayısı = 0" gibi somut bir eşik ver.
 5. **"Gerçekleşen sonuç" ve "Geçti/Kaldı" sütunlarını boş bırak.**
 6. **`src/dq_test.py` içindeki şema sabitlerini** (`SUTUNLAR`, `KATEGORILER`, aralıklar, `SEMA_SATIR`) şemayla eşitle.
