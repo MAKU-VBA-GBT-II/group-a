@@ -112,3 +112,11 @@ Top-3'ün toplam payı: %30,8
 3. **Ciro zamanda dengesiz ama trendsiz.** Haftalık ciro 9 kata varan farklarla (17,7 bin – 156,4 bin TL) dalgalanıyor ve ortalama sipariş (7.786 TL) medyanın (4.031 TL) neredeyse iki katı: haftanın cirosu, o hafta birkaç büyük sipariş gelip gelmemesine bağlı.
 
 **Eylem önerisi:** Stok ve kampanya bütçesi ciro payına göre önceliklendirilmeli: Top-3 ürünün stokta kesintisiz tutulması öncelikli; düşük tutarlı Kitap ve Kozmetik için ise sipariş başına tutarı artıracak paket / "X TL üzeri ücretsiz kargo" kampanyası denenmeli ve etkisi bir sonraki veriyle ölçülmeli.
+
+## Sınırlılıklar
+
+> #30 üzerine eklendi. Görev 1 verisi değiştirilmedi; yukarıdaki metrikler ve bulgular aşağıdaki sınırlarla birlikte okunmalıdır. Bu noktalar Görev 2 simülasyonunda ele alınacak.
+
+1. **Haftalık ciro tek tek büyük siparişlere çok duyarlı (M4).** Haftada ortalama yalnızca 10 sipariş var (en az 4, en çok 17) ve sipariş tutarlarının standart sapması (8.832 TL) ortalamasından (7.786 TL) büyük. Tam haftaların yarısında, haftanın en büyük 3 siparişi haftalık cironun %67,6'sını veya daha fazlasını oluşturuyor. Bu yüzden M4'teki sıçramalar (ör. 19 Ocak, 16 Mart, 15 Haziran) bir trend ya da sezon etkisi değil, birkaç büyük siparişin aynı haftaya denk gelmesidir; M4 trendi yorumlanırken bu dikkate alınmalı.
+2. **Ürünlerin kendine özgü bir fiyatı yok (M3, M5).** `src/veri_uret.py` birim fiyatı her satırda ürünün değil kategorinin fiyat aralığından rastgele çekiyor. Bu yüzden aynı ürün çok farklı fiyatlarla satılmış görünüyor (Saklama Kabı Seti 134–3.933 TL, Powerbank 387–4.647 TL, Kahve Makinesi 144–3.950 TL). Top-3 ürün sıralaması ürünlerin gerçek fiyat farkından çok bu rastgelelikten etkileniyor olabilir; Saklama Kabı Seti'nin 1. sırada çıkması temkinle yorumlanmalı.
+3. **Dalgalanmaların bir nedeni yok.** Simülasyonda hafta içi/hafta sonu, kampanya veya sezon etkisi modellenmedi; zaman içindeki tüm değişim rastgele. Bulgu 3'teki "belirgin trend yok" sonucu verinin üretim biçiminin doğal sonucudur ve gerçek müşteri davranışı hakkında çıkarım için kullanılmamalı.
