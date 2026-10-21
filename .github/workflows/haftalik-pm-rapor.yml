@@ -58,16 +58,20 @@ jobs:
             a) AGENTS.md ve skills/pm-rapor/SKILL.md dosyalarını oku. Rapor bu skill'deki adımlara ve şablona birebir uymalı.
 
             b) `gh api repos/MAKU-VBA-GBT-II/ders/contents --jq '.[].name'` ile `Duyuru-N_YYYY-MM-DD.md`
-               dosyalarını listele; N sayısal olarak en büyük olanı (eşitse tarihi en yeni olanı) seç ve
+               dosyalarını listele ve N'ye göre büyükten küçüğe sırala. Her birini
                `gh api repos/MAKU-VBA-GBT-II/ders/contents/<dosya> -H 'Accept: application/vnd.github.raw'` ile oku.
-               Duyurudan hafta numarasını (iki haneli NN, örn. 03) ve "Son tarih" satırındaki teslim anını çıkar
-               (Türkçe ay adları olabilir, örn. "20 Ekim Salı 23:59"; yıl yazmıyorsa duyuru tarihinin yılını kullan,
-               saat yoksa 23:59 kabul et; tümü Europe/Istanbul). Hafta başı = duyurudaki **Tarih** (yoksa dosya adındaki tarih).
-               Hafta numarası ya da son tarih çıkarılamıyorsa çık.
+               Hafta numarası VE "Son tarih" satırı içeren EN YENİ duyuruyu seç; son tarih içermeyen duyuruları
+               (örn. yalnızca sözlü sunum / bilgilendirme duyuruları) atla ve bir öncekine bak.
+               Seçilen duyurudan hafta numarasını (iki haneli NN, örn. 03) ve "Son tarih" satırındaki teslim anını çıkar
+               (Türkçe ay adları olabilir, örn. "20 Ekim Salı 23:59"; aynı duyuruda düzeltme notu varsa EN SON düzeltilmiş tarihi al;
+               yıl yazmıyorsa duyuru tarihinin yılını kullan, saat yoksa 23:59 kabul et; tümü Europe/Istanbul).
+               Hafta başı = duyurudaki **Tarih** (yoksa dosya adındaki tarih).
+               Hiçbir duyurudan hafta numarası ve son tarih çıkarılamıyorsa çık.
 
             c) Şimdiki zamanı `date` ile al. "zorla" "evet" DEĞİLSE:
                - teslime 30 saatten fazla varsa HİÇBİR ŞEY YAPMADAN çık;
-               - teslim anı geçmişse de çık (teslimden sonra taslak güncellenmez).
+               - teslim anı geçmişse: main'de reports/report-wNN.md YOKSA ve teslimin üzerinden 7 günden az geçtiyse
+                 yine devam et (geç teslim, teslimsizlikten iyidir); main'de rapor varsa ya da 7 gün geçtiyse çık.
 
             d) `git fetch origin` yap.
                - `git show origin/main:reports/report-wNN.md` dosyası varsa ve içinde `<!-- pm-rapor:otomatik -->`
