@@ -50,4 +50,4 @@ Hedef satır sayısı: **400** (başlık satırı hariç; ödevdeki alt sınır 
 | 8 | 8 | 0 | 2026-10-17 | `fa3b368` (`data/siparisler.csv`) |
 | 9 | 8 | 1 (TC-09 → #27) | 2026-10-21 | `main` @ `ec7db3c` (veri `fa3b368`) |
 | 9 | 9 | 0 | 2026-10-22 | `main` @ `1aad2be` (veri `1f8beb8`, #27 düzeltmesi) |
-| 12 | 12 | 0 | 2026-10-22 | veri `1f8beb8` — TC-10…TC-12 eklendi (şehir/ödeme, ürün–kategori, id/sıra; skill incelemesi öncesi) |
+| 12 | 12 | 0 | 2026-10-22 | veri `1f8beb8` — TC-10…TC-12 eklendi (şehir/ödeme, ürün–kategori, id/sıra) |
