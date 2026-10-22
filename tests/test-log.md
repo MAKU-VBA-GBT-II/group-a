@@ -10,3 +10,10 @@ Her test çalıştırması bu dosyaya bir satır olarak eklenir (bkz. `skills/dq
 | 2026-10-22 | `data/siparisler.csv` | `1f8beb8` | `python src/dq_test.py` | 9 | 0 | #27 düzeltmesi sonrası yeniden test, `main` (`1aad2be`) üzerinde. TC-09 artık geçiyor (biçim dışı satır = 0). `python src/veri_uret.py` yeniden çalıştırıldı, dosya birebir aynı (tohum 42). Analiz (M1–M5) yeni dosyayla yeniden hesaplandı: 51/51 tablo satırı `docs/analiz-g1.md` ile aynı, değerler değişmedi. |
 | 2026-10-22 | `data/siparisler.csv` | `1f8beb8` | Elle kontrol (TC-03) | 1 | 0 | Başlıkta 9 sütun var; adlar ve sıra veri sözlüğüyle birebir aynı: `siparis_id, siparis_tarihi, kategori, urun, adet, birim_fiyat, toplam_tutar, sehir, odeme_tipi`. |
 | 2026-10-22 | `data/siparisler.csv` | `1f8beb8` | `python src/dq_test.py` | 12 | 0 | TC-10 (şehir/ödeme değerleri), TC-11 (ürün–kategori eşleşmesi), TC-12 (ardışık id + tarih sırası) eklendi; veri sözlüğündeki bu kurallar önceden test edilmiyordu. Kontrol: bu kurallara aykırı 4 satırlık kirli kopya eski 9 testten geçiyordu, yeni testlerde 3'ü kaldı. TC-05 ve TC-10'a sözlükteki "her kategori / her şehir en az bir kez geçer" güvencesi de eklendi; sonuç değişmedi. |
+
+## Görev 2 — Mini Ürün (Hafta 5–6)
+
+Senaryolar Hafta 5'te `tests/test-cases.md`'ye yazılır; "Gerçekleşen/Geçti" bilgisi orada doldurulmaz. Testler koşuldukça sonuçlar buraya tarihli birer satır olarak eklenir (bkz. #47). Eski satırlar düzenlenmez, düzeltme gerekirse yeni satır eklenir. Simülasyon parametreli olduğu için kullanılan parametre değerleri (ör. gün sayısı, ürün sayısı, tohum) "Not" sütununa yazılır.
+
+| Tarih | Test edilen dosya | Veri commit'i | Komut | Geçti | Kaldı | Not |
+|---|---|---|---|---|---|---|
