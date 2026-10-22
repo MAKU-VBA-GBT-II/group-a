@@ -90,7 +90,7 @@
 
 Haftalık ortalama: 77.860,29 TL · en yüksek: 2026-01-19 haftası (156.388,00 TL) · en düşük: 2026-03-09 haftası (17.710,13 TL)
 
-Not: 2025-12-29, 2026-09-28 haftası kısmi (7 günün tamamı veride yok); en yüksek/en düşük hesabına katılmadı.
+Not: 2025-12-29, 2026-09-28 haftaları kısmi (7 günün tamamı veride yok); en yüksek/en düşük hesabına katılmadı.
 
 **Yorum:** Haftalık ciro 17,7 bin TL ile 156,4 bin TL arasında dalgalanıyor; belirgin bir yükseliş ya da düşüş trendi yok. Aylık bazda en güçlü ay Ocak (62 sipariş, 440 bin TL), en zayıf ay Şubat (40 sipariş, 288 bin TL). En yüksek cirolu üç tam haftada (19 Ocak, 15 Haziran, 20 Temmuz) haftanın en büyük 3 siparişi, haftalık cironun %55–59'unu tek başına oluşturuyor; bu siparişlerin çoğu Elektronik ve Ev & Yaşam'dan.
 
