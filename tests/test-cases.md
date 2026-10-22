@@ -3,7 +3,7 @@
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** DQ — Tuğba Tuana Kaygısız · **Issue:** #16
 **Test edilen dosya:** `data/siparisler.csv` · **Referans şema:** `docs/veri-sozlugu-g1.md`
 **Çalıştırma:** `python src/dq_test.py` (sonuçlar aşağıda; çalıştırma kaydı `tests/test-log.md`)
-**Son çalıştırma:** 2026-10-22 · #27 düzeltmesi (`1f8beb8`) sonrası yeniden test · 9/9 geçti.
+**Son çalıştırma:** 2026-10-22 · TC-10…TC-12 eklendikten sonra (veri `1f8beb8`) · 12/12 geçti.
 
 > Not: Beklenen sonuçlar, BE ile kesinleştirilen şemaya göredir (#13). Şemada değişiklik olursa bu dosyadaki "Beklenen sonuç" hücreleri güncellenir.
 
@@ -13,7 +13,7 @@
 
 | # | Alan | Tip | Geçerli aralık / değerler | Birim |
 |---|---|---|---|---|
-| 1 | `siparis_id` | int | ≥ 1, benzersiz | – |
+| 1 | `siparis_id` | int | 1 – 400, benzersiz, 1'er artar; dosya tarihe göre sıralı | – |
 | 2 | `siparis_tarihi` | tarih (`YYYY-MM-DD`) | 2026-01-01 – 2026-09-30 | – |
 | 3 | `kategori` | metin | Elektronik, Giyim, Kitap, Ev & Yaşam, Kozmetik | – |
 | 4 | `urun` | metin | 25 ürün (kategori başına 5; liste veri sözlüğünde) | – |
@@ -39,6 +39,9 @@ Hedef satır sayısı: **400** (başlık satırı hariç; ödevdeki alt sınır 
 | TC-07 | Sipariş kimliği benzersiz mi? | 1) `siparis_id` tekrarlarını say (`duplicated().sum()`). 2) Tamamen aynı satır var mı kontrol et. | `siparis_id` sütunu | Tekrarlanan `siparis_id` = 0; birebir tekrar eden satır = 0. | Tekrarlanan `siparis_id` = 0, tekrarlanan satır = 0. | ✅ Geçti |
 | TC-08 | `toplam_tutar` tutarlı mı? | 1) Her satır için `adet × birim_fiyat` hesapla. 2) `toplam_tutar` ile farkını al. | `adet`, `birim_fiyat`, `toplam_tutar` sütunları | Farkı 0,01 TL'den büyük olan satır sayısı = 0. | `adet × birim_fiyat` ile uyuşmayan satır = 0. | ✅ Geçti |
 | TC-09 | Para alanları dosyada tam 2 ondalıkla mı yazılmış? | 1) Dosyayı metin olarak oku (`dtype=str`). 2) `birim_fiyat` ve `toplam_tutar` değerlerini `^\d+\.\d{2}$` desenine göre kontrol et. 3) Desene uymayan satırları say. | `birim_fiyat`, `toplam_tutar` sütunları (ham metin) | Veri sözlüğündeki "2 ondalık" biçimine uymayan satır sayısı = 0 (ör. `1667.40`, `1667.4` değil). | Biçim dışı satır = 0 (ör. 1. satır `1667.40`). İlk turda (2026-10-21) 128 satır kalmıştı → #27; BE düzeltti (`1f8beb8`), 2026-10-22'de yeniden test edildi. | ✅ Geçti |
+| TC-10 | `sehir` ve `odeme_tipi` yalnızca şemadaki değerleri mi içeriyor? | 1) `sehir` değerlerini izinli 5 şehirle karşılaştır. 2) `odeme_tipi` değerlerini izinli 4 ödeme tipiyle karşılaştır. 3) İkisinden birinde şema dışı değer olan satırları say. | `sehir`, `odeme_tipi` sütunları | Şema dışı değerli satır sayısı = 0. | Şema dışı değerli satır = 0. | ✅ Geçti |
+| TC-11 | Ürünler sözlükteki listeden mi ve kendi kategorisinde mi? | 1) Her satır için `urun` değerinin, o satırın `kategori`sine ait 5 üründen biri olup olmadığına bak. 2) Uymayan satırları say. | `kategori`, `urun` sütunları | Listede olmayan ya da başka kategoriye ait ürün içeren satır sayısı = 0 (ör. `Kozmetik` + `Roman` hatadır). | Uyuşmayan satır = 0. | ✅ Geçti |
+| TC-12 | Kimlikler ardışık ve dosya tarihe göre sıralı mı? | 1) `siparis_id` listesinin `1, 2, …, N` ile birebir aynı olduğunu kontrol et. 2) `siparis_tarihi`nin artan sıralı olduğunu kontrol et. | `siparis_id`, `siparis_tarihi` sütunları | `siparis_id` 1…400 ardışık (atlama yok) ve tarih artan sıralı. | `siparis_id` 1…400 ardışık; tarih artan sıralı. | ✅ Geçti |
 
 ## Özet
 
@@ -47,3 +50,4 @@ Hedef satır sayısı: **400** (başlık satırı hariç; ödevdeki alt sınır 
 | 8 | 8 | 0 | 2026-10-17 | `fa3b368` (`data/siparisler.csv`) |
 | 9 | 8 | 1 (TC-09 → #27) | 2026-10-21 | `main` @ `ec7db3c` (veri `fa3b368`) |
 | 9 | 9 | 0 | 2026-10-22 | `main` @ `1aad2be` (veri `1f8beb8`, #27 düzeltmesi) |
+| 12 | 12 | 0 | 2026-10-22 | veri `1f8beb8` — TC-10…TC-12 eklendi (şehir/ödeme, ürün–kategori, id/sıra; skill incelemesi öncesi) |
