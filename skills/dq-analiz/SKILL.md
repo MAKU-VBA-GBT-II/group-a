@@ -59,4 +59,5 @@ Elle: depo kökünde `python src/dq_analiz.py` (farklı dosya için `python src/
 - **İlk üretim (#14):** Claude'a bu skill'in adımları ve #14 Issue'su verildi; `src/dq_analiz.py`, bu skill ve `docs/analiz-g1.md` Claude ile üretildi (commit `b8e50a0`, `7840e97`; commit'lerde `Co-Authored-By: Claude` izi var).
 - **Prompt:** "dq-analiz skill'ini kullanarak data/siparisler.csv'yi analiz et ve docs/analiz-g1.md'yi doldur."
 - **Sonraki güncellemeler:** Sınırlılıklar bölümü (#30, `5539020`) ve nihai veriyle yeniden doğrulama (#27 sonrası, `1f8beb8`) Claude ile yapıldı.
+- **Ajan izi olmayan commit'ler:** `5539020` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'lerde `Co-Authored-By` satırı yok.
 - **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: dq-analiz skill'i ile, Claude" satırı yazılır.
