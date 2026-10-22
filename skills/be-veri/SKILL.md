@@ -13,7 +13,7 @@ Gerçek kişi verisi asla kullanılmaz — tüm değerler simülasyon ürünüd�
 
 - Anlaşılan şema (aşağıdaki **Şema** bölümü — tek doğru kaynak budur)
 - DQ test senaryoları: `tests/test-cases.md` (üretim bunları geçecek şekilde yapılır)
-- İlgili Issue: G1-veri (#13), ciro metriği (#14)
+- İlgili Issue: G1-veri (#13), ciro metriği (#14), para alanlarının 2 ondalık biçimi (#27)
 
 ## Şema
 
@@ -33,7 +33,7 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 
 - **Satır sayısı:** 400 (başlık hariç, tam olarak)
 - **Tohum (seed):** 42
-- **Biçim:** virgül ayraçlı, nokta ondalıklı, UTF-8, satır sonu `\n`
+- **Biçim:** virgül ayraçlı, nokta ondalıklı, UTF-8, satır sonu `\n`; para alanları dosyada **tam 2 ondalıkla** yazılır (`1667.40`, `1667.4` değil)
 - **Boş değer:** hiçbir alanda yok
 
 ### Ürün listesi
@@ -52,9 +52,9 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 2. **`urun` daima kendi kategorisinden seçilir.** Kategoriler arası karışma olmaz.
 3. **`birim_fiyat` kategoriye göre makul aralıkta üretilir** (ör. Kitap 50–400, Elektronik 300–5000); ama hepsi şemadaki 50–5000 sınırları içinde kalır.
 4. **`toplam_tutar` hesaplanır, rastgele üretilmez:** `round(adet * birim_fiyat, 2)`. DQ bunu TC-08'de test eder.
-5. **Fiyatlarda biçimlendirme yok:** binlik ayırıcı yok, "TL" yazısı yok, sadece sayı (`1249.90`).
-6. **Her kategori ve her şehir en az bir kez geçer**; dağılım tamamen düzgün olmak zorunda değil.
-7. **Tohum sabittir:** `random.seed(42)` / `numpy.random.default_rng(42)`. Betik iki kez çalıştırıldığında **birebir aynı** dosya üretilmelidir.
+5. **Fiyatlarda biçimlendirme yok, ama her zaman 2 ondalık var:** binlik ayırıcı yok, "TL" yazısı yok, sadece sayı (`1249.90`). `round(x, 2)` bunu tek başına sağlamaz: pandas dosyaya yazarken sondaki sıfırı düşürür (`1667.40` → `1667.4`). Bu yüzden CSV `float_format="%.2f"` ile yazılır. DQ bunu TC-09'da test eder (#27).
+6. **Her kategori, her şehir ve her ödeme tipi en az bir kez geçer**; dağılım tamamen düzgün olmak zorunda değil.
+7. **Tohum sabittir:** `numpy.random.default_rng(42)`; başka rastgele kaynak kullanılmaz. Betik iki kez çalıştırıldığında **birebir aynı** dosya üretilmelidir.
 
 ## Adımlar
 
@@ -67,11 +67,14 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
    - `df.isna().sum().sum() == 0` mı?
    - `(df.toplam_tutar - (df.adet * df.birim_fiyat).round(2)).abs().max() == 0` mı?
    - `df.siparis_id.duplicated().sum() == 0` mı?
-   - `set(df.kategori)` tam olarak şemadaki 5 değer mi?
+   - `set(df.kategori)`, `set(df.sehir)` ve `set(df.odeme_tipi)` tam olarak şemadaki değer listeleri mi?
+   - Dosya **ham metin olarak** okununca (`pd.read_csv(..., dtype=str)`) `birim_fiyat` ve `toplam_tutar` her satırda tam 2 ondalık mı (`^\d+\.\d{2}$`)? Sayıya çevirerek bakılırsa bu hata görünmez.
    - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik).
+
+   `src/veri_uret.py` bu kontrollerin hepsini dosyayı yazmadan önce kendisi yapar (`dogrula`, `metni_dogrula`); biri kalırsa hata verir ve dosya yazılmaz.
 5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu dördü mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42) ve satır sayısı (400).
-6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`
-7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından DQ'ya "Veri hazır" yorumu bırak ki testleri çalıştırabilsin.
+6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
+7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından DQ'ya "Veri hazır" yorumu bırak ki testleri çalıştırabilsin. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
 
 ## Şema değişirse
 
@@ -82,6 +85,22 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 3. `docs/veri-sozlugu-g1.md`
 
 Ardından DQ'ya haber ver — `tests/test-cases.md` ve `src/dq_test.py` içindeki şema sabitleri de güncellenmeli.
+
+## Ne zaman üretmez
+
+- **Gerçek kişi verisi istenirse** (ad-soyad, TC no, telefon, adres, gerçek müşteri kaydı): üretmez, nedenini söyler ve aynı alanın sentetik karşılığını önerir.
+- **Şema DQ ile netleşmeden** alan eklemek, silmek veya aralık değiştirmek istenirse: önce DQ'ya sorar (Adım 1); şemayı tek taraflı değiştirmez.
+
+## Örnek çıktı
+
+`python src/veri_uret.py` sonrası `data/siparisler.csv` dosyasının ilk satırları:
+
+```csv
+siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odeme_tipi
+1,2026-01-01,Kitap,Şiir Kitabı,5,333.48,1667.40,Burdur,Kapıda Ödeme
+2,2026-01-01,Ev & Yaşam,Battaniye,1,2661.24,2661.24,İzmir,Banka Kartı
+3,2026-01-02,Kozmetik,Güneş Kremi,2,1194.05,2388.10,Ankara,Kredi Kartı
+```
 
 ## Kullanılan dosyalar
 
@@ -97,3 +116,10 @@ Ajana (Claude Code, Codex vb.):
 - Şema değişikliği: "be-veri skill'ini kullanarak şemaya `kargo_ucreti` alanını ekle ve veriyi yeniden üret."
 
 Elle çalıştırma: depo kökünde `python src/veri_uret.py`. Aynı tohumla her çalıştırmada aynı dosya üretilir.
+
+## Üretim kaydı (hangi araç, hangi prompt)
+
+- **Araç:** Claude (Claude Code, yapay zekâ ajanı).
+- **İlk üretim (#13):** Bu skill, `src/veri_uret.py`, `docs/veri-sozlugu-g1.md` ve `data/siparisler.csv` Claude ile üretildi (3b34e4b, fa3b368; commit'lerde `Co-Authored-By: Claude` izi var). Prompt: "be-veri skill'ini kullanarak data/siparisler.csv ve docs/veri-sozlugu-g1.md dosyalarını üret."
+- **Düzeltme (#27):** DQ'nun önerdiği `float_format="%.2f"` düzeltmesi Claude ile uygulandı, veri yeniden üretildi (1f8beb8, `Fixes #27`). Değerler değişmedi, yalnızca yazım biçimi düzeldi. Bu commit'te `Co-Authored-By` satırı yok; ajan izi #27'deki kanıt yorumunda.
+- **Skill güncellemesi (#32):** #27'de öğrenilen kural skill'e işlendi, betiğe yazmadan önce ham metin kontrolü eklendi. Claude ile yapıldı (Claude in Chrome); çıktı dosyası bayt bayt aynı kaldı.
