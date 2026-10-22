@@ -1,4 +1,4 @@
-"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-09).
+"""DQ testleri — Görev 1 (tests/test-cases.md içindeki TC-01..TC-12).
 
 Kullanım:
     python src/dq_test.py                      # varsayılan: data/siparisler.csv
@@ -19,6 +19,15 @@ SUTUNLAR = ["siparis_id", "siparis_tarihi", "kategori", "urun", "adet",
 MIN_SATIR = 100      # ödevdeki alt sınır
 SEMA_SATIR = 400     # docs/veri-sozlugu-g1.md'deki satır sayısı
 KATEGORILER = {"Elektronik", "Giyim", "Kitap", "Ev & Yaşam", "Kozmetik"}
+URUNLER = {  # kategori -> izinli ürünler (veri sözlüğü, "Geçerli değer listeleri")
+    "Elektronik": {"Kablosuz Kulaklık", "Bluetooth Hoparlör", "Powerbank", "Akıllı Saat", "Klavye"},
+    "Giyim": {"Tişört", "Kot Pantolon", "Sweatshirt", "Spor Ayakkabı", "Mont"},
+    "Ev & Yaşam": {"Kahve Makinesi", "Battaniye", "Masa Lambası", "Saklama Kabı Seti", "Halı"},
+    "Kozmetik": {"Nemlendirici", "Şampuan", "Parfüm", "Güneş Kremi", "Ruj"},
+    "Kitap": {"Roman", "Deneme", "Ders Kitabı", "Çocuk Kitabı", "Şiir Kitabı"},
+}
+SEHIRLER = {"İstanbul", "Ankara", "İzmir", "Burdur", "Antalya"}
+ODEME_TIPLERI = {"Kredi Kartı", "Banka Kartı", "Havale/EFT", "Kapıda Ödeme"}
 ADET_ARALIK = (1, 10)
 FIYAT_ARALIK = (50, 5000)
 TUTAR_ARALIK = (50, 50000)
@@ -80,8 +89,10 @@ def tc04(df):
 def tc05(df):
     degerler = set(df["kategori"].dropna().unique())
     fazla = degerler - KATEGORILER
-    ok = not fazla and len(degerler) >= 4
-    return ok, f"{len(degerler)} farklı değer; şema dışı: {sorted(fazla) or 'yok'}"
+    eksik = KATEGORILER - degerler
+    ok = not fazla and not eksik and len(degerler) >= 4
+    return ok, (f"{len(degerler)} farklı değer; şema dışı: {sorted(fazla) or 'yok'}; "
+                f"hiç geçmeyen: {sorted(eksik) or 'yok'}")
 
 
 def tc06(df):
@@ -120,6 +131,36 @@ def tc09(yol):
     return satir == 0, f"2 ondalıklı olmayan satır: {satir} {hatali or ''}".strip()
 
 
+def tc10(df):
+    """sehir ve odeme_tipi yalnızca sözlükteki değerleri mi içeriyor?"""
+    fazla_sehir = sorted(set(df["sehir"].dropna().unique()) - SEHIRLER)
+    fazla_odeme = sorted(set(df["odeme_tipi"].dropna().unique()) - ODEME_TIPLERI)
+    eksik_sehir = sorted(SEHIRLER - set(df["sehir"].dropna().unique()))
+    n = int((~df["sehir"].isin(SEHIRLER) | ~df["odeme_tipi"].isin(ODEME_TIPLERI)).sum())
+    return n == 0 and not eksik_sehir, (
+        f"şema dışı değerli satır: {n}; şehir: {fazla_sehir or 'yok'}, "
+        f"ödeme: {fazla_odeme or 'yok'}; hiç geçmeyen şehir: {eksik_sehir or 'yok'}")
+
+
+def tc11(df):
+    """urun sözlükteki 25 üründen mi ve her ürün kendi kategorisinde mi?"""
+    uygun = df.apply(lambda r: r["urun"] in URUNLER.get(r["kategori"], set()), axis=1)
+    hatali = df.loc[~uygun, ["siparis_id", "kategori", "urun"]]
+    ornek = hatali.head(3).to_dict("records")
+    return len(hatali) == 0, (f"kategorisiyle uyuşmayan / listede olmayan ürün: {len(hatali)}"
+                              + (f" (örnek: {ornek})" if ornek else ""))
+
+
+def tc12(df):
+    """siparis_id 1'den başlayıp 1'er artıyor mu, dosya tarihe göre artan sıralı mı?"""
+    beklenen = list(range(1, len(df) + 1))
+    id_ok = df["siparis_id"].tolist() == beklenen
+    tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="coerce")
+    sira_ok = bool(tarih.is_monotonic_increasing)
+    return id_ok and sira_ok, (f"siparis_id 1…{len(df)} ardışık: {'evet' if id_ok else 'hayır'}; "
+                               f"tarihe göre artan sıralı: {'evet' if sira_ok else 'hayır'}")
+
+
 def main():
     yol = sys.argv[1] if len(sys.argv) > 1 else "data/siparisler.csv"
     sonuclar = []
@@ -129,7 +170,8 @@ def main():
         df = pd.read_csv(yol)
         for ad, fn in [("TC-02", tc02), ("TC-03", tc03), ("TC-04", tc04),
                        ("TC-05", tc05), ("TC-06", tc06), ("TC-07", tc07),
-                       ("TC-08", tc08)]:
+                       ("TC-08", tc08), ("TC-10", tc10), ("TC-11", tc11),
+                       ("TC-12", tc12)]:
             try:
                 ok, mesaj = fn(df)
             except KeyError as e:
@@ -140,6 +182,7 @@ def main():
         except KeyError as e:
             ok, mesaj = False, f"sütun bulunamadı: {e}"
         sonuclar.append(("TC-09", ok, mesaj))
+        sonuclar.sort(key=lambda x: x[0])
 
     print(f"Dosya: {yol}\n")
     print("| ID | Gerçekleşen sonuç | Geçti/Kaldı |")

@@ -12,3 +12,6 @@ __pycache__/
 
 # Geçici çıktılar
 *.tmp
+
+# DQ analiz betiğinin geçici çıktısı (skills/dq-analiz, adım A4)
+analiz-cikti.md
