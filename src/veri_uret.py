@@ -7,12 +7,13 @@ Sepetix Analitik (Grup A) — BE: sipariş verisi üretici
 Çıktı: data/siparisler.csv  (temiz: eksik değer, aralık dışı değer, tutarsız kategori yok)
 
 Şema kaynağı: skills/be-veri/SKILL.md ve docs/veri-sozlugu-g1.md
-Testler:      tests/test-cases.md (TC-01 … TC-08)
-Issue:        #13
+Testler:      tests/test-cases.md (TC-01 … TC-09)
+Issue:        #13 (üretim), #27 (para alanları tam 2 ondalık)
 
 Kullanım: depo kökünde  python src/veri_uret.py
 """
 
+import io
 from pathlib import Path
 
 import numpy as np
@@ -77,8 +78,8 @@ CIKTI = Path(__file__).resolve().parent.parent / "data" / "siparisler.csv"
 def uret() -> pd.DataFrame:
     rng = np.random.default_rng(SEED)
 
-    # Her kategori ve her şehir en az bir kez geçsin (TC-05 ve değer listesi güvencesi)
-    zorunlu = KATEGORILER + [None] * (SATIR_SAYISI - len(KATEGORILER))
+    # Her kategori, şehir ve ödeme tipi en az bir kez geçsin: listenin tamamı bir kez
+    # eklenir, kalan satırlar rastgele seçilir, sonra karıştırılır (TC-05 güvencesi)
     kategori = np.array(
         KATEGORILER
         + list(rng.choice(KATEGORILER, size=SATIR_SAYISI - len(KATEGORILER))),
@@ -148,17 +149,37 @@ def dogrula(df: pd.DataFrame) -> None:
     fark = (df["toplam_tutar"] - (df["adet"] * df["birim_fiyat"]).round(2)).abs()
     assert (fark > 0.01).sum() == 0, "TC-08: toplam_tutar tutarsız"
     assert set(df["kategori"]) == set(KATEGORILER), "TC-05: kategori kümesi şemayla uyuşmuyor"
-    assert set(df["sehir"]) <= set(SEHIRLER), "sehir şema dışı değer içeriyor"
-    assert set(df["odeme_tipi"]) <= set(ODEME_TIPLERI), "odeme_tipi şema dışı değer içeriyor"
+    # == : hem şema dışı değer yok hem de her değer en az bir kez geçiyor
+    assert set(df["sehir"]) == set(SEHIRLER), "sehir kümesi şemayla uyuşmuyor"
+    assert set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "odeme_tipi kümesi şemayla uyuşmuyor"
     tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="raise")
     assert tarih.between(TARIH_BASLANGIC, TARIH_BITIS).all(), "TC-04: tarih aralık dışı"
+
+
+def csv_metni(df: pd.DataFrame) -> str:
+    """CSV'yi önce bellekte metin olarak üret.
+
+    round(x, 2) yetmez: pandas yazarken sondaki sıfırı düşürür (1667.40 -> 1667.4).
+    float_format="%.2f" para alanlarını her zaman tam 2 ondalıkla yazar (#27).
+    """
+    return df.to_csv(index=False, lineterminator="\n", float_format="%.2f")
+
+
+def metni_dogrula(metin: str) -> None:
+    """Dosyaya yazılacak metni, DQ'nun okuyacağı gibi ham metin olarak kontrol et (TC-09 aynası)."""
+    ham = pd.read_csv(io.StringIO(metin), dtype=str, keep_default_na=False)
+    for alan in ("birim_fiyat", "toplam_tutar"):
+        hatali = (~ham[alan].str.fullmatch(r"\d+\.\d{2}")).sum()
+        assert hatali == 0, f"TC-09: {alan} alanında 2 ondalıkla yazılmamış {hatali} değer var"
 
 
 def main() -> None:
     df = uret()
     dogrula(df)
+    metin = csv_metni(df)
+    metni_dogrula(metin)  # bir kontrol kalırsa dosya hiç yazılmaz
     CIKTI.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(CIKTI, index=False, encoding="utf-8", lineterminator="\n", float_format="%.2f")
+    CIKTI.write_bytes(metin.encode("utf-8"))  # UTF-8, \n satır sonu, her işletim sisteminde aynı bayt
 
     print(f"Yazıldı: {CIKTI.relative_to(CIKTI.parent.parent)}")
     print(f"  Satır      : {len(df)}")
@@ -166,7 +187,7 @@ def main() -> None:
     print(f"  Tohum      : {SEED}")
     print(f"  Tarih      : {df.siparis_tarihi.min()} .. {df.siparis_tarihi.max()}")
     print(f"  Ciro       : {df.toplam_tutar.sum():,.2f} TL")
-    print("  Tüm iç kontroller geçti (TC-02…TC-08 aynası).")
+    print("  Tüm iç kontroller geçti (TC-02…TC-09 aynası).")
 
 
 if __name__ == "__main__":
