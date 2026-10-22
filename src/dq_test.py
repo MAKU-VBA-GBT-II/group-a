@@ -89,8 +89,10 @@ def tc04(df):
 def tc05(df):
     degerler = set(df["kategori"].dropna().unique())
     fazla = degerler - KATEGORILER
-    ok = not fazla and len(degerler) >= 4
-    return ok, f"{len(degerler)} farklı değer; şema dışı: {sorted(fazla) or 'yok'}"
+    eksik = KATEGORILER - degerler
+    ok = not fazla and not eksik and len(degerler) >= 4
+    return ok, (f"{len(degerler)} farklı değer; şema dışı: {sorted(fazla) or 'yok'}; "
+                f"hiç geçmeyen: {sorted(eksik) or 'yok'}")
 
 
 def tc06(df):
@@ -133,9 +135,11 @@ def tc10(df):
     """sehir ve odeme_tipi yalnızca sözlükteki değerleri mi içeriyor?"""
     fazla_sehir = sorted(set(df["sehir"].dropna().unique()) - SEHIRLER)
     fazla_odeme = sorted(set(df["odeme_tipi"].dropna().unique()) - ODEME_TIPLERI)
+    eksik_sehir = sorted(SEHIRLER - set(df["sehir"].dropna().unique()))
     n = int((~df["sehir"].isin(SEHIRLER) | ~df["odeme_tipi"].isin(ODEME_TIPLERI)).sum())
-    return n == 0, (f"şema dışı değerli satır: {n}; şehir: {fazla_sehir or 'yok'}, "
-                    f"ödeme: {fazla_odeme or 'yok'}")
+    return n == 0 and not eksik_sehir, (
+        f"şema dışı değerli satır: {n}; şehir: {fazla_sehir or 'yok'}, "
+        f"ödeme: {fazla_odeme or 'yok'}; hiç geçmeyen şehir: {eksik_sehir or 'yok'}")
 
 
 def tc11(df):

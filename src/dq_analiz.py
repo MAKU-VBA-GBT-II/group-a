@@ -99,7 +99,8 @@ def analiz(yol):
                f"\n\nHaftalık ortalama: {tl(h['sum'].mean())} · "
                f"en yüksek: {en_iyi:%Y-%m-%d} haftası ({tl(tam['sum'].max())}) · "
                f"en düşük: {en_kotu:%Y-%m-%d} haftası ({tl(tam['sum'].min())})" +
-               (f"\n\nNot: {', '.join(f'{d:%Y-%m-%d}' for d in kismi)} haftası kısmi "
+               (f"\n\nNot: {', '.join(f'{d:%Y-%m-%d}' for d in kismi)} "
+                f"{'haftaları' if len(kismi) > 1 else 'haftası'} kısmi "
                 "(7 günün tamamı veride yok); en yüksek/en düşük hesabına katılmadı."
                 if kismi else ""))
 
