@@ -160,6 +160,8 @@ def dogrula(df: pd.DataFrame) -> None:
     kontrol(set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "odeme_tipi kümesi şemayla uyuşmuyor")
     tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="raise")
     kontrol(tarih.between(TARIH_BASLANGIC, TARIH_BITIS).all(), "TC-04: tarih aralık dışı")
+
+
 def csv_metni(df: pd.DataFrame) -> str:
     """CSV'yi önce bellekte metin olarak üret.
 
@@ -175,6 +177,8 @@ def metni_dogrula(metin: str) -> None:
     for alan in ("birim_fiyat", "toplam_tutar"):
         hatali = (~ham[alan].str.fullmatch(r"\d+\.\d{2}")).sum()
         kontrol(hatali == 0, f"TC-09: {alan} alanında 2 ondalıkla yazılmamış {hatali} değer var")
+
+
 def main() -> None:
     df = uret()
     dogrula(df)
