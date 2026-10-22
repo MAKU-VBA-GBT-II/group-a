@@ -2,7 +2,7 @@
 
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** BE — Hilal Elçin Şahin · **Issue:** #13
 **Üreten betik:** `src/veri_uret.py` · **Skill:** [`skills/be-veri/SKILL.md`](../skills/be-veri/SKILL.md)
-**Test eden:** `tests/test-cases.md` (TC-01 … TC-08) · `python src/dq_test.py`
+**Test eden:** `tests/test-cases.md` (TC-01 … TC-12) · `python src/dq_test.py`
 
 > Tüm veriler simülasyon ürünüdür; gerçek kişi ya da işletme verisi içermez (AGENTS.md kural 2).
 

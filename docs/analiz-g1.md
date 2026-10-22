@@ -4,7 +4,8 @@
 **Veri:** `data/siparisler.csv` · **Şema:** `docs/veri-sozlugu-g1.md` · **Hesaplama:** `python src/dq_analiz.py`
 
 **Kullanılan veri:** `data/siparisler.csv` · commit `1f8beb8` · 400 satır · tarih aralığı 2026-01-01 – 2026-09-30
-**Veri kalitesi:** `python src/dq_test.py` → 9/9 test geçti (2026-10-22; bkz. `tests/test-cases.md`). İlk analiz `fa3b368` ile yapıldı; `1f8beb8` yalnızca para alanlarının CSV'deki yazımını düzeltti (#27), metrik değerleri değişmedi.
+**Veri kalitesi:** `python src/dq_test.py` → 12/12 test geçti (2026-10-22; bkz. `tests/test-cases.md`).
+**Yorum sayılarının kaynağı:** Yorum, Bulgular ve Sınırlılıklar'daki tüm sayılar `python src/dq_analiz.py --ek` çıktısındaki "Ek istatistikler" bölümünden alındı. İlk analiz `fa3b368` ile yapıldı; `1f8beb8` yalnızca para alanlarının CSV'deki yazımını düzeltti (#27), metrik değerleri değişmedi.
 
 > Not: Veri, BE'nin sabit tohumlu (seed 42) simülasyonudur. Gözlemler bu simülasyonun ürettiği deseni anlatır; gerçek müşteri davranışı iddiası taşımaz.
 
@@ -91,7 +92,7 @@ Haftalık ortalama: 77.860,29 TL · en yüksek: 2026-01-19 haftası (156.388,00 
 
 Not: 2025-12-29, 2026-09-28 haftası kısmi (7 günün tamamı veride yok); en yüksek/en düşük hesabına katılmadı.
 
-**Yorum:** Haftalık ciro 17,7 bin TL ile 156,4 bin TL arasında dalgalanıyor; belirgin bir yükseliş ya da düşüş trendi yok. Aylık bazda en güçlü ay Ocak (62 sipariş, 440 bin TL), en zayıf ay Şubat (40 sipariş, 288 bin TL). Sıçrayan haftalarda (19 Ocak, 16 Mart, 15 Haziran) haftanın en büyük 3 siparişi, haftalık cironun %55–66'sını tek başına oluşturuyor; bu siparişlerin çoğu Elektronik ve Ev & Yaşam'dan.
+**Yorum:** Haftalık ciro 17,7 bin TL ile 156,4 bin TL arasında dalgalanıyor; belirgin bir yükseliş ya da düşüş trendi yok. Aylık bazda en güçlü ay Ocak (62 sipariş, 440 bin TL), en zayıf ay Şubat (40 sipariş, 288 bin TL). En yüksek cirolu üç tam haftada (19 Ocak, 15 Haziran, 20 Temmuz) haftanın en büyük 3 siparişi, haftalık cironun %55–59'unu tek başına oluşturuyor; bu siparişlerin çoğu Elektronik ve Ev & Yaşam'dan.
 
 ### M5 — Ciroya en çok katkı veren 3 ürün
 
@@ -117,6 +118,6 @@ Top-3'ün toplam payı: %30,8
 
 > #30 üzerine eklendi. Görev 1 verisi değiştirilmedi; yukarıdaki metrikler ve bulgular aşağıdaki sınırlarla birlikte okunmalıdır. Bu noktalar Görev 2 simülasyonunda ele alınacak.
 
-1. **Haftalık ciro tek tek büyük siparişlere çok duyarlı (M4).** Haftada ortalama yalnızca 10 sipariş var (en az 4, en çok 17) ve sipariş tutarlarının standart sapması (8.832 TL) ortalamasından (7.786 TL) büyük. Tam haftaların yarısında, haftanın en büyük 3 siparişi haftalık cironun %67,6'sını veya daha fazlasını oluşturuyor. Bu yüzden M4'teki sıçramalar (ör. 19 Ocak, 16 Mart, 15 Haziran) bir trend ya da sezon etkisi değil, birkaç büyük siparişin aynı haftaya denk gelmesidir; M4 trendi yorumlanırken bu dikkate alınmalı.
+1. **Haftalık ciro tek tek büyük siparişlere çok duyarlı (M4).** Haftada ortalama yalnızca 10 sipariş var (en az 4, en çok 17) ve sipariş tutarlarının standart sapması (8.832 TL) ortalamasından (7.786 TL) büyük. Tam haftaların yarısında, haftanın en büyük 3 siparişi haftalık cironun %67,6'sını veya daha fazlasını oluşturuyor. Bu yüzden M4'teki sıçramalar (ör. 19 Ocak, 15 Haziran, 20 Temmuz) bir trend ya da sezon etkisi değil, birkaç büyük siparişin aynı haftaya denk gelmesidir; M4 trendi yorumlanırken bu dikkate alınmalı.
 2. **Ürünlerin kendine özgü bir fiyatı yok (M3, M5).** `src/veri_uret.py` birim fiyatı her satırda ürünün değil kategorinin fiyat aralığından rastgele çekiyor. Bu yüzden aynı ürün çok farklı fiyatlarla satılmış görünüyor (Saklama Kabı Seti 134–3.933 TL, Powerbank 387–4.647 TL, Kahve Makinesi 144–3.950 TL). Top-3 ürün sıralaması ürünlerin gerçek fiyat farkından çok bu rastgelelikten etkileniyor olabilir; Saklama Kabı Seti'nin 1. sırada çıkması temkinle yorumlanmalı.
 3. **Dalgalanmaların bir nedeni yok.** Simülasyonda hafta içi/hafta sonu, kampanya veya sezon etkisi modellenmedi; zaman içindeki tüm değişim rastgele. Bulgu 3'teki "belirgin trend yok" sonucu verinin üretim biçiminin doğal sonucudur ve gerçek müşteri davranışı hakkında çıkarım için kullanılmamalı.
