@@ -135,27 +135,31 @@ def uret() -> pd.DataFrame:
     return df[SUTUNLAR]
 
 
+def kontrol(kosul, mesaj: str) -> None:
+    """Kural bozuksa ValueError verir. assert yerine kullanılır: python -O ile de atlanmaz."""
+    if not kosul:
+        raise ValueError(mesaj)
+
+
 def dogrula(df: pd.DataFrame) -> None:
     """Dosyayı yazmadan önce şemayı kendi içimizde kontrol et (DQ testlerinin aynası)."""
-    assert list(df.columns) == SUTUNLAR, "TC-03: sütun adı/sırası şemayla uyuşmuyor"
-    assert len(df) == SATIR_SAYISI, f"TC-02: satır sayısı {len(df)}, beklenen {SATIR_SAYISI}"
-    assert df.isna().sum().sum() == 0, "TC-06: eksik değer var"
-    assert (df.astype(str) == "").sum().sum() == 0, "TC-06: boş metin var"
-    assert df["siparis_id"].duplicated().sum() == 0, "TC-07: siparis_id tekrar ediyor"
-    assert df.duplicated().sum() == 0, "TC-07: birebir tekrar eden satır var"
-    assert df["siparis_id"].min() == 1, "siparis_id 1'den başlamalı"
-    assert df["adet"].between(ADET_MIN, ADET_MAX).all(), "TC-04: adet aralık dışı"
-    assert df["birim_fiyat"].between(FIYAT_MIN, FIYAT_MAX).all(), "TC-04: birim_fiyat aralık dışı"
+    kontrol(list(df.columns) == SUTUNLAR, "TC-03: sütun adı/sırası şemayla uyuşmuyor")
+    kontrol(len(df) == SATIR_SAYISI, f"TC-02: satır sayısı {len(df)}, beklenen {SATIR_SAYISI}")
+    kontrol(df.isna().sum().sum() == 0, "TC-06: eksik değer var")
+    kontrol((df.astype(str) == "").sum().sum() == 0, "TC-06: boş metin var")
+    kontrol(df["siparis_id"].duplicated().sum() == 0, "TC-07: siparis_id tekrar ediyor")
+    kontrol(df.duplicated().sum() == 0, "TC-07: birebir tekrar eden satır var")
+    kontrol(df["siparis_id"].min() == 1, "siparis_id 1'den başlamalı")
+    kontrol(df["adet"].between(ADET_MIN, ADET_MAX).all(), "TC-04: adet aralık dışı")
+    kontrol(df["birim_fiyat"].between(FIYAT_MIN, FIYAT_MAX).all(), "TC-04: birim_fiyat aralık dışı")
     fark = (df["toplam_tutar"] - (df["adet"] * df["birim_fiyat"]).round(2)).abs()
-    assert (fark > 0.01).sum() == 0, "TC-08: toplam_tutar tutarsız"
-    assert set(df["kategori"]) == set(KATEGORILER), "TC-05: kategori kümesi şemayla uyuşmuyor"
+    kontrol((fark > 0.01).sum() == 0, "TC-08: toplam_tutar tutarsız")
+    kontrol(set(df["kategori"]) == set(KATEGORILER), "TC-05: kategori kümesi şemayla uyuşmuyor")
     # == : hem şema dışı değer yok hem de her değer en az bir kez geçiyor
-    assert set(df["sehir"]) == set(SEHIRLER), "sehir kümesi şemayla uyuşmuyor"
-    assert set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "odeme_tipi kümesi şemayla uyuşmuyor"
+    kontrol(set(df["sehir"]) == set(SEHIRLER), "sehir kümesi şemayla uyuşmuyor")
+    kontrol(set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "odeme_tipi kümesi şemayla uyuşmuyor")
     tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="raise")
-    assert tarih.between(TARIH_BASLANGIC, TARIH_BITIS).all(), "TC-04: tarih aralık dışı"
-
-
+    kontrol(tarih.between(TARIH_BASLANGIC, TARIH_BITIS).all(), "TC-04: tarih aralık dışı")
 def csv_metni(df: pd.DataFrame) -> str:
     """CSV'yi önce bellekte metin olarak üret.
 
@@ -170,9 +174,7 @@ def metni_dogrula(metin: str) -> None:
     ham = pd.read_csv(io.StringIO(metin), dtype=str, keep_default_na=False)
     for alan in ("birim_fiyat", "toplam_tutar"):
         hatali = (~ham[alan].str.fullmatch(r"\d+\.\d{2}")).sum()
-        assert hatali == 0, f"TC-09: {alan} alanında 2 ondalıkla yazılmamış {hatali} değer var"
-
-
+        kontrol(hatali == 0, f"TC-09: {alan} alanında 2 ondalıkla yazılmamış {hatali} değer var")
 def main() -> None:
     df = uret()
     dogrula(df)
