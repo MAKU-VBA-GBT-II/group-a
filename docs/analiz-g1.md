@@ -3,8 +3,8 @@
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** DQ — Tuğba Tuana Kaygısız · **Issue:** #14
 **Veri:** `data/siparisler.csv` · **Şema:** `docs/veri-sozlugu-g1.md` · **Hesaplama:** `python src/dq_analiz.py`
 
-**Kullanılan veri:** `data/siparisler.csv` · commit `fa3b368` · 400 satır · tarih aralığı 2026-01-01 – 2026-09-30
-**Veri kalitesi:** Analizden önce `python src/dq_test.py` çalıştırıldı; 8/8 test geçti (bkz. `tests/test-cases.md`).
+**Kullanılan veri:** `data/siparisler.csv` · commit `1f8beb8` · 400 satır · tarih aralığı 2026-01-01 – 2026-09-30
+**Veri kalitesi:** `python src/dq_test.py` → 9/9 test geçti (2026-10-22; bkz. `tests/test-cases.md`). İlk analiz `fa3b368` ile yapıldı; `1f8beb8` yalnızca para alanlarının CSV'deki yazımını düzeltti (#27), metrik değerleri değişmedi.
 
 > Not: Veri, BE'nin sabit tohumlu (seed 42) simülasyonudur. Gözlemler bu simülasyonun ürettiği deseni anlatır; gerçek müşteri davranışı iddiası taşımaz.
 
