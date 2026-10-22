@@ -86,6 +86,10 @@ Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden
 6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
 7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından **hem G1-analiz (#14, DQ) hem G1-gorsel (#15, FE)** Issue'suna aşağıdaki devir teslim yorumunu yaz; bu yorum DQ ve FE'nin başlama iznidir. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
 
+### Devir teslim yorumu şablonu
+
+> Veri hazır — commit `<hash>`. Dosya: `data/siparisler.csv` (400 satır, tohum 42). Şema: `docs/veri-sozlugu-g1.md`.
+
 ## Şema değişirse
 
 Şema her değiştiğinde **üç dosya birlikte** güncellenir, yoksa testler kalır:
@@ -95,10 +99,6 @@ Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden
 3. `docs/veri-sozlugu-g1.md`
 
 Ardından DQ'ya haber ver — `tests/test-cases.md` ve `src/dq_test.py` içindeki şema sabitleri de güncellenmeli.
-
-### Devir teslim yorumu şablonu
-
-> Veri hazır — commit `<hash>`. Dosya: `data/siparisler.csv` (400 satır, tohum 42). Şema: `docs/veri-sozlugu-g1.md`.
 
 ## Bilinen sınırlılıklar (#30)
 
