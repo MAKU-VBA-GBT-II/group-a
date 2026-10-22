@@ -2,7 +2,7 @@
 
 **Şirket:** Sepetix Analitik (Grup A) · **Rol:** BE — Hilal Elçin Şahin · **Issue:** #13
 **Üreten betik:** `src/veri_uret.py` · **Skill:** [`skills/be-veri/SKILL.md`](../skills/be-veri/SKILL.md)
-**Test eden:** `tests/test-cases.md` (TC-01 … TC-08) · `python src/dq_test.py`
+**Test eden:** `tests/test-cases.md` (TC-01 … TC-09) · `python src/dq_test.py`
 
 > Tüm veriler simülasyon ürünüdür; gerçek kişi ya da işletme verisi içermez (AGENTS.md kural 2).
 
@@ -19,6 +19,7 @@
 | Satır sonu | `\n` |
 | Tarih biçimi | `YYYY-MM-DD` |
 | Para birimi | TL (yalnızca sayı; binlik ayırıcı ve "TL" yazısı yok) |
+| Para alanlarının yazımı | `birim_fiyat` ve `toplam_tutar` dosyada **her zaman tam 2 ondalıkla** yazılır (`1667.40`, `1667.4` değil) — #27 |
 | **Tohum (seed)** | **42** |
 | Tekrarlanabilirlik | `python src/veri_uret.py` her çalıştırmada birebir aynı dosyayı üretir |
 
@@ -44,6 +45,7 @@ Sütunlar dosyada **tam olarak bu sırada** bulunur:
 - **`siparis_id` benzersizdir ve 1'den başlar**; birebir tekrar eden satır yoktur.
 - **`toplam_tutar` rastgele üretilmez**, `adet × birim_fiyat` ile hesaplanıp 2 ondalığa yuvarlanır.
 - **Kategori adları tutarlıdır** — `Ev & Yaşam` her satırda tam olarak böyle yazılır; büyük/küçük harf veya boşluk farkı yoktur.
+- **Para alanları her satırda tam 2 ondalıklıdır** (`^\d+\.\d{2}$`); betik bunu dosyayı yazmadan önce ham metin üzerinde kontrol eder (TC-09).
 - Bu dosya **temiz** sürümdür. Hatalı/kirli kopyalar DQ tarafında ayrıca üretilir.
 
 ## Geçerli değer listeleri
