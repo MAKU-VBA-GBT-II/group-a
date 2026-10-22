@@ -74,7 +74,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 
 ```text
 | TC-09 | 2 ondalıklı olmayan satır: 0 | Geçti |
-| TC-10 | şema dışı değerli satır: 0; şehir: yok, ödeme: yok | Geçti |
+| TC-10 | şema dışı değerli satır: 0; şehir: yok, ödeme: yok; hiç geçmeyen şehir: yok | Geçti |
 Özet: 12/12 geçti
 ```
 
@@ -107,6 +107,6 @@ Elle çalıştırma: depo kökünde `python src/dq_test.py` (farklı dosya için
 - **Senaryo yazımı (#16) ve şema güncellemesi (#13):** `tests/test-cases.md`, `src/dq_test.py` ve bu skill Claude ile yazıldı ve güncellendi (örn. commit `9c9b658`, `146d5d3`; commit'lerde `Co-Authored-By: Claude` izi var).
 - **Prompt'lar:** "dq-test skill'ini kullanarak docs/veri-sozlugu-g1.md şemasına göre tests/test-cases.md yaz." · "dq-test skill'ini kullanarak testleri çalıştır ve sonuçları test-cases.md ile test-log.md'ye işle."
 - **Güncelleme (Hafta 4):** TC-10…TC-12 eklendi (sözlükteki şehir/ödeme, ürün–kategori ve id/sıra kuralları önceden test edilmiyordu); skill'e grafik–analiz kontrolü, Hafta 4 hata Issue'su kuralları, örnek ve reddetme koşulları eklendi — Claude ile.
-- **Hafta 4 test turu ve yeniden test:** TC-09 eklendi, testler çalıştırıldı, hata Issue'ları açıldı (#27, #28, #29) ve #27 düzeltmesi sonrası yeniden test (9/9) Claude ile yapıldı.
-- **Ajan izi olmayan commit'ler:** `943b75d`, `95c3e0a`, `29c306e`, `c06e97a`, `8fee1dd`, `7459286`, `778e7dd` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'lerde `Co-Authored-By` satırı yok.
+- **Hafta 4 test turu ve yeniden test:** TC-09 eklendi, testler çalıştırıldı, hata Issue'ları açıldı (#27, #28, #29) ve #27 düzeltmesi sonrası yeniden test (9/9, commit `1868546`) Claude ile yapıldı.
+- **Ajan izi olmayan commit'ler:** `943b75d`, `95c3e0a`, `29c306e`, `8fee1dd`, `7459286`, `778e7dd` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'lerde `Co-Authored-By` satırı yok.
 - **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: dq-test skill'i ile, Claude" satırı yazılır.
