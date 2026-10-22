@@ -9,7 +9,7 @@ description: Grup A'nın sipariş verisinden (data/siparisler.csv) src/fe_gorsel
 
 | Dosya | Tür | Metrik | Ne gösterir |
 |---|---|---|---|
-| `visuals/haftalik-ciro.png` | Zaman serisi (çizgi) | M4 — Haftalık ciro trendi | Pazartesi başlangıçlı haftalara göre Σ `toplam_tutar` (bin TL); tam haftaların ortalaması, en yüksek hafta ve kısmi ilk/son hafta işaretli |
+| `visuals/haftalik-ciro.png` | Zaman serisi (çizgi) | M4 — Haftalık ciro trendi | Pazartesi başlangıçlı haftalara göre Σ `toplam_tutar` (bin TL); 40 haftanın tamamının ortalaması (`dq_analiz.py` M4 ile aynı), en yüksek hafta (tam tarihle, GG.AA.YYYY) ve kısmi ilk/son hafta işaretli |
 | `visuals/kategori-ciro-payi.png` | Kırılım (yatay çubuk) | M3 — Kategori bazlı ciro | Kategoriye göre Σ `toplam_tutar` (bin TL) ve toplam ciro içindeki payı (%); ilk iki kategori vurgulu |
 
 Her grafikte **başlık, eksen etiketleri ve birim** (bin TL) vardır; altta veri kaynağı ve metrik kodu yazar. Grafikteki her sayı veriden hesaplanır, elle yazılmaz; sayılar `docs/analiz-g1.md` ile birebir tutmalıdır.
@@ -30,7 +30,7 @@ Her grafikte **başlık, eksen etiketleri ve birim** (bin TL) vardır; altta ver
 5. **Kendi kontrolünü yap:**
    - İki PNG'yi aç: başlık, x ve y eksen etiketleri, birim (bin TL) görünüyor mu? Türkçe karakterler (ş, ğ, İ) bozuk mu?
    - Kırılım grafiğindeki paylar `docs/analiz-g1.md` M3 tablosuyla aynı mı (ör. Elektronik %38,1)?
-   - Zaman serisindeki en yüksek hafta M4 ile aynı mı? Kısmi ilk/son hafta işaretli mi?
+   - Zaman serisindeki ortalama çizgisi M4 "Haftalık ortalama" ile aynı mı (ör. 77.860 TL)? En yüksek hafta M4 ile aynı ve tam tarihle mi yazılmış? Kısmi ilk/son hafta işaretli mi?
    - Betiği ikinci kez çalıştır; PNG'ler değişmemeli (`md5sum visuals/*.png`).
 6. **Commit at:** `G1-gorsel: haftalik-ciro.png, kategori-ciro-payi.png ve fe-gorsel skill'i eklendi (#15)` — Hafta 5'ten itibaren PR ile.
 7. **Kanıt yorumu yaz (#15):** commit hash + iki dosya adı + hangi metrikleri gösterdikleri. Ardından Issue'yu kapat / panoda Done'a taşı.
