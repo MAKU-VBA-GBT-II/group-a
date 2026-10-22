@@ -11,7 +11,7 @@ Gerçek kişi verisi asla kullanılmaz — tüm değerler simülasyon ürünüd�
 
 ## Girdiler
 
-- Anlaşılan şema (aşağıdaki **Şema** bölümü — tek doğru kaynak budur)
+- Anlaşılan şema (aşağıdaki **Şema** bölümü). `docs/veri-sozlugu-g1.md` ve `src/veri_uret.py` içindeki sabitler bununla birebir aynı tutulur; biri değişirse üçü birlikte güncellenir (bkz. **Şema değişirse**).
 - DQ test senaryoları: `tests/test-cases.md` (üretim bunları geçecek şekilde yapılır)
 - İlgili Issue: G1-veri (#13), devir teslim: G1-analiz (#14) ve G1-gorsel (#15), para alanlarının 2 ondalık biçimi (#27), veri sınırlılıkları (#30)
 
@@ -56,6 +56,16 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 6. **Her kategori, her şehir ve her ödeme tipi en az bir kez geçer**; dağılım tamamen düzgün olmak zorunda değil.
 7. **Tohum sabittir:** `numpy.random.default_rng(42)`; başka rastgele kaynak kullanılmaz. Betik iki kez çalıştırıldığında **birebir aynı** dosya üretilmelidir.
 
+### Dağılımlar ve üretim sırası
+
+Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden, **bu sırayla** çekilir. Sıra değişirse kurallara uyan ama farklı bir dosya çıkar; bayt bayt aynı dosya için sıra korunur.
+
+1. `kategori`, `sehir`, `odeme_tipi`: her listenin tamamı bir kez eklenir (her değer en az bir kez geçsin), kalan satırlar listeden eşit olasılıkla seçilir; ardından üç dizi sırayla karıştırılır.
+2. Her satır için `urun`: kendi kategorisinin 5 ürününden eşit olasılıkla; `birim_fiyat`: kategorinin fiyat aralığında düzgün dağılımla, 2 ondalığa yuvarlanır.
+3. `adet`: 1–10 arasında eşit olasılıklı tam sayı; `toplam_tutar = round(adet * birim_fiyat, 2)`.
+4. `siparis_tarihi`: 2026-01-01 – 2026-09-30 arasındaki günlerden eşit olasılıkla.
+5. Satırlar tarihe göre (kararlı sıralama, `mergesort`) dizilir; `siparis_id` bu sırayla 1'den 400'e verilir.
+
 ## Adımlar
 
 1. **Şemayı doğrula:** Yukarıdaki şemayı `tests/test-cases.md`'deki referans şema ile karşılaştır. Fark varsa DQ ile netleştir; şemayı tek taraflı değiştirme.
@@ -71,7 +81,7 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
    - Dosya **ham metin olarak** okununca (`pd.read_csv(..., dtype=str)`) `birim_fiyat` ve `toplam_tutar` her satırda tam 2 ondalık mı (`^\d+\.\d{2}$`)? Sayıya çevirerek bakılırsa bu hata görünmez.
    - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik).
 
-   `src/veri_uret.py` bu kontrollerin hepsini dosyayı yazmadan önce kendisi yapar (`dogrula`, `metni_dogrula`); biri kalırsa hata verir ve dosya yazılmaz.
+   `src/veri_uret.py` bu kontrollerin hepsini dosyayı yazmadan önce kendisi yapar (`dogrula`, `metni_dogrula`); biri kalırsa `ValueError` verir ve dosya yazılmaz. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz.
 5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu dördü mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42) ve satır sayısı (400).
 6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
 7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından **hem G1-analiz (#14, DQ) hem G1-gorsel (#15, FE)** Issue'suna aşağıdaki devir teslim yorumunu yaz; bu yorum DQ ve FE'nin başlama iznidir. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
@@ -99,6 +109,10 @@ Veri, Görev 1'in hattını sınamak için üretilmiş basit bir simülasyondur;
 - **Dalgalanmaların nedeni yok:** tarihler aralık içinde düzgün dağılımla seçilir; hafta sonu, kampanya ve sezon etkisi modellenmedi.
 
 Görev 1 verisi bilerek değiştirilmedi (analiz, testler ve grafikler bu veriye dayanıyor); bu maddeler Görev 2 simülasyonunda ele alınacak.
+
+## Kapsam dışı
+
+- **Görev 3 veri değişimi** (`exchange/output.csv`, Grup B'ye giden sipariş akışı) bu skill'in işi değildir. Gönderilecek alanlar Görev 3'te iki şirketin DQ'larının yazacağı `docs/veri-sozlesmesi.md` ile belirlenir; lojistik için gereken ek alanlar (ör. ağırlık, ilçe, teslim tarihi) orada kararlaştırılır ve bu skill o zaman güncellenir.
 
 ## Ne zaman üretmez
 
@@ -137,4 +151,4 @@ Elle çalıştırma: depo kökünde `python src/veri_uret.py`. Aynı tohumla her
 - **İlk üretim (#13):** Bu skill, `src/veri_uret.py`, `docs/veri-sozlugu-g1.md` ve `data/siparisler.csv` Claude ile üretildi (3b34e4b, fa3b368; commit'lerde `Co-Authored-By: Claude` izi var). Prompt: "be-veri skill'ini kullanarak data/siparisler.csv ve docs/veri-sozlugu-g1.md dosyalarını üret."
 - **Düzeltme (#27):** DQ'nun önerdiği `float_format="%.2f"` düzeltmesi Claude ile uygulandı, veri yeniden üretildi (1f8beb8, `Fixes #27`). Değerler değişmedi, yalnızca yazım biçimi düzeldi. Bu commit'te `Co-Authored-By` satırı yok; ajan izi #27'deki kanıt yorumunda.
 - **Skill güncellemesi (#32):** #27'de öğrenilen kural skill'e işlendi, betiğe yazmadan önce ham metin kontrolü eklendi. Claude ile yapıldı (Claude in Chrome); çıktı dosyası bayt bayt aynı kaldı.
-- **Skill güncellemesi (#30, #32):** Devir teslim şablonu (#14 + #15), tam kategori fiyat tablosu ve "Bilinen sınırlılıklar" bölümü eklendi; kişi adı yerine rol yazıldı. Yalnızca bu dosya değişti, betik ve veri aynı. Claude ile yapıldı (Claude in Chrome).
+- **Skill güncellemesi (#30, #32):** Devir teslim şablonu (#14 + #15), tam kategori fiyat tablosu, "Dağılımlar ve üretim sırası", "Bilinen sınırlılıklar" ve "Kapsam dışı" bölümleri eklendi; kişi adı yerine rol yazıldı. Betikte `assert` kontrolleri `kontrol()` ile `ValueError`'a çevrildi (`python -O` ile de çalışır). Çıktı dosyası bayt bayt aynı, `dq_test.py` 9/9. Claude ile yapıldı (Claude in Chrome).
