@@ -62,3 +62,11 @@ Elle çalıştırma (depo kökünde):
 python src/fe_gorsel.py --taslak   # taslaklar → visuals/taslak/
 python src/fe_gorsel.py            # grafikler → visuals/
 ```
+
+## Üretim kaydı (hangi araç, hangi prompt)
+
+- **Araç:** Claude (yapay zekâ ajanı).
+- **İlk üretim (#15):** Claude'a #15 Issue'su gösterildi; `src/fe_gorsel.py`, bu skill ve iki grafik Claude ile üretildi. Dosyalar GitHub web arayüzünden yüklendiği için ilk commit'lerde ajan izi (Co-Authored-By) yok.
+- **Düzeltmeler (#28, #29):** Claude, Issue'lardaki önerilen düzeltmeyi `zaman_serisi()` içinde uyguladı ve `python src/fe_gorsel.py` ile PNG'yi yeniden üretip `docs/analiz-g1.md` M4 ile karşılaştırdı (c9e31b1, 4e0012f).
+- **Skill'in ajanla çalıştırılması:** Claude, bu dosyadaki adımları izleyerek iki grafiği yeniden üretti; iki çalıştırmada PNG'ler repodakilerle birebir aynı (kanıt: #15 yorumu, 2129cb5).
+- **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: fe-gorsel skill'i ile, Claude" satırı yazılır.
