@@ -4,6 +4,7 @@ Kullanım:
     python src/dq_analiz.py                          # varsayılan: data/siparisler.csv
     python src/dq_analiz.py yol/dosya.csv
     python src/dq_analiz.py --cikti sonuc.md         # çıktıyı dosyaya da yazar
+    python src/dq_analiz.py --ek                     # + yorum/bulgu/sınırlılık için ek istatistikler
 
 Metrikler (formüller docs/analiz-g1.md'de):
     M1 Toplam ciro                 = Σ toplam_tutar
@@ -122,13 +123,74 @@ def analiz(yol):
     return "\n".join(out)
 
 
+def ek_istatistik(yol):
+    """docs/analiz-g1.md'deki Yorum, Bulgular ve Sınırlılıklar sayılarının kaynağı.
+
+    Tablolara girmez; yorumlarda geçen her sayı buradan alınır (uydurma sayı olmasın).
+    """
+    df = pd.read_csv(yol, parse_dates=["siparis_tarihi"])
+    t = df["toplam_tutar"]
+    out = ["\n## Ek istatistikler (yorumlar için — analiz-g1.md'ye tablo olarak aktarılmaz)"]
+
+    out.append(f"\n**Sipariş tutarı:** ortalama {tl(t.mean())} · medyan {tl(t.median())} · "
+               f"standart sapma {tl(t.std(ddof=0))} (popülasyon)")
+
+    k = df.groupby("kategori").agg(siparis=("siparis_id", "count"), ort_adet=("adet", "mean"),
+                                   ort_tutar=("toplam_tutar", "mean"))
+    k = k.sort_values("ort_tutar", ascending=False)
+    out.append("\n**Kategori başına:**\n\n" + tablo(pd.DataFrame({
+        "Kategori": k.index,
+        "Sipariş payı": [yuzde(v / len(df) * 100) for v in k["siparis"]],
+        "Ort. adet": [f"{v:.2f}".replace(".", ",") for v in k["ort_adet"]],
+        "Ort. sipariş tutarı": [tl(v) for v in k["ort_tutar"]],
+    })))
+
+    a = df.groupby(df["siparis_tarihi"].dt.to_period("M"))["toplam_tutar"].agg(["count", "sum"])
+    out.append("\n**Aylık:**\n\n" + tablo(pd.DataFrame({
+        "Ay": [str(p) for p in a.index], "Sipariş": a["count"].values,
+        "Ciro": [tl(v) for v in a["sum"]]})))
+
+    # Haftalık yoğunlaşma: haftanın en büyük 3 siparişinin haftalık cirodaki payı
+    hafta = df["siparis_tarihi"].dt.to_period("W-SUN").dt.start_time
+    g = df.groupby(hafta)["toplam_tutar"]
+    sayi = g.count()
+    pay3 = g.apply(lambda s: s.nlargest(3).sum() / s.sum() * 100)
+    ilk, son = df["siparis_tarihi"].min().normalize(), df["siparis_tarihi"].max().normalize()
+    tam = pay3[[d >= ilk and d + pd.Timedelta(days=6) <= son for d in pay3.index]]
+    out.append(f"\n**Haftalık sipariş sayısı:** ortalama {f"{sayi.mean():.1f}".replace(".", ",")} · en az {sayi.min()} · "
+               f"en çok {sayi.max()}")
+    out.append(f"\n**Haftanın en büyük 3 siparişinin haftalık cirodaki payı ({len(tam)} tam hafta):** "
+               f"medyan {yuzde(tam.median())} · en az {yuzde(tam.min())} · en çok {yuzde(tam.max())}")
+    en_yuksek = tam.loc[g.sum().loc[tam.index].nlargest(3).index]
+    out.append("En yüksek cirolu 3 tam hafta: " + " · ".join(
+        f"{d:%Y-%m-%d} → {yuzde(v)}" for d, v in en_yuksek.items()))
+
+    u = df.groupby(["urun", "kategori"])["toplam_tutar"].sum().sort_values()
+    out.append("\n**En az ciro getiren 3 ürün:** " + " · ".join(
+        f"{ur} ({kat}, {tl(v)})" for (ur, kat), v in u.head(3).items()))
+    ilk8 = u.sort_values(ascending=False).head(8)
+    out.append("**İlk 8 ürünün kategorileri:** " + ", ".join(
+        f"{kat}" for (_, kat) in ilk8.index))
+
+    f = df.groupby("urun")["birim_fiyat"].agg(["min", "max"])
+    f = f.loc[u.sort_values(ascending=False).head(3).index.get_level_values(0)]
+    out.append("\n**Top-3 ürünün birim fiyat aralığı:** " + " · ".join(
+        f"{ur} {tl(r['min'])} – {tl(r['max'])}" for ur, r in f.iterrows()))
+
+    return "\n".join(out)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("dosya", nargs="?", default="data/siparisler.csv")
     p.add_argument("--cikti", help="Markdown çıktısının yazılacağı dosya")
+    p.add_argument("--ek", action="store_true",
+                   help="Yorum/bulgu/sınırlılık sayıları için ek istatistikleri de yazdır")
     a = p.parse_args()
 
     sonuc = analiz(a.dosya)
+    if a.ek:
+        sonuc += "\n" + ek_istatistik(a.dosya)
     print(sonuc)
     if a.cikti:
         with open(a.cikti, "w", encoding="utf-8") as f:
