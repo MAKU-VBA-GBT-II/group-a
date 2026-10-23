@@ -7,7 +7,7 @@ Sepetix Analitik (Grup A) — BE: sipariş verisi üretici
 Çıktı: data/siparisler.csv  (temiz: eksik değer, aralık dışı değer, tutarsız kategori yok)
 
 Şema kaynağı: skills/be-veri/SKILL.md ve docs/veri-sozlugu-g1.md
-Testler:      tests/test-cases.md (TC-01 … TC-09)
+Testler:      tests/test-cases.md (TC-01 … TC-12)
 Issue:        #13 (üretim), #27 (para alanları tam 2 ondalık)
 
 Kullanım: depo kökünde  python src/veri_uret.py
@@ -149,15 +149,23 @@ def dogrula(df: pd.DataFrame) -> None:
     kontrol((df.astype(str) == "").sum().sum() == 0, "TC-06: boş metin var")
     kontrol(df["siparis_id"].duplicated().sum() == 0, "TC-07: siparis_id tekrar ediyor")
     kontrol(df.duplicated().sum() == 0, "TC-07: birebir tekrar eden satır var")
-    kontrol(df["siparis_id"].min() == 1, "siparis_id 1'den başlamalı")
+    kontrol(
+        df["siparis_id"].tolist() == list(range(1, len(df) + 1)),
+        "TC-12: siparis_id 1…N ardışık değil",
+    )
+    kontrol(df["siparis_tarihi"].is_monotonic_increasing, "TC-12: dosya tarihe göre artan sıralı değil")
     kontrol(df["adet"].between(ADET_MIN, ADET_MAX).all(), "TC-04: adet aralık dışı")
     kontrol(df["birim_fiyat"].between(FIYAT_MIN, FIYAT_MAX).all(), "TC-04: birim_fiyat aralık dışı")
     fark = (df["toplam_tutar"] - (df["adet"] * df["birim_fiyat"]).round(2)).abs()
     kontrol((fark > 0.01).sum() == 0, "TC-08: toplam_tutar tutarsız")
     kontrol(set(df["kategori"]) == set(KATEGORILER), "TC-05: kategori kümesi şemayla uyuşmuyor")
+    yanlis_urun = sum(
+        urun not in KATEGORI_URUN[kat][0] for kat, urun in zip(df["kategori"], df["urun"])
+    )
+    kontrol(yanlis_urun == 0, f"TC-11: kategorisine ait olmayan {yanlis_urun} ürün var")
     # == : hem şema dışı değer yok hem de her değer en az bir kez geçiyor
-    kontrol(set(df["sehir"]) == set(SEHIRLER), "sehir kümesi şemayla uyuşmuyor")
-    kontrol(set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "odeme_tipi kümesi şemayla uyuşmuyor")
+    kontrol(set(df["sehir"]) == set(SEHIRLER), "TC-10: sehir kümesi şemayla uyuşmuyor")
+    kontrol(set(df["odeme_tipi"]) == set(ODEME_TIPLERI), "TC-10: odeme_tipi kümesi şemayla uyuşmuyor")
     tarih = pd.to_datetime(df["siparis_tarihi"], format="%Y-%m-%d", errors="raise")
     kontrol(tarih.between(TARIH_BASLANGIC, TARIH_BITIS).all(), "TC-04: tarih aralık dışı")
 
@@ -185,7 +193,10 @@ def main() -> None:
     metin = csv_metni(df)
     metni_dogrula(metin)  # bir kontrol kalırsa dosya hiç yazılmaz
     CIKTI.parent.mkdir(parents=True, exist_ok=True)
-    CIKTI.write_bytes(metin.encode("utf-8"))  # UTF-8, \n satır sonu, her işletim sisteminde aynı bayt
+    bayt = metin.encode("utf-8")  # UTF-8, \n satır sonu, her işletim sisteminde aynı bayt
+    CIKTI.write_bytes(bayt)
+    # Yazdıktan sonra geri oku: diske yazılan, doğrulanan metinle birebir aynı olmalı (TC-01 aynası)
+    kontrol(CIKTI.read_bytes() == bayt, f"TC-01: {CIKTI.name} diske eksik/farklı yazıldı")
 
     print(f"Yazıldı: {CIKTI.relative_to(CIKTI.parent.parent)}")
     print(f"  Satır      : {len(df)}")
@@ -193,7 +204,7 @@ def main() -> None:
     print(f"  Tohum      : {SEED}")
     print(f"  Tarih      : {df.siparis_tarihi.min()} .. {df.siparis_tarihi.max()}")
     print(f"  Ciro       : {df.toplam_tutar.sum():,.2f} TL")
-    print("  Tüm iç kontroller geçti (TC-02…TC-09 aynası).")
+    print("  Tüm iç kontroller geçti (TC-01…TC-12 aynası).")
 
 
 if __name__ == "__main__":
