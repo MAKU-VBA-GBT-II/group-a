@@ -71,17 +71,22 @@ Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden
 1. **Şemayı doğrula:** Yukarıdaki şemayı `tests/test-cases.md`'deki referans şema ile karşılaştır. Fark varsa DQ ile netleştir; şemayı tek taraflı değiştirme.
 2. **`src/veri_uret.py` betiğini yaz/güncelle:** Şema sabitlerini (`SUTUNLAR`, `KATEGORI_URUN`, `SEHIRLER`, `ODEME_TIPLERI`, `SEED`, `SATIR_SAYISI`) dosyanın başında sabit olarak tanımla — gömülü sihirli sayı bırakma.
 3. **Üret:** Depo kökünde `python src/veri_uret.py` çalıştır. Çıktı: `data/siparisler.csv`.
-4. **Kendi kontrolünü yap** (DQ'ya göndermeden önce):
-   - Satır sayısı tam 400 mü?
-   - Sütun adları ve sırası şemayla birebir mi?
-   - `df.isna().sum().sum() == 0` mı?
-   - `(df.toplam_tutar - (df.adet * df.birim_fiyat).round(2)).abs().max() == 0` mı?
-   - `df.siparis_id.duplicated().sum() == 0` mı?
-   - `set(df.kategori)`, `set(df.sehir)` ve `set(df.odeme_tipi)` tam olarak şemadaki değer listeleri mi?
-   - Dosya **ham metin olarak** okununca (`pd.read_csv(..., dtype=str)`) `birim_fiyat` ve `toplam_tutar` her satırda tam 2 ondalık mı (`^\d+\.\d{2}$`)? Sayıya çevirerek bakılırsa bu hata görünmez.
+4. **Kendi kontrolünü yap** (DQ'ya göndermeden önce). Her madde DQ'nun bir test senaryosunun aynasıdır (`tests/test-cases.md`, TC-01…TC-12):
+   - Satır sayısı tam 400 mü? (TC-02)
+   - Sütun adları ve sırası şemayla birebir mi? (TC-03)
+   - `adet` 1–10, `birim_fiyat` 50–5000, `siparis_tarihi` 2026-01-01 – 2026-09-30 aralığında mı; tarih `YYYY-MM-DD` olarak ayrıştırılıyor mu? (TC-04)
+   - `set(df.kategori)` tam olarak şemadaki 5 kategori mi? (TC-05)
+   - `df.isna().sum().sum() == 0` ve boş metin (`""`) yok mu? (TC-06)
+   - `df.siparis_id.duplicated().sum() == 0` ve birebir tekrar eden satır yok mu? (TC-07)
+   - `(df.toplam_tutar - (df.adet * df.birim_fiyat).round(2)).abs()` hiçbir satırda 0.01'den büyük değil mi? (TC-08)
+   - Dosya **ham metin olarak** okununca (`pd.read_csv(..., dtype=str)`) `birim_fiyat` ve `toplam_tutar` her satırda tam 2 ondalık mı (`^\d+\.\d{2}$`)? Sayıya çevirerek bakılırsa bu hata görünmez. (TC-09)
+   - `set(df.sehir)` ve `set(df.odeme_tipi)` tam olarak şemadaki değer listeleri mi? (TC-10)
+   - Her satırdaki `urun`, o satırın `kategori`sinin 5 ürününden biri mi? (TC-11)
+   - `siparis_id` tam olarak 1, 2, …, 400 mü ve dosya `siparis_tarihi`ne göre artan sıralı mı? (TC-12)
+   - Yazılan dosya diskten geri okununca doğrulanan metinle bayt bayt aynı mı? (TC-01)
    - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik).
 
-   `src/veri_uret.py` bu kontrollerin hepsini dosyayı yazmadan önce kendisi yapar (`dogrula`, `metni_dogrula`); biri kalırsa `ValueError` verir ve dosya yazılmaz. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz.
+   `src/veri_uret.py` bu kontrollerin hepsini kendisi yapar: dosyayı yazmadan önce `dogrula` ve `metni_dogrula`, yazdıktan sonra geri okuma. Biri kalırsa `ValueError` verir; yazmadan önceki kontrollerden biri kalırsa dosya hiç yazılmaz. Geri okuma (TC-01) ise dosya yazıldıktan sonra çalışır: bu kontrol kalırsa diskte bozuk bir dosya kalmış olabilir; o dosya kullanılmaz, silinir ve betik yeniden çalıştırılır. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz. DQ yeni bir test senaryosu eklerse aynası buraya ve betiğe de eklenir.
 5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu dördü mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42) ve satır sayısı (400).
 6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
 7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından **hem G1-analiz (#14, DQ) hem G1-gorsel (#15, FE)** Issue'suna aşağıdaki devir teslim yorumunu yaz; bu yorum DQ ve FE'nin başlama iznidir. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
@@ -134,7 +139,8 @@ siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odem
 
 - **Okur:** `tests/test-cases.md`
 - **Yazar:** `data/siparisler.csv`, `docs/veri-sozlugu-g1.md`
-- **Çalıştırır:** `src/veri_uret.py` (Python 3 + pandas)
+- **Çalıştırır:** `src/veri_uret.py`
+- **Bağımlılıklar:** Python 3.10+, pandas (1.5+), numpy. Kurulum: `pip install pandas numpy`. Betik yalnızca bunları kullanır; ağ erişimi gerekmez.
 
 ## Nasıl çalıştırılır
 
@@ -143,7 +149,7 @@ Ajana (Claude Code, Codex vb.):
 - Üretim: "be-veri skill'ini kullanarak data/siparisler.csv ve docs/veri-sozlugu-g1.md dosyalarını üret."
 - Şema değişikliği: "be-veri skill'ini kullanarak şemaya `kargo_ucreti` alanını ekle ve veriyi yeniden üret."
 
-Elle çalıştırma: depo kökünde `python src/veri_uret.py`. Aynı tohumla her çalıştırmada aynı dosya üretilir.
+Elle çalıştırma: önce bağımlılıkları kur (`pip install pandas numpy`), sonra depo kökünde `python src/veri_uret.py`. Aynı tohumla her çalıştırmada aynı dosya üretilir.
 
 ## Üretim kaydı (hangi araç, hangi prompt)
 
@@ -152,3 +158,4 @@ Elle çalıştırma: depo kökünde `python src/veri_uret.py`. Aynı tohumla her
 - **Düzeltme (#27):** DQ'nun önerdiği `float_format="%.2f"` düzeltmesi Claude ile uygulandı, veri yeniden üretildi (1f8beb8, `Fixes #27`). Değerler değişmedi, yalnızca yazım biçimi düzeldi. Bu commit'te `Co-Authored-By` satırı yok; ajan izi #27'deki kanıt yorumunda.
 - **Skill güncellemesi (#32):** #27'de öğrenilen kural skill'e işlendi, betiğe yazmadan önce ham metin kontrolü eklendi. Claude ile yapıldı (Claude in Chrome); çıktı dosyası bayt bayt aynı kaldı.
 - **Skill güncellemesi (#30, #32):** Devir teslim şablonu (#14 + #15), tam kategori fiyat tablosu, "Dağılımlar ve üretim sırası", "Bilinen sınırlılıklar" ve "Kapsam dışı" bölümleri eklendi; kişi adı yerine rol yazıldı. Betikte `assert` kontrolleri `kontrol()` ile `ValueError`'a çevrildi (`python -O` ile de çalışır). Çıktı dosyası bayt bayt aynı, `dq_test.py` 9/9. Claude ile yapıldı (Claude in Chrome).
+- **Skill ve betik güncellemesi (#32):** DQ'nun eklediği TC-10…TC-12 için betiğe ürün–kategori (TC-11) ve ardışık id + tarih sırası (TC-12) kontrolleri eklendi, şehir/ödeme kontrolü TC-10 olarak etiketlendi; dosya yazıldıktan sonra diskten geri okunup doğrulanıyor (TC-01). Skill'deki kontrol listesi betikle eşitlendi (aralık kontrolleri dahil, her madde bir TC'ye bağlı), bağımlılıklar yazıldı. Çıktı dosyası bayt bayt aynı (md5 `e64f4def…`, `python` ve `python -O`), `dq_test.py` 12/12. Claude ile yapıldı (Claude in Chrome).
