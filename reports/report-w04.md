@@ -14,7 +14,7 @@
 | #31 | G1-junior — Analizi oku, 3 gözlem yaz | Ebru Türk (Junior) | 27.10.2026 23:59 |
 | #38 | G1-H4 junior — Bir test senaryosunu elle kontrol et | Ebru Türk (Junior) | 27.10.2026 23:59 |
 | #33–#37 | Yan görev 3 — Grup G skill incelemeleri (be-veri, fe-gorsel, dq-test, pm-rapor, junior-kontrol) | Hilal, Sema, Tuğba, Ali, Ebru | 27.10.2026 23:59 |
-| #44, #45, #46, #47, #48 | Hoca geri bildirimleri (#44 rapor zamanlaması, #45 devir yorumu, #46 grafik taslağı, #47–#48 DQ test kaydı düzeni) | #44: Ali · #45: Hilal · #46: Sema · #47: Tuğba · #48: kayıt yok | kayıt yok |
+| #44–#47, #48 | Hoca geri bildirimleri (#44 rapor zamanlaması, #45 devir yorumu, #46 grafik taslağı, #47 DQ test kaydı düzeni); #48 Tuğba'nın #47 notu için açtığı takip Issue'su | #44: Ali · #45: Hilal · #46: Sema · #47, #48: Tuğba | 27.10.2026 23:59 |
 
 ## Yapılan
 
@@ -27,7 +27,7 @@
 | #30 | `docs/analiz-g1.md` "Sınırlılıklar" bölümü — `5539020`; be-veri skill'ine bilinen sınırlılıklar — `27f18cd`, PR #42 | 🟡 Açık (kapatma Görev 2 takibi için bırakıldı) |
 | #31, #38 | `reports/junior/ebru-g1-gozlem.md` — `82b7ba7`; TC-03 elle kontrol, `tests/test-log.md` — `2aa4429` | ✅ Kapandı |
 | Skill kontrolü (#32) | `skills/be-veri` (`fd1d807`, `b49e659`, `ca0fc25`, PR #41, #42); `skills/fe-gorsel` (`2129cb5`, `1aad2be`); `skills/dq-analiz` + `skills/dq-test` (`1868546`, `fff7fdd`, PR #40, `46f5c49` PR #43); `skills/pm-rapor` (`449406b`, PR #49) | ✅ |
-| Yan görev 3 | #33 (Hilal), #34 (Sema), #35 (Tuğba), #36 (Ali), #37 (Ebru) kapandı; Grup G'de açılan Issue'lar: group-g#27, group-g#18, group-g#19 (#32 yorumlarına göre); Ali ve Ebru'nunki için kayıt yok | ✅ / kısmen kayıt yok |
+| Yan görev 3 | #33 (Hilal), #34 (Sema), #35 (Tuğba), #36 (Ali), #37 (Ebru) kapandı; Grup G'de açılan Issue'lar: group-g#27 (Hilal), group-g#18 (Sema), group-g#19 (Tuğba), group-g#17 (Ali), group-g#20 (Ebru) | ✅ |
 | Grup B'nin Grup A'ya incelemesi | #39 (Sude Çukurtaş, Grup B) kapandı; pm-rapor güncellemesi — `449406b` (PR #49) | ✅ |
 | Hoca geri bildirimleri | #44 kapandı (Ali yorumu), #46 kapandı (Sema), #47 kapandı, #48 kapandı; test-log Görev 2 bölümü — `6b4eb9e`; #45 | 🟡 #45 açık |
 | `reports/report-w04.md` | Bu dosya (otomatik taslak, PR bekliyor) | 🟡 PM onayı bekliyor |
@@ -48,8 +48,6 @@
 - **#32 açık:** `report-w04.md` ve release maddeleri işaretlenmedi.
 - **#45 açık** (Hilal, devir yorumlarını iş biter bitmez yazma); **#30 açık** (kapatma kararı Görev 2 takibi için PM'e bırakıldı).
 - **Geçen hafta rapor main'e geç girdi** (#44, bug); bu rapor taslak PR olarak açılır, PM'in son tarihten önce merge etmesi gerekir.
-- Yan görev 3 kanıtı: Ali (#36) ve Ebru (#37) için Grup G'de açılan Issue numarası bu rapor için kaynak gösterilemedi → kayıt yok.
-- #48'in sahibi/atanan kişisi kayıt yok.
 
 ## Kim ne yaptı
 
@@ -68,5 +66,4 @@
 - DQ: Görev 2 senaryolarını `tests/test-cases.md`'ye yazmak, sonuçları `tests/test-log.md` Görev 2 bölümüne işlemek (#47).
 - Herkes: group-a'da açılan "Skill incelemesi" Issue'larına (#39 vb.) cevap yazmak; plana göre Görev 2 (Hafta 5) başlangıcı — plan kaynağı: `ders/AGENTS.md`.
 
-<!-- pm-rapor:otomatik -->
-_Bu taslak pm-rapor skill'i ile otomatik derlendi; PM tarafından gözden geçirilip merge edilir._
+_Bu rapor skills/pm-rapor skill'i ile derlendi ve PM tarafından gözden geçirildi._
