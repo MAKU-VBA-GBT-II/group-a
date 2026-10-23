@@ -1,8 +1,8 @@
 # Veri Sözlüğü — Görev 1 (`data/siparisler.csv`)
 
-**Şirket:** Sepetix Analitik (Grup A) · **Rol:** BE — Hilal Elçin Şahin · **Issue:** #13
+**Şirket:** Sepetix Analitik (Grup A) · **Rol:** BE · **Issue:** #13
 **Üreten betik:** `src/veri_uret.py` · **Skill:** [`skills/be-veri/SKILL.md`](../skills/be-veri/SKILL.md)
-**Test eden:** `tests/test-cases.md` (TC-01 … TC-09) · `python src/dq_test.py`
+**Test eden:** `tests/test-cases.md` (TC-01 … TC-12) · `python src/dq_test.py`
 
 > Tüm veriler simülasyon ürünüdür; gerçek kişi ya da işletme verisi içermez (AGENTS.md kural 2).
 
@@ -46,6 +46,7 @@ Sütunlar dosyada **tam olarak bu sırada** bulunur:
 - **`toplam_tutar` rastgele üretilmez**, `adet × birim_fiyat` ile hesaplanıp 2 ondalığa yuvarlanır.
 - **Kategori adları tutarlıdır** — `Ev & Yaşam` her satırda tam olarak böyle yazılır; büyük/küçük harf veya boşluk farkı yoktur.
 - **Para alanları her satırda tam 2 ondalıklıdır** (`^\d+\.\d{2}$`); betik bunu dosyayı yazmadan önce ham metin üzerinde kontrol eder (TC-09).
+- **Her ürün kendi kategorisine aittir** (TC-11); **`siparis_id` 1…400 ardışıktır ve dosya tarihe göre artan sıralıdır** (TC-12). Betik bunları da yazmadan önce kontrol eder, dosyayı yazdıktan sonra diskten geri okuyup doğrular.
 - Bu dosya **temiz** sürümdür. Hatalı/kirli kopyalar DQ tarafında ayrıca üretilir.
 
 ## Geçerli değer listeleri
