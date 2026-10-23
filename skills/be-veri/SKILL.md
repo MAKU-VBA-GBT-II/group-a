@@ -58,18 +58,24 @@ Sütunlar **tam olarak bu sırada**, 9 sütun, fazla/eksik yok:
 
 ### Dağılımlar ve üretim sırası
 
-Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden, **bu sırayla** çekilir. Sıra değişirse kurallara uyan ama farklı bir dosya çıkar; bayt bayt aynı dosya için sıra korunur.
+Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden, **bu sırayla ve bu çağrılarla** çekilir. Sıra veya çağrı değişirse (ör. `rng.choice` yerine `rng.integers`) kurallara uyan ama farklı bir dosya çıkar; bayt bayt aynı dosya için ikisi de korunur. `N = 400`.
 
-1. `kategori`, `sehir`, `odeme_tipi`: her listenin tamamı bir kez eklenir (her değer en az bir kez geçsin), kalan satırlar listeden eşit olasılıkla seçilir; ardından üç dizi sırayla karıştırılır.
-2. Her satır için `urun`: kendi kategorisinin 5 ürününden eşit olasılıkla; `birim_fiyat`: kategorinin fiyat aralığında düzgün dağılımla, 2 ondalığa yuvarlanır.
-3. `adet`: 1–10 arasında eşit olasılıklı tam sayı; `toplam_tutar = round(adet * birim_fiyat, 2)`.
-4. `siparis_tarihi`: 2026-01-01 – 2026-09-30 arasındaki günlerden eşit olasılıkla.
-5. Satırlar tarihe göre (kararlı sıralama, `mergesort`) dizilir; `siparis_id` bu sırayla 1'den 400'e verilir.
+1. `kategori`, `sehir`, `odeme_tipi` — önce üç çekiliş, sonra üç karıştırma:
+   - `kategori = KATEGORILER + list(rng.choice(KATEGORILER, size=N - 5))` (liste sırası: Elektronik, Giyim, Ev & Yaşam, Kozmetik, Kitap)
+   - `sehir = SEHIRLER + list(rng.choice(SEHIRLER, size=N - 5))`
+   - `odeme = ODEME_TIPLERI + list(rng.choice(ODEME_TIPLERI, size=N - 4))`
+   - Üçü `dtype=object` NumPy dizisine çevrilir; sonra `rng.shuffle(kategori)`, `rng.shuffle(sehir)`, `rng.shuffle(odeme)` — bu sırayla.
+2. Satır satır (`for i, kat in enumerate(kategori)`), her satırda önce ürün sonra fiyat:
+   - `urun[i] = urunler[int(rng.integers(5))]` (ürün sırası **Ürün listesi** tablosundaki gibi)
+   - `birim_fiyat[i] = round(float(rng.uniform(alt, ust)), 2)` (`alt`, `ust`: kategorinin fiyat aralığı)
+3. `adet = rng.integers(1, 11, size=N)`; `toplam_tutar = numpy.round(adet * birim_fiyat, 2)`.
+4. `siparis_tarihi = 2026-01-01 + rng.integers(0, 273, size=N)` gün (273 = 2026-01-01 ile 2026-09-30 arasındaki gün sayısı 272, artı 1).
+5. Satırlar `siparis_tarihi`ne göre kararlı sıralanır (`sort_values(..., kind="mergesort")`); `siparis_id` bu sırayla 1'den 400'e verilir; tarih `YYYY-MM-DD` metnine çevrilir.
 
 ## Adımlar
 
 1. **Şemayı doğrula:** Yukarıdaki şemayı `tests/test-cases.md`'deki referans şema ile karşılaştır. Fark varsa DQ ile netleştir; şemayı tek taraflı değiştirme.
-2. **`src/veri_uret.py` betiğini yaz/güncelle:** Şema sabitlerini (`SUTUNLAR`, `KATEGORI_URUN`, `SEHIRLER`, `ODEME_TIPLERI`, `SEED`, `SATIR_SAYISI`) dosyanın başında sabit olarak tanımla — gömülü sihirli sayı bırakma.
+2. **`src/veri_uret.py` betiğini yalnızca gerekirse yaz/güncelle:** Betik zaten varsa ve şema değişmediyse **betiği yeniden yazma**, doğrudan 3. adıma geç. Betik yoksa ya da şema değiştiyse (bkz. **Şema değişirse**) şema sabitlerini (`SUTUNLAR`, `KATEGORI_URUN`, `SEHIRLER`, `ODEME_TIPLERI`, `SEED`, `SATIR_SAYISI`) dosyanın başında sabit olarak tanımla — gömülü sihirli sayı bırakma.
 3. **Üret:** Depo kökünde `python src/veri_uret.py` çalıştır. Çıktı: `data/siparisler.csv`.
 4. **Kendi kontrolünü yap** (DQ'ya göndermeden önce). Her madde DQ'nun bir test senaryosunun aynasıdır (`tests/test-cases.md`, TC-01…TC-12):
    - Satır sayısı tam 400 mü? (TC-02)
@@ -87,8 +93,8 @@ Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden
    - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik).
 
    `src/veri_uret.py` bu kontrollerin hepsini kendisi yapar: dosyayı yazmadan önce `dogrula` ve `metni_dogrula`, yazdıktan sonra geri okuma. Biri kalırsa `ValueError` verir; yazmadan önceki kontrollerden biri kalırsa dosya hiç yazılmaz. Geri okuma (TC-01) ise dosya yazıldıktan sonra çalışır: bu kontrol kalırsa diskte bozuk bir dosya kalmış olabilir; o dosya kullanılmaz, silinir ve betik yeniden çalıştırılır. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz. DQ yeni bir test senaryosu eklerse aynası buraya ve betiğe de eklenir.
-5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu dördü mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42) ve satır sayısı (400).
-6. **Commit at:** `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
+5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu beşi mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42), satır sayısı (400).
+6. **Commit at:** Mesaj biçimi `<Issue başlığının öneki>: <ne değişti> (#<Issue no>)`. Örnek (ilk üretim): `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
 7. **Issue'ya kanıt yorumu yaz:** commit hash + üretilen dosyalar + satır sayısı + tohum. Ardından **hem G1-analiz (#14, DQ) hem G1-gorsel (#15, FE)** Issue'suna aşağıdaki devir teslim yorumunu yaz; bu yorum DQ ve FE'nin başlama iznidir. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
 
 ### Devir teslim yorumu şablonu
@@ -124,9 +130,12 @@ Görev 1 verisi bilerek değiştirilmedi (analiz, testler ve grafikler bu veriye
 - **Gerçek kişi verisi istenirse** (ad-soyad, TC no, telefon, adres, gerçek müşteri kaydı): üretmez, nedenini söyler ve aynı alanın sentetik karşılığını önerir.
 - **Şema DQ ile netleşmeden** alan eklemek, silmek veya aralık değiştirmek istenirse: önce DQ'ya sorar (Adım 1); şemayı tek taraflı değiştirmez.
 
-## Örnek çıktı
+## Örnek giriş ve çıkış
 
-`python src/veri_uret.py` sonrası `data/siparisler.csv` dosyasının ilk satırları:
+**Örnek 1 — üretim**
+
+- **Giriş (prompt):** "be-veri skill'ini kullanarak data/siparisler.csv ve docs/veri-sozlugu-g1.md dosyalarını üret." Betik ve şema mevcut, tohum 42, satır 400.
+- **Çıkış:** `data/siparisler.csv` — 400 satır, 9 sütun, MD5 `e64f4def413ff63388ee4040c489f999`. İlk satırlar:
 
 ```csv
 siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odeme_tipi
@@ -134,6 +143,13 @@ siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odem
 2,2026-01-01,Ev & Yaşam,Battaniye,1,2661.24,2661.24,İzmir,Banka Kartı
 3,2026-01-02,Kozmetik,Güneş Kremi,2,1194.05,2388.10,Ankara,Kredi Kartı
 ```
+
+Konsol özeti: `Satır: 400`, `Tarih: 2026-01-01 .. 2026-09-30`, `Ciro: 3,114,411.51 TL`, `Tüm iç kontroller geçti (TC-01…TC-12 aynası).` MD5 farklı çıkarsa üretim sırası veya çağrılar değişmiş demektir (bkz. **Dağılımlar ve üretim sırası**).
+
+**Örnek 2 — ret**
+
+- **Giriş (prompt):** "Veriye gerçek müşteri ad-soyadı ve telefon numarası sütunu ekle."
+- **Çıkış:** Üretim yapılmaz, dosya değişmez. Yanıt: "Gerçek kişi verisi üretemem (AGENTS.md kural 2). İstersen sentetik bir `musteri_id` alanı (ör. `M0001`) önerebilirim; şema değişikliği olduğu için önce DQ'nun onayı gerekir."
 
 ## Kullanılan dosyalar
 
