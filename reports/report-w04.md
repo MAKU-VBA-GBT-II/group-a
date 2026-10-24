@@ -69,5 +69,4 @@
 - DQ: Görev 2 senaryolarını `tests/test-cases.md`'ye yazmak, sonuçları `tests/test-log.md` Görev 2 bölümüne işlemek (#47).
 - Herkes: group-a'da açılan "Skill incelemesi" Issue'larına (#39 vb.) cevap yazmak; plana göre Görev 2 (Hafta 5) başlangıcı — plan kaynağı: `ders/AGENTS.md`.
 
-<!-- pm-rapor:otomatik -->
-_Bu taslak pm-rapor skill'i ile otomatik derlendi; PM tarafından gözden geçirilip merge edilir._
+_Bu rapor skills/pm-rapor skill'i ile derlendi ve PM tarafından gözden geçirildi._
