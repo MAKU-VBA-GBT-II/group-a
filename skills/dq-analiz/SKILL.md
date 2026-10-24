@@ -5,7 +5,7 @@ description: Grup A'nın sipariş verisinden (data/siparisler.csv) metrikleri sr
 
 # dq-analiz — Metrik analizi ve bulgular
 
-**Ne yapar:** BE'nin ürettiği veri dosyasından (`data/siparisler.csv`) 5 metriği (1 toplam, 1 ortalama, 2 kırılım, top-3) `src/dq_analiz.py` ile hesaplar; tabloları `docs/analiz-g1.md`'ye aktarır, her metriğin altına 1–2 cümle yorum, sonuna 3 bulgu + 1 eylem önerisi ve sınırlılıklar yazar. Uydurma sayı yazmaz: tablolardaki sayılar betiğin ana çıktısından, yorum/bulgu/sınırlılık cümlelerindeki sayılar `--ek` çıktısından gelir; ikisi de belirtilen veri commit'ine bağlıdır.
+**Ne yapar:** BE'nin ürettiği veri dosyasından (`data/siparisler.csv`) 5 metriği (1 toplam, 1 ortalama, 2 kırılım: M3 kategori + M4 haftalık zaman serisi, top-3) `src/dq_analiz.py` ile hesaplar; tabloları `docs/analiz-g1.md`'ye aktarır, her metriğin altına 1–2 cümle yorum, sonuna 3 bulgu + 1 eylem önerisi ve sınırlılıklar yazar. Uydurma sayı yazmaz: tablolardaki sayılar betiğin ana çıktısından, yorum/bulgu/sınırlılık cümlelerindeki sayılar `--ek` çıktısından gelir; ikisi de belirtilen veri commit'ine bağlıdır.
 
 ## Girdiler
 
@@ -30,7 +30,7 @@ description: Grup A'nın sipariş verisinden (data/siparisler.csv) metrikleri sr
    - **Sınırlılıklar:** verinin sonuçları sınırlayan özelliklerini sayıyla yaz (örn. haftalık sipariş sayısı az olduğu için haftalık cironun tek siparişlere duyarlılığı, fiyatın üründen değil kategoriden üretilmesi, dalgalanmaların nedensiz olması). Verinin sentetik olduğunu ve gerçek müşteri davranışı iddiası taşımadığını belirt (bkz. #30).
    - Başlığa "Veri kalitesi" satırını (`dq_test.py` sonucu, tarih) yaz; "Taslak" uyarı kutusu varsa kaldır.
 6. **Commit at:** `G1-analiz: analiz-g1.md tamamlandı (#14)`
-7. **Devir teslim (notlandırılır):** #15'e yaz: "Analiz hazır — docs/analiz-g1.md, commit <hash>. 5 metrik (2 kırılım + top-N) + bulgular. FE görselleştirebilir."
+7. **Devir teslim (notlandırılır):** #15'e yaz: "Analiz hazır — docs/analiz-g1.md, commit <hash>. 5 metrik (2 kırılım: M3 kategori + M4 haftalık zaman serisi, top-3) + bulgular. FE görselleştirebilir."
 8. **#14'e kanıt yorumu yaz** (commit hash + dosyalar) ve Issue'yu kapat. Yorumun son satırı: `Üretim: dq-analiz skill'i ile, <araç>`.
 
 ### B) Nihai veriyle doğrula ve onayla (Hafta 4)
@@ -45,6 +45,7 @@ description: Grup A'nın sipariş verisinden (data/siparisler.csv) metrikleri sr
 
 - **Hafta:** pazartesi başlar (`resample("W-MON", label="left", closed="left")`); tablo ilk haftanın pazartesisini gösterir.
 - **Kısmi haftalar:** veri 2026-01-01 (perşembe) başlayıp 2026-09-30 (çarşamba) bittiği için ilk ve son hafta 7 gün değildir. Bu iki hafta **en yüksek/en düşük** seçimine katılmaz ama **haftalık ortalamaya** (40 hafta) katılır; FE grafiğindeki ortalama çizgisi de aynı tanımı kullanır (#28). Tanımı değiştirirsen FE'ye haber ver.
+- **Kırılımlar:** M3 kategoriye göre, M4 zamana (haftaya) göre kırılımdır; ders tanımındaki "2 kırılım" şartı bu ikisiyle karşılanır (Duyuru-3; `ders/AGENTS.md` Grup A örnek metriklerinde "haftalık trend"). M4 aynı zamanda FE'nin zaman serisi grafiğinin kaynağıdır (#53).
 - **Para biçimi:** çıktıda Türkçe biçim (`1.234.567,89 TL`, `%38,1`); CSV'de nokta ondalık.
 
 ## Ne zaman üretmez (reddeder)
@@ -77,8 +78,8 @@ Aynı veri commit'iyle betik her çalıştırmada aynı sayıları verir; tablol
 |---|---|---|
 | M1 | Toplam ciro | `Σ toplam_tutar` |
 | M2 | Sipariş başına ortalama adet | `Σ adet / sipariş sayısı` |
-| M3 | Kategori bazlı ciro | kategoriye göre `Σ toplam_tutar` (+ pay %) |
-| M4 | Haftalık ciro trendi | pazartesi başlangıçlı haftaya göre `Σ toplam_tutar` |
+| M3 | Kategori bazlı ciro *(kırılım 1)* | kategoriye göre `Σ toplam_tutar` (+ pay %) |
+| M4 | Haftalık ciro trendi *(kırılım 2 — zaman serisi)* | pazartesi başlangıçlı haftaya göre `Σ toplam_tutar` |
 | M5 | Top-3 ürün | ürüne göre `Σ toplam_tutar`, ilk 3 (+ pay %) |
 
 ## Kullanılan dosyalar
@@ -100,5 +101,6 @@ Elle: depo kökünde `python src/dq_analiz.py` (farklı dosya için `python src/
 - **Prompt:** "dq-analiz skill'ini kullanarak data/siparisler.csv'yi analiz et ve docs/analiz-g1.md'yi doldur."
 - **Sonraki güncellemeler:** Sınırlılıklar bölümü (#30, `5539020`) ve #27 düzeltmesinden sonra nihai veriyle (`1f8beb8`) yeniden doğrulama (commit `1868546`) Claude ile yapıldı.
 - **Güncelleme (Hafta 4):** `--ek` ek istatistikleri, Hafta 4 doğrulama adımları, metrik tanım notları, örnek ve reddetme koşulları eklendi; M4 yorumundaki "en yüksek haftalar" düzeltildi (16 Mart değil 20 Temmuz) — Claude ile.
+- **Güncelleme (#53, Grup B incelemesi):** metrik özeti ve M3/M4 satırları kırılım türünü açıkça gösterecek şekilde netleştirildi — Claude ile.
 - **Ajan izi olmayan commit'ler:** `5539020` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'te `Co-Authored-By` satırı yok.
 - **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: dq-analiz skill'i ile, Claude" satırı yazılır.
