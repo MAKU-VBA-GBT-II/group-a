@@ -25,12 +25,12 @@ Her grafikte **başlık, eksen etiketleri ve birim** (bin TL) vardır; altta ver
 
 1. **Önce taslak (zorunlu):** `python src/fe_gorsel.py --taslak` çalıştır. `visuals/taslak/` altına iki taslak PNG düşer (eksenler, başlık, gösterilecek metrik; gerçek veri yok). Bunları #15'e ekran görüntüsü olarak ekle. **Taslak Issue'ya eklenmeden gerçek grafiğe geçme** — kural ihlalidir.
 2. **Devir teslimleri kontrol et:** BE'nin "Veri hazır" (#13) ve DQ'nun "Analiz hazır" (#15/#14) yorumları var mı? Yoksa dur ve sor.
-3. **Güncel veriyi çek:** `git pull`.
+3. **Güncel veriyi çek ve ortamı hazırla:** `git pull`; bağımlılıklar kurulu değilse `pip install pandas matplotlib`.
 4. **Grafikleri üret:** depo kökünde `python src/fe_gorsel.py`. Çıktı: `visuals/haftalik-ciro.png`, `visuals/kategori-ciro-payi.png`.
 5. **Kendi kontrolünü yap:**
    - İki PNG'yi aç: başlık, x ve y eksen etiketleri, birim (bin TL) görünüyor mu? Türkçe karakterler (ş, ğ, İ) bozuk mu?
-   - Kırılım grafiğindeki paylar `docs/analiz-g1.md` M3 tablosuyla aynı mı (ör. Elektronik %38,1)?
-   - Zaman serisindeki ortalama çizgisi M4 "Haftalık ortalama" ile aynı mı (ör. 77.860 TL)? En yüksek hafta M4 ile aynı ve tam tarihle mi yazılmış? Kısmi ilk/son hafta işaretli mi?
+   - Kırılım grafiğindeki paylar `docs/analiz-g1.md` M3 tablosundaki paylarla birebir aynı mı?
+   - Zaman serisindeki ortalama çizgisi `docs/analiz-g1.md` M4'teki "Haftalık ortalama" değeriyle aynı mı? En yüksek hafta M4 ile aynı ve tam tarihle mi yazılmış? Kısmi ilk/son hafta işaretli mi?
    - Betiği ikinci kez çalıştır; PNG'ler değişmemeli (`md5sum visuals/*.png`).
 6. **Commit at:** `G1-gorsel: haftalik-ciro.png, kategori-ciro-payi.png ve fe-gorsel skill'i eklendi (#15)` — Hafta 5'ten itibaren PR ile.
 7. **Kanıt yorumu yaz (#15):** commit hash + iki dosya adı + hangi metrikleri gösterdikleri. Ardından Issue'yu kapat / panoda Done'a taşı.
@@ -46,7 +46,8 @@ Her grafikte **başlık, eksen etiketleri ve birim** (bin TL) vardır; altta ver
 
 - **Okur:** `data/siparisler.csv`, `docs/analiz-g1.md` (kontrol için)
 - **Yazar:** `visuals/haftalik-ciro.png`, `visuals/kategori-ciro-payi.png`, `visuals/taslak/*.png`
-- **Çalıştırır:** `src/fe_gorsel.py` (Python 3 + pandas + matplotlib)
+- **Çalıştırır:** `src/fe_gorsel.py`
+- **Bağımlılıklar:** Python 3, pandas, matplotlib. Kurulum: `pip install pandas matplotlib`. Ağ erişimi gerekmez.
 
 ## Nasıl çalıştırılır
 
@@ -59,6 +60,7 @@ Ajana (Claude Code, Codex vb.):
 Elle çalıştırma (depo kökünde):
 
 ```bash
+pip install pandas matplotlib       # ilk kez çalıştırırken
 python src/fe_gorsel.py --taslak   # taslaklar → visuals/taslak/
 python src/fe_gorsel.py            # grafikler → visuals/
 ```
