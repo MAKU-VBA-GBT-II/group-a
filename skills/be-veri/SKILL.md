@@ -90,9 +90,9 @@ Tüm rastgele değerler tek bir `rng = numpy.random.default_rng(42)` nesnesinden
    - Her satırdaki `urun`, o satırın `kategori`sinin 5 ürününden biri mi? (TC-11)
    - `siparis_id` tam olarak 1, 2, …, 400 mü ve dosya `siparis_tarihi`ne göre artan sıralı mı? (TC-12)
    - Yazılan dosya diskten geri okununca doğrulanan metinle bayt bayt aynı mı? (TC-01)
-   - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik).
+   - Betiği ikinci kez çalıştırıp dosyanın değişmediğini doğrula (tekrarlanabilirlik): konsol özetindeki `MD5` satırı Örnek 1'deki değerle (`e64f4def413ff63388ee4040c489f999`) aynı mı? Bu madde elle yapılır.
 
-   `src/veri_uret.py` bu kontrollerin hepsini kendisi yapar: dosyayı yazmadan önce `dogrula` ve `metni_dogrula`, yazdıktan sonra geri okuma. Biri kalırsa `ValueError` verir; yazmadan önceki kontrollerden biri kalırsa dosya hiç yazılmaz. Geri okuma (TC-01) ise dosya yazıldıktan sonra çalışır: bu kontrol kalırsa diskte bozuk bir dosya kalmış olabilir; o dosya kullanılmaz, silinir ve betik yeniden çalıştırılır. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz. DQ yeni bir test senaryosu eklerse aynası buraya ve betiğe de eklenir.
+   `src/veri_uret.py` bu kontrollerin hepsini (ikinci çalıştırma hariç) kendisi yapar: dosyayı yazmadan önce `dogrula` ve `metni_dogrula`, yazdıktan sonra geri okuma. Biri kalırsa `ValueError` verir; yazmadan önceki kontrollerden biri kalırsa dosya hiç yazılmaz. Geri okuma (TC-01) ise dosya yazıldıktan sonra çalışır: bu kontrol kalırsa diskte bozuk bir dosya kalmış olabilir; o dosya kullanılmaz, silinir ve betik yeniden çalıştırılır. Kontroller `assert` ile değil `kontrol()` ile yazılır, böylece `python -O` ile çalıştırılsa bile atlanmaz. DQ yeni bir test senaryosu eklerse aynası buraya ve betiğe de eklenir.
 5. **Şemayı yaz:** `docs/veri-sozlugu-g1.md` dosyasını yukarıdaki **Şema** bölümünden üret. Şu beşi mutlaka yazılı olsun: geçerli `sehir` ve `odeme_tipi` listesi, `siparis_id` benzersiz ve 1'den başlıyor, hiçbir alanda boş değer yok, kullanılan tohum değeri (42), satır sayısı (400).
 6. **Commit at:** Mesaj biçimi `<Issue başlığının öneki>: <ne değişti> (#<Issue no>)`. Örnek (ilk üretim): `G1-veri: siparisler.csv, veri-sozlugu-g1.md ve be-veri skill'i eklendi (#13)`. Bir hata Issue'sunu düzeltiyorsan mesaja `Fixes #<numara>` ekle; Issue otomatik kapanır.
 7. **Devir teslim yorumunu commit'in hemen ardından yaz (#45):** Veri commit'lenip push edildiği anda, başka işe geçmeden, veriyi kullanan **her** Issue'ya ayrı ayrı aşağıdaki devir teslim yorumunu yaz: G1-analiz (#14, DQ), G1-gorsel (#15, FE) ve G1-test (#16, DQ). Görev 2'de aynı adım o görevin analiz, görsel ve test Issue'larına uygulanır. Bu yorum ekip arkadaşlarının işe başlama iznidir; analiz veya grafik bittikten sonra yazılan devir yorumu geç sayılır. Ardından G1-veri Issue'suna kanıt yorumu yaz: commit hash + üretilen dosyalar + satır sayısı + tohum. Hata düzeltmesinde Issue otomatik kapansa bile ne düzeldiğini yazan bir kanıt yorumu bırak. Her kapanış yorumunun sonuna şu satırı ekle: `Üretim: be-veri skill'i ile, <araç>` (örn. Claude).
@@ -144,7 +144,7 @@ siparis_id,siparis_tarihi,kategori,urun,adet,birim_fiyat,toplam_tutar,sehir,odem
 3,2026-01-02,Kozmetik,Güneş Kremi,2,1194.05,2388.10,Ankara,Kredi Kartı
 ```
 
-Konsol özeti: `Satır: 400`, `Tarih: 2026-01-01 .. 2026-09-30`, `Ciro: 3,114,411.51 TL`, `Tüm iç kontroller geçti (TC-01…TC-12 aynası).` MD5 farklı çıkarsa üretim sırası veya çağrılar değişmiş demektir (bkz. **Dağılımlar ve üretim sırası**).
+Konsol özeti: `Satır: 400`, `Tarih: 2026-01-01 .. 2026-09-30`, `Ciro: 3,114,411.51 TL`, `MD5: e64f4def413ff63388ee4040c489f999`, `Tüm iç kontroller geçti (TC-01…TC-12 aynası).` MD5 farklı çıkarsa önce numpy/pandas sürümüne bak (bkz. **Kullanılan dosyalar → Bağımlılıklar**), sürüm aynıysa üretim sırası veya çağrılar değişmiş demektir (bkz. **Dağılımlar ve üretim sırası**).
 
 **Örnek 2 — ret**
 
@@ -156,7 +156,8 @@ Konsol özeti: `Satır: 400`, `Tarih: 2026-01-01 .. 2026-09-30`, `Ciro: 3,114,41
 - **Okur:** `tests/test-cases.md`
 - **Yazar:** `data/siparisler.csv`, `docs/veri-sozlugu-g1.md`
 - **Çalıştırır:** `src/veri_uret.py`
-- **Bağımlılıklar:** Python 3.10+, pandas (1.5+), numpy. Kurulum: `pip install pandas numpy`. Betik yalnızca bunları kullanır; ağ erişimi gerekmez.
+- **Bağımlılıklar:** Python 3.10+, pandas, numpy. Kurulum: `pip install pandas numpy`. Betik yalnızca bunları kullanır; ağ erişimi gerekmez.
+- **Test edilen sürümler:** numpy 2.5.3, pandas 3.0.5 → MD5 `e64f4def…`. Bayt bayt aynı çıktı NumPy'ın rastgele sayı akışına bağlıdır ve NumPy bu akışın sürümler arasında aynı kalacağını garanti etmez; MD5 farklı çıkarsa sürümü `python -c "import numpy, pandas; print(numpy.__version__, pandas.__version__)"` ile kontrol et, gerekirse `pip install numpy==2.5.3 pandas==3.0.5` ile sabitle.
 
 ## Nasıl çalıştırılır
 
@@ -176,3 +177,4 @@ Elle çalıştırma: önce bağımlılıkları kur (`pip install pandas numpy`),
 - **Skill güncellemesi (#30, #32):** Devir teslim şablonu (#14 + #15), tam kategori fiyat tablosu, "Dağılımlar ve üretim sırası", "Bilinen sınırlılıklar" ve "Kapsam dışı" bölümleri eklendi; kişi adı yerine rol yazıldı. Betikte `assert` kontrolleri `kontrol()` ile `ValueError`'a çevrildi (`python -O` ile de çalışır). Çıktı dosyası bayt bayt aynı, `dq_test.py` 9/9. Claude ile yapıldı (Claude in Chrome).
 - **Skill ve betik güncellemesi (#32):** DQ'nun eklediği TC-10…TC-12 için betiğe ürün–kategori (TC-11) ve ardışık id + tarih sırası (TC-12) kontrolleri eklendi, şehir/ödeme kontrolü TC-10 olarak etiketlendi; dosya yazıldıktan sonra diskten geri okunup doğrulanıyor (TC-01). Skill'deki kontrol listesi betikle eşitlendi (aralık kontrolleri dahil, her madde bir TC'ye bağlı), bağımlılıklar yazıldı. Çıktı dosyası bayt bayt aynı (md5 `e64f4def…`, `python` ve `python -O`), `dq_test.py` 12/12. Claude ile yapıldı (Claude in Chrome).
 - **Skill güncellemesi (#45):** Hoca geri bildirimiyle devir teslim adımı netleştirildi: yorum veri commit'inin hemen ardından yazılıyor, G1-test (#16) de devir listesine eklendi. Yalnızca skill değişti, veri aynı. Claude ile yapıldı (Claude in Chrome).
+- **Skill ve betik güncellemesi (#56):** Grup B'nin çapraz incelemesiyle betiğin konsol özetine MD5 satırı eklendi, ikinci çalıştırma kontrolünün elle yapıldığı netleştirildi, test edilen numpy/pandas sürümleri yazıldı. Çıktı dosyası bayt bayt aynı (md5 `e64f4def…`). Claude ile yapıldı (Claude in Chrome).
