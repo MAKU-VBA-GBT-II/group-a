@@ -8,11 +8,12 @@ Sepetix Analitik (Grup A) — BE: sipariş verisi üretici
 
 Şema kaynağı: skills/be-veri/SKILL.md ve docs/veri-sozlugu-g1.md
 Testler:      tests/test-cases.md (TC-01 … TC-12)
-Issue:        #13 (üretim), #27 (para alanları tam 2 ondalık)
+Issue:        #13 (üretim), #27 (para alanları tam 2 ondalık), #56 (MD5 özeti)
 
 Kullanım: depo kökünde  python src/veri_uret.py
 """
 
+import hashlib
 import io
 from pathlib import Path
 
@@ -204,6 +205,7 @@ def main() -> None:
     print(f"  Tohum      : {SEED}")
     print(f"  Tarih      : {df.siparis_tarihi.min()} .. {df.siparis_tarihi.max()}")
     print(f"  Ciro       : {df.toplam_tutar.sum():,.2f} TL")
+    print(f"  MD5        : {hashlib.md5(bayt).hexdigest()}")
     print("  Tüm iç kontroller geçti (TC-01…TC-12 aynası).")
 
 
