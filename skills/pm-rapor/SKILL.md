@@ -19,7 +19,7 @@ description: Grup A'nın haftalık sprint raporunu (reports/report-wXX.md) GitHu
 
 1. **Kapsamı ve son tarihi belirle:** İlgili `Duyuru-*.md` dosyasından haftanın teslim tarihini ve hedeflerini oku; planlanan Issue'ları buna göre filtrele. Son tarih bulunamazsa tahmin etme, raporu yazmadan önce PM'e sor.
 2. **Planlananları topla:** O hafta açılan Issue'ları listele (numara, başlık, atanan kişi, son tarih, kabul kriteri).
-3. **Yapılanları doğrula:** Her Issue için kapanış/kanıt yorumunu ve ilgili commit'i bul. Kabul kriteri dosyada gerçekten sağlanıyor mu kontrol et (dosya var mı, satır sayısı vb.). Kontrol edilecek dosya yollarını ilgili Issue'nun kabul kriterinden al (örn. Görev 1'de `data/siparisler.csv`, `docs/analiz-g1.md`, `visuals/*.png`); yol tahmin etme. Yollar görevden göreve değiştiği için skill'e sabit yazılmaz.
+3. **Yapılanları doğrula:** Her Issue için kapanış/kanıt yorumunu ve ilgili commit'i bul. Kabul kriteri dosyada gerçekten sağlanıyor mu kontrol et (dosya var mı, satır sayısı vb.). Kontrol edilecek dosya yollarını ilgili Issue'nun kabul kriterinden al (örn. Görev 1'de `data/siparisler.csv`, `docs/analiz-g1.md`, `visuals/*.png`); yol tahmin etme. Yollar görevden göreve değiştiği için skill'e sabit yazılmaz. Durum sütununa şu değerlerden yalnızca biri yazılır: **Tamamlandı** (tüm kabul kriterleri dosyada doğrulandı), **Kısmen** (en az bir kriter eksik; eksik olan Issue yorumunda belirtilir), **Yapılmadı** (kanıt yok).
 4. **Devir teslim zincirini kontrol et:** BE → DQ ("Veri hazır" yorumu G1-analiz ve G1-gorsel'de var mı?) ve DQ → FE ("Analiz hazır" yorumu G1-gorsel'de var mı?).
 5. **Tıkananları yaz:** Açık kalan Issue'lar, kaçırılan son tarihler, cevapsız @mention'lar ve nedenleri.
 6. **Kim ne yaptı:** Her üye için commit sayısı ve kapattığı Issue'lar.
@@ -39,6 +39,7 @@ description: Grup A'nın haftalık sprint raporunu (reports/report-wXX.md) GitHu
 ## Yapılan
 | Issue | Kanıt (commit / dosya) | Durum |
 |---|---|---|
+| #00 (örnek) | `dosya/yolu` · `abc1234` | Tamamlandı / Kısmen / Yapılmadı (birini seç) |
 
 ## Devir teslim zinciri
 - BE → DQ/FE: …
