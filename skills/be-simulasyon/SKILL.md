@@ -68,7 +68,7 @@ Sıra veya çağrı değişirse kurallara uyan ama farklı bir dosya çıkar; MD
    - **Parametre davranışı:** sözlükteki satır sayısı tablosu — `--gun_sayisi 10` → 424, `--gun_sayisi 7` → 304, `--gun_sayisi 10 --gunluk_siparis 10` → 106 (deneme dosyası `data/` dışına, `--cikti` ile).
 5. **Commit at** (`feature/veri` dalında; `main`'e doğrudan commit yok). Mesajda şema bulunur: satır sayısı + sütun listesi. Biçim: `G2-veri: <ne değişti> (#61)`.
 6. **PR aç:** başlık `G2 parametreli simülasyon`, açıklamada `Closes #61`, kendi kontrol sonuçları ve üretim satırı; Reviewers: DQ. DQ yorumlarına PR üzerinden cevap ver, düzeltmeleri aynı dala push et; DQ **Approve** verdikten sonra merge'ü PR sahibi yapar.
-7. **Devir yorumu merge'ün hemen ardından:** veriyi kullanan her Issue'ya (G2-analiz #62, G2-gorsel #63) ayrı ayrı şablonla yorum yaz; G2-veri Issue'suna kanıt yorumu (commit hash + dosya + satır sayısı + tohum + MD5). Her kapanış yorumunun ve PR açıklamasının sonunda üretim satırı olur.
+7. **Devir yorumu merge'ün hemen ardından:** veriyi kullanan her Issue'ya (G2-analiz #62, G2-gorsel #63 **ve G2-test #64**; Görev 1'deki #45 geri bildirimi gereği test Issue'su da listede) ayrı ayrı şablonla yorum yaz; G2-veri Issue'suna kanıt yorumu (commit hash + dosya + satır sayısı + tohum + MD5). Her kapanış yorumunun ve PR açıklamasının sonunda üretim satırı olur.
 
 ### Devir yorumu şablonu
 
@@ -146,4 +146,5 @@ Doğru olan `docs/veri-sozlugu.md`'dir. DQ sözlüğü güncellediğinde: `src/s
 
 - **Skill (#61, `bf7b4d7`):** Skill Claude (Claude Code) ile yazıldı ve Görev 2 kuralı gereği betikten **önce** ayrı commit olarak eklendi. Prompt özeti: "Görev 2'de BE oldum; Sema'nın docs/veri-sozlugu.md şemasına birebir parametreli simülasyonu feature/veri dalında yaz, #30 sınırlılıklarına da bak." Not: bu ilk commit'teki örnek çıktı (ilk satırlar, MD5) betiğin deneme çalıştırmasından alınmıştı; betik ve veri bir sonraki commit'te geldi.
 - **Betik ve veri (#61, #30, `2159a98`):** `src/simulasyon.py` ve `data/siparisler-g2.csv` bu skill ile, Claude (Claude Code) kullanılarak üretildi. Kalite kuralları 1–11 betik içinde, kural 12 ve satır sayısı senaryoları elle doğrulandı.
+- **Skill düzeltmesi (#61, #45):** Devir listesine G2-test (#64) eklendi.
 - **Skill düzeltmesi (#61):** Öz inceleme sonrası: N'yi değiştiren parametrelerin tüm dosyayı değiştirdiği düzeltildi (önceki "akış kaymaz" cümlesi yanlıştı), Görev 1 verisine dokunmama ret durumu, deneme dosyalarının `data/` dışına yazılması, bilinen sınırlılıklar/açıklar bölümü ve commit hash'leri eklendi. Betik ve veri değişmedi. Claude (Claude Code) ile.
