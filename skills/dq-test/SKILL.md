@@ -1,112 +1,105 @@
 ---
 name: dq-test
-description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md) şemaya göre yazar ve src/dq_test.py ile çalıştırıp sonuçları kaydeder. Veri dosyası için test senaryosu yazılacağı veya testler çalıştırılacağı zaman kullan.
+description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md) veri sözlüğüne göre yazar, testleri koşar ve sonuçları tarihli olarak tests/test-log.md'ye işler; BE/FE PR'larını DQ olarak inceler. Test senaryosu yazılacağı, testler çalıştırılacağı veya PR incelemesi yapılacağı zaman kullan.
 ---
 
-# dq-test — Veri kalitesi testleri
+# dq-test — Veri kalitesi testleri ve PR incelemesi (DQ)
 
-**Ne yapar:** BE'nin ürettiği veri dosyası (`data/siparisler.csv`) için, şemaya (`docs/veri-sozlugu-g1.md`) dayanan test senaryolarını `tests/test-cases.md` dosyasına yazar. Testleri çalıştırma aşamasında `src/dq_test.py` betiğini kullanır, "Gerçekleşen sonuç" ve "Geçti/Kaldı" sütunlarını doldurur ve çalıştırma kaydını `tests/test-log.md`'ye ekler. Uydurma sonuç yazmaz; her sonuç betik çıktısına ve test edilen commit'e dayanır.
+**Amaç:** BE'nin ürettiği verinin ve FE'nin çıktılarının veri sözlüğüne uyduğunu **ölçülebilir** senaryolarla göstermek; uymayan her şeyi kayda (bug Issue'su, PR yorumu) geçirmek. Uydurma sonuç yazmaz: her sonuç bir komut çıktısına ve test edilen commit'e dayanır.
 
-## Girdiler
+**Rol:** DQ (test) · **Sahibi:** Görev 1'de Tuğba Tuana Kaygısız, Görev 2'de Sema Nur Doğan (roller döner, skill rolle el değiştirir) · **Issue:** G2-test (#64)
 
-- Şema: `docs/veri-sozlugu-g1.md` (alan adları, sıra, tipler, aralıklar, kategori değerleri, birimler, satır hedefi). Henüz yoksa BE ile kesinleştirilen taslak şema (#13).
-- Veri: `data/siparisler.csv` (yalnızca çalıştırma aşamasında gerekir)
-- İlgili Issue: G1-test (#16)
+## Görev 2 bağlamı
+
+| | Görev 2 |
+|---|---|
+| Şema (tek doğru kaynak) | `docs/veri-sozlugu.md` (#60) — 14 alan, 8 parametre, satır sayısı formülü, 12 kalite kuralı |
+| Test edilen veri | `data/siparisler-g2.csv` (BE, `src/simulasyon.py`, #61) |
+| Senaryolar | `tests/test-cases.md` (Görev 1 senaryoları `tests/test-cases-g1.md`'de arşivde) |
+| Sonuçlar | `tests/test-log.md` → "Görev 2" tablosu (tarihli satırlar) |
+
+## Kurallar (hocanın #47 notu)
+
+- Senaryolar **Hafta 5'te** `tests/test-cases.md`'ye yazılır; "Gerçekleşen" ve "Geçti/Kaldı" sütunları orada **boş kalır**.
+- Testler **Hafta 6'da** koşuldukça sonuçlar `tests/test-log.md`'ye **tarihli satır** olarak eklenir: tarih, dosya, veri commit'i, komut, **kullanılan parametreler**, geçen/kalan, not. Eski satırlar düzenlenmez; düzeltme yeni satırdır.
+- `main`'e doğrudan commit yok: senaryolar ve skill `feature/test-g2` gibi bir dalda PR ile girer (belge PR'ı — yazarı merge eder).
 
 ## Adımlar
 
-### A) Senaryoları yaz (Hafta 3)
+### A) Senaryoları yaz (Hafta 5)
 
-1. **Şemayı oku:** Alan listesini, sırasını, her alanın tipini, geçerli aralığını, birimini, ana kategorik alanın izinli değerlerini ve satır hedefini çıkar.
-2. **Zorunlu 5 senaryoyu yaz** (her birinde ID, Senaryo, Adımlar, Girdi, Beklenen sonuç):
-   - TC-01 — Dosya var mı, boş değil mi?
-   - TC-02 — Satır sayısı şemadaki hedefi karşılıyor mu?
-   - TC-03 — Sütun adları ve sırası şemayla aynı mı?
-   - TC-04 — Tipler, aralıklar ve birimler doğru mu?
-   - TC-05 — Ana kategorik alanda yalnızca şemadaki değerler mi var?
-3. **Ek senaryolar ekle** (önerilen): TC-06 eksik değer, TC-07 kimlik benzersizliği, TC-08 türetilmiş alan tutarlılığı (`toplam_tutar = adet × birim_fiyat`), TC-09 para alanlarının dosyada sözlükteki biçimde (2 ondalık) yazılması — bu kontrol dosyayı ham metin olarak okur (`dtype=str`), çünkü pandas sayıya çevirince sondaki sıfır görünmez; TC-10 diğer kategorik alanlar (`sehir`, `odeme_tipi`) yalnızca izinli değerleri içeriyor; TC-11 her `urun` sözlükteki listede ve kendi `kategori`sine ait; TC-12 `siparis_id` 1…N ardışık ve dosya tarihe göre sıralı.
-   - **Kural:** Veri sözlüğündeki **her** "geçerli değer / aralık / güvence" satırı en az bir senaryoyla kapsanmalı. Senaryoları yazdıktan sonra sözlüğü satır satır gez ve kapsanmayan kural kalmadığını kontrol et.
-4. **Beklenen sonuçları ölçülebilir yaz:** "doğru olmalı" değil, "aralık dışı değer sayısı = 0" gibi somut bir eşik ver.
-5. **"Gerçekleşen sonuç" ve "Geçti/Kaldı" sütunlarını boş bırak.**
-6. **`src/dq_test.py` içindeki şema sabitlerini** (`SUTUNLAR`, `SEMA_SATIR`, `KATEGORILER`, `URUNLER`, `SEHIRLER`, `ODEME_TIPLERI`, `ADET_ARALIK`, `FIYAT_ARALIK`, `TUTAR_ARALIK`, `TARIH_ARALIK`) şemayla eşitle. Yeni senaryo eklediysen betiğe aynı ID ile `tcNN` fonksiyonu ekle.
-   - **Betiği sına:** Temiz dosyada tüm testler geçmeli; sonra bir kopyada her kurala aykırı bir değer yaz (ör. `sehir=Paris`, Kozmetik satırında `urun=Roman`) ve ilgili testin **kaldığını** gör. Kopyayı commit'leme.
-7. **Commit at:** `G1-test: test-cases.md, dq-test skill'i ve test betiği eklendi (#16)`
-8. **Issue'ya kanıt yorumu yaz** (commit hash + dosya + senaryo sayısı) ve Issue'yu kapat.
+1. **Sözlüğü oku:** alan listesi ve sırası, tipler, aralıklar, değer listeleri ve ağırlıkları, parametreler ve izinli aralıkları, satır sayısı tablosu, 12 kalite kuralı.
+2. **Zorunlu senaryo grupları** (ders planı Görev 2): satır sayısı · sütun adları · aralıklar · tip kontrolü · **parametre davranışı** (ör. `gun_sayisi=10` → satır sayısı formüle göre değişiyor mu?).
+3. **Kapsama kuralı:** sözlükteki **her** kalite kuralı ve parametre satır sayısı tablosundaki **her** senaryo en az bir test senaryosuyla kapsanır. Dosyanın sonuna "Kapsama" tablosu konur (kural → senaryo ID).
+4. **Beklenen sonucu sayıyla yaz:** "doğru olmalı" değil; "aralık dışı satır = 0", "satır sayısı = 424" gibi. Beklenen sayılar sözlükteki formülden hesaplanır, veriden kopyalanmaz.
+5. **Hata yönetimi senaryoları:** sözlükteki "Geçersiz parametre" kuralı için geçersiz girdiler (aralık dışı, bozuk biçim) yazılır; beklenen: `ValueError` + mesajda parametre adı ve izinli aralık + dosya **yazılmaz**. Bunlar Hafta 6 `fix/error-handling` PR'ından sonra koşulur.
+6. Sonuç sütunlarını boş bırak → kontrol listesi → PR → merge → #64'e kanıt yorumu.
 
-### B) Testleri çalıştır (Hafta 4)
+### B) PR incelemesi (Hafta 5–6)
 
-1. BE'nin "Veri hazır" yorumunu ve commit'ini doğrula.
-2. Depo kökünde `python src/dq_test.py` komutunu çalıştır.
-3. Çıktıdaki her satırı `tests/test-cases.md`'deki ilgili senaryonun "Gerçekleşen sonuç" ve "Geçti/Kaldı" hücrelerine aktar; Özet tablosunu doldur.
-4. `tests/test-log.md`'ye kayıt ekle (biçim aşağıda): tarih, test edilen dosya, veri commit'i, komut, geçen/kalan sayısı, not.
-5. **Grafik–analiz kontrolü:** `visuals/` altındaki her grafikteki sayıları (pay %, ortalama çizgisi, en yüksek/en düşük hafta, tarih etiketleri) `docs/analiz-g1.md` ile karşılaştır. Uyuşmazlık bir grafik hatasıdır (örn. #28 ortalama, #29 tarih biçimi).
-6. **Hata Issue'ları aç (Hafta 4'te en az 2):** Her hata için ayrı Issue:
-   - Başlık: `<Issue adı>: <kısa sorun>` (örn. `G1-veri: birim_fiyat / toplam_tutar CSV'de 2 ondalıkla yazılmıyor`).
-   - Etiket `bug`. Atanan: veri hatası → BE, grafik hatası → FE.
-   - Gövde: **Yeniden üretme adımları** (komut + dosya + commit), **Beklenen davranış**, **Gözlenen davranış** (örnek satır/değer), önerilen düzeltme, ilgili senaryo ID'si.
-   - Senaryonun "Gerçekleşen sonuç" hücresine Issue numarasını yaz (örn. #27).
-   - **Hata bulunamazsa** aynı yapıda (yeniden üretme / beklenen / gözlenen) 2 somut iyileştirme Issue'su aç, etiket `enhancement`.
-7. **Hata düzeltilince yeniden test et:** Düzeltme commit'i `main`'e girince `python src/dq_test.py`'yi tekrar çalıştır; senaryonun sonucunu güncelle (ilk turda kaldığını ve düzeltme commit'ini not et), Özet tablosuna ve `tests/test-log.md`'ye yeni satır ekle. Hata Issue'suna "Yeniden test edildi — geçti, commit <hash>" kanıt yorumu yaz.
+1. **Files changed** üzerinden en az 2 **somut** satır yorumu (soru da geçerlidir: "`--gun_sayisi 0` verilirse ne olur?").
+2. Verinin sözlüğe uygunluğunu betikten **bağımsız** kontrol et (kendi kontrolün; BE'nin betiğinin kendi kendini doğrulamasına güvenme).
+3. Cevap gelmeden **Approve** verme; merge'ü PR sahibi yapar. İncelemenin özeti ilgili Issue'ya kanıt olarak yazılır.
 
-## Şablonlar
+### C) Testleri koş (Hafta 6)
 
-`tests/test-cases.md` senaryo satırı:
+1. BE'nin "Veri hazır" yorumunu ve merge commit'ini doğrula.
+2. Tüm senaryoları merge edilmiş ürün üzerinde koş (parametre senaryoları için betik farklı parametrelerle **geçici bir dosyaya** çalıştırılır; geçici dosyalar commit'lenmez).
+3. Her koşu `tests/test-log.md` Görev 2 tablosuna tarihli satır olarak; kalan her test için **bug Issue'su** (en az 2): yeniden üretme adımları (komut + parametre + commit), beklenen, gözlenen, ilgili senaryo ID'si; atanan: veri → BE, grafik → FE.
+4. Düzeltme merge edilince yeniden test → yeni satır + bug Issue'suna "yeniden test edildi" kanıt yorumu.
 
-```markdown
-| ID | Senaryo | Adımlar | Girdi | Beklenen sonuç | Gerçekleşen sonuç | Geçti/Kaldı |
-|---|---|---|---|---|---|---|
-| TC-01 | Veri dosyası var mı, boş değil mi? | 1) … 2) … | data/siparisler.csv | Dosya mevcut, boyut > 0 | | |
-```
+## Çıktı formatı kuralları
 
-`tests/test-log.md` kayıt satırı:
-
-```markdown
-| Tarih | Test edilen dosya | Veri commit'i | Komut | Geçti | Kaldı | Not |
-|---|---|---|---|---|---|---|
-| 2026-10-22 | `data/siparisler.csv` | `1f8beb8` | `python src/dq_test.py` | 12 | 0 | Ne değişti, hangi Issue |
-```
+- `tests/test-cases.md` başlıkları bu sırada: `Kapsam` → `Senaryolar` (gruplar: A Dosya ve şema · B Değerler ve kurallar · C Parametre davranışı · D Hata yönetimi) → `Kapsama`.
+- Senaryo tablosu sütunları (ders şablonu §7.3): `ID | Kaynak | Senaryo | Adımlar | Girdi | Beklenen | Gerçekleşen | Geçti/Kaldı`. ID biçimi `G2-TC-NN`. **Kaynak**: sözlük kural no'su veya parametre tablosu.
+- `tests/test-log.md` Görev 2 satırı: `Tarih | Test edilen dosya | Veri commit'i | Komut | Geçti | Kaldı | Not (parametreler + Issue)`.
 
 ## Örnek giriş → çıkış
 
-**Giriş:** "dq-test skill'ini kullanarak testleri çalıştır ve sonuçları test-cases.md ile test-log.md'ye işle." (veri commit `1f8beb8`)
+**Giriş (ajana):** "dq-test skill'ini kullanarak docs/veri-sozlugu.md'ye göre Görev 2 için tests/test-cases.md yaz; parametre davranışı senaryolarını satır sayısı tablosundan türet."
 
-**Betik çıktısı (kısaltılmış):**
+**Çıkış (bir satır):**
 
-```text
-| TC-09 | 2 ondalıklı olmayan satır: 0 | Geçti |
-| TC-10 | şema dışı değerli satır: 0; şehir: yok, ödeme: yok; hiç geçmeyen şehir: yok | Geçti |
-Özet: 12/12 geçti
-```
+| ID | Kaynak | Senaryo | Adımlar | Girdi | Beklenen | Gerçekleşen | Geçti/Kaldı |
+|---|---|---|---|---|---|---|---|
+| G2-TC-17 | Satır sayısı tablosu | `gun_sayisi=10` satır sayısını değiştiriyor mu? | 1) `python src/simulasyon.py --gun_sayisi 10 --cikti <geçici>` 2) satır say | `--gun_sayisi 10`, diğerleri varsayılan | 424 satır; son tarih 2026-01-14; farklı tarih = 10 | | |
 
-**Yazılanlar:** `tests/test-cases.md`'de her senaryonun "Gerçekleşen sonuç" ve "Geçti/Kaldı" hücreleri + Özet'e yeni satır; `tests/test-log.md`'ye yukarıdaki biçimde bir satır. Kalan test olsaydı (ör. ilk turda TC-09: 128 satır) aynı turda `bug` Issue'su açılırdı (#27).
+**Hafta 6 test-log satırı:** `| 2026-11-xx | data/siparisler-g2.csv | <commit> | … | 22 | 0 | gun_sayisi=182 … tohum=42 |`
 
 ## Ne zaman üretmez (reddeder)
 
-- Test edilecek dosyada gerçek kişi/müşteri verisi varsa veya gerçek veri istenirse (AGENTS.md kural 2) — durur, PM'e bildirir.
-- Şema (`docs/veri-sozlugu-g1.md`) yoksa ve BE ile kesinleşmiş taslak da yoksa — senaryo yazmaz, #13'te şema ister.
-- Betiği çalıştırmadan "Gerçekleşen sonuç" doldurulması istenirse — doldurmaz; sonuç yalnızca `dq_test.py` çıktısından veya kaydı tutulan elle kontrolden gelir.
+- Test edilecek dosyada **gerçek kişisel veri** (ad-soyad, TC no, telefon, e-posta, adres, kart no) varsa ya da gerçek veri ile test istenirse — durur, PM'e bildirir (ders kuralı §3.1).
+- Şema (`docs/veri-sozlugu.md`) yoksa — senaryo yazmaz, G2-sem Issue'sunda şema ister.
+- Komut çalıştırılmadan "Gerçekleşen" / "Geçti" doldurulması istenirse — doldurmaz.
+- Beklenen sonucu veriden kopyalayarak yazma isteği — reddeder; beklenen her zaman sözlükten türetilir.
+
+## Kontrol listesi (PR'dan önce)
+
+- [ ] En az 5 senaryo; satır sayısı, sütun adları, aralıklar, tip ve parametre davranışı gruplarının her biri var.
+- [ ] Her senaryoda ID, kaynak, adımlar, girdi, sayısal beklenen var; sonuç sütunları boş.
+- [ ] Kapsama tablosunda sözlüğün 12 kuralı ve satır sayısı tablosunun 4 senaryosu karşılanmış.
+- [ ] Beklenen satır sayıları formülden hesaplanmış (varsayılan 8.208).
 
 ## Kullanılan dosyalar
 
-- **Okur:** `docs/veri-sozlugu-g1.md`, `data/siparisler.csv`
-- **Yazar:** `tests/test-cases.md`, `tests/test-log.md` (gerekirse `src/dq_test.py` şema sabitleri)
-- **Çalıştırır:** `src/dq_test.py` (Python 3 + pandas)
+- **Okur:** `docs/veri-sozlugu.md`, `data/siparisler-g2.csv`, `src/simulasyon.py` (yalnızca çalıştırır / inceler)
+- **Yazar:** `tests/test-cases.md`, `tests/test-log.md`, bug Issue'ları, PR inceleme yorumları
+- **Çalıştırır (Hafta 6):** `python src/simulasyon.py [--parametre değer] --cikti <geçici>` ve test kontrolleri (Python 3 + pandas; `pip install pandas`)
 
 ## Nasıl çalıştırılır
 
-Ajana (bu depoda Claude Code kullanıldı):
+Ajana (Claude):
 
-- Senaryo yazımı: "dq-test skill'ini kullanarak docs/veri-sozlugu-g1.md şemasına göre tests/test-cases.md yaz."
-- Test çalıştırma: "dq-test skill'ini kullanarak testleri çalıştır ve sonuçları test-cases.md ile test-log.md'ye işle."
-
-Elle çalıştırma: depo kökünde `python src/dq_test.py` (farklı dosya için `python src/dq_test.py yol/dosya.csv`). Tüm testler geçerse çıkış kodu 0, en az biri kalırsa 1 olur. Gereken: Python 3 + pandas (`pip install pandas`).
+- Senaryo yazımı: "dq-test skill'ini kullanarak docs/veri-sozlugu.md'ye göre Görev 2 için tests/test-cases.md yaz."
+- PR incelemesi: "dq-test skill'ini kullanarak PR #<no>'yu DQ olarak incele; veriyi sözlüğe karşı bağımsız kontrol et, en az 2 somut satır yorumu öner."
+- Test koşusu: "dq-test skill'ini kullanarak tests/test-cases.md'deki senaryoları koş ve sonuçları tests/test-log.md Görev 2 tablosuna yaz."
 
 ## Üretim kaydı (hangi araç, hangi prompt)
 
-- **Araç:** Claude (Claude Code, yapay zekâ ajanı).
-- **Senaryo yazımı (#16) ve şema güncellemesi (#13):** `tests/test-cases.md`, `src/dq_test.py` ve bu skill Claude ile yazıldı ve güncellendi (örn. commit `9c9b658`, `146d5d3`; commit'lerde `Co-Authored-By: Claude` izi var).
-- **Prompt'lar:** "dq-test skill'ini kullanarak docs/veri-sozlugu-g1.md şemasına göre tests/test-cases.md yaz." · "dq-test skill'ini kullanarak testleri çalıştır ve sonuçları test-cases.md ile test-log.md'ye işle."
-- **Güncelleme (Hafta 4):** TC-10…TC-12 eklendi (sözlükteki şehir/ödeme, ürün–kategori ve id/sıra kuralları önceden test edilmiyordu); skill'e grafik–analiz kontrolü, Hafta 4 hata Issue'su kuralları, örnek ve reddetme koşulları eklendi — Claude ile.
-- **Hafta 4 test turu ve yeniden test:** TC-09 eklendi, testler çalıştırıldı, hata Issue'ları açıldı (#27, #28, #29) ve #27 düzeltmesi sonrası yeniden test (9/9, commit `1868546`) Claude ile yapıldı.
-- **Ajan izi olmayan commit'ler:** `943b75d`, `95c3e0a`, `29c306e`, `8fee1dd`, `7459286`, `778e7dd` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'lerde `Co-Authored-By` satırı yok.
-- **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: dq-test skill'i ile, Claude" satırı yazılır.
+**Görev 2 (Sema Nur Doğan, DQ):**
+- **Araç:** Claude. Skill Görev 2'ye bu sürümle uyarlandı (şema → `docs/veri-sozlugu.md`, parametre ve hata yönetimi senaryoları, #47 kuralı, PR inceleme adımları); ardından `tests/test-cases.md` bu skill ile yazıldı (#64).
+- **PR #66 incelemesi:** veri sözlüğe karşı bağımsız kontrol edildi (kural 1–11 geçti, 8.208 satır, MD5 `1b7f765e…`); satır 148, 301, 323'e yorum; cevaplardan sonra Approve.
+
+**Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:**
+- Senaryolar `tests/test-cases-g1.md` (TC-01…TC-12), betik `src/dq_test.py`; testler, hata Issue'ları (#27, #28, #29) ve #27 sonrası yeniden test (9/9, `1868546`) Claude (Claude Code) ile yapıldı.
+- Ajan izi olmayan commit'ler (`943b75d`, `95c3e0a`, `29c306e`, `8fee1dd`, `7459286`, `778e7dd`) de Claude ile üretildi; dosyalar web'den yüklendiği için `Co-Authored-By` satırı yok.
