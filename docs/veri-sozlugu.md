@@ -129,7 +129,7 @@ Her kural bir test senaryosuna dönüşür (`tests/test-cases.md`, #64):
 6. **Kategorik değerler** — `kanal`, `kategori`, `urun`, `sehir`, `odeme_tipi`, `durum` yalnızca listelerdeki değerleri alır; yazım birebir.
 7. **Ürün–kategori** — her `urun` kendi `kategori`sine aittir.
 8. **Fiyat** — `birim_fiyat`, kendi ürününün liste fiyatının [%95, %105] aralığında.
-9. **Para biçimi** — `birim_fiyat` ve `toplam_tutar` ham metinde tam 2 ondalık (`^\d+\.\d{2}$`).
+9. **Sayı biçimi** — `birim_fiyat`, `toplam_tutar` ve `indirim_orani` ham metinde tam 2 ondalık (`^\d+\.\d{2}$`; ör. `0.20`, `0.00`).
 10. **Hesaplanan alan** — `toplam_tutar == round(adet × birim_fiyat × (1 − indirim_orani), 2)`.
 11. **Kampanya tutarlılığı** — `kampanya = 1` ⇔ tarih bir kampanya dönemi içinde; `kampanya = 0` ⇒ `indirim_orani = 0.00`; `kampanya = 1` ⇒ `indirim_orani ∈ {0.10, …, 0.30}`.
 12. **Tekrarlanabilirlik** — aynı parametre ve tohumla iki çalıştırma aynı dosyayı (aynı MD5) üretir.
@@ -170,3 +170,4 @@ Hafta tanımı Görev 1 ile aynıdır: Pazartesi başlangıçlı (`W-MON`). Vars
 | Tarih | Değişiklik | Commit / Issue |
 |---|---|---|
 | 2026-10-29 | İlk sürüm: 14 alan, 8 parametre, satır sayısı formülü, 12 kalite kuralı, M1–M6 | #60 |
+| 2026-10-30 | Kural 9: `indirim_orani` da ham metinde tam 2 ondalık (PR #66 incelemesi) | #64 |
