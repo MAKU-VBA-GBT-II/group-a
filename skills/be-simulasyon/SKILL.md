@@ -42,7 +42,7 @@ Betiğin başında sabit olarak tanımlıdır **ve** komut satırından değişt
 | `tohum` | 42 | `--tohum 7` |
 | (çıktı yolu) | `data/siparisler-g2.csv` | `--cikti data/deneme.csv` |
 
-Deneme çalıştırmaları (`gun_sayisi=10` vb.) için **`--cikti` ile başka bir dosya** verilir; deneme dosyaları commit'lenmez, `data/siparisler-g2.csv` yalnızca varsayılanlarla üretilir.
+Deneme çalıştırmaları (`gun_sayisi=10` vb.) için **`--cikti` ile `data/` dışında** bir dosya verilir (ör. `/tmp/deneme-10gun.csv`); böylece deneme dosyası yanlışlıkla commit'lenemez. `data/siparisler-g2.csv` yalnızca varsayılanlarla üretilir.
 
 Geçersiz parametrede (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON) betik çökmez, parametrenin adını ve izinli aralığı söyleyen bir `ValueError` verir ve dosya yazmaz — bu Hafta 6'da `fix/error-handling` dalında eklenir.
 
@@ -51,10 +51,12 @@ Geçersiz parametrede (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON) b
 1. Günler `baslangic_tarihi`'nden itibaren sırayla gezilir, her günün sipariş adedi formülle hesaplanır; `siparis_tarihi` ve `kampanya` bu sırayla açılır (dosya zaten tarihe göre sıralı çıkar).
 2. Tüm rastgele değerler tek `rng = numpy.random.default_rng(tohum)` nesnesinden **bu sırayla** ve tüm N satır için çekilir:
    `urun` (25 ürün, eşit olasılık; `kategori` üründen gelir) → `birim_fiyat` (kuruş) → `adet` → `kanal` → `sehir` → `odeme_tipi` → `durum` → `musteri_id` → `indirim_orani`.
-   Ağırlıklar sözlükteki **Ağırlıklı alanlar** tablosundandır. `indirim_orani` her satır için çekilir, kampanya dışı satırlarda `0.00` yapılır (böylece kampanya dönemi değişince diğer alanların akışı kaymaz).
+   Ağırlıklar sözlükteki **Ağırlıklı alanlar** tablosundandır. `indirim_orani` her satır için çekilir, kampanya dışı satırlarda `0.00` yapılır.
 3. `toplam_tutar` hesaplanır, `siparis_id` 1…N verilir.
 
 Sıra veya çağrı değişirse kurallara uyan ama farklı bir dosya çıkar; MD5 değişir.
+
+**Dikkat:** Her alan tüm N satır için tek seferde çekildiğinden, N'yi değiştiren **her** parametre (`gun_sayisi`, `gunluk_siparis`, katsayılar, `kampanya_donemleri`, `baslangic_tarihi`) dosyanın **tamamını** değiştirir. Ör. `gun_sayisi=10` dosyasının ilk satırları, varsayılan dosyanın ilk satırlarıyla aynı **değildir**. `tohum` ve `musteri_sayisi` N'yi değiştirmez ama onlar da farklı bir dosya üretir.
 
 ## Adımlar
 
@@ -63,7 +65,7 @@ Sıra veya çağrı değişirse kurallara uyan ama farklı bir dosya çıkar; MD
 3. **Üret:** Depo kökünde `python src/simulasyon.py`.
 4. **Kendi kontrolünü yap.** Betik sözlüğün **Veri kalitesi kuralları 1–11**'i yazmadan önce kendisi kontrol eder (`kontrol()` ile, `assert` değil; `python -O` ile de atlanmaz), biri kalırsa `ValueError` verir ve dosya yazılmaz; yazdıktan sonra dosyayı diskten geri okuyup aynı metin mi diye bakar. Elle yapılacaklar:
    - **Kural 12 (tekrarlanabilirlik):** betiği ikinci kez çalıştır, konsoldaki `MD5` aynı mı?
-   - **Parametre davranışı:** sözlükteki satır sayısı tablosu — `--gun_sayisi 10` → 424, `--gun_sayisi 7` → 304, `--gun_sayisi 10 --gunluk_siparis 10` → 106 (deneme dosyasına `--cikti` ile).
+   - **Parametre davranışı:** sözlükteki satır sayısı tablosu — `--gun_sayisi 10` → 424, `--gun_sayisi 7` → 304, `--gun_sayisi 10 --gunluk_siparis 10` → 106 (deneme dosyası `data/` dışına, `--cikti` ile).
 5. **Commit at** (`feature/veri` dalında; `main`'e doğrudan commit yok). Mesajda şema bulunur: satır sayısı + sütun listesi. Biçim: `G2-veri: <ne değişti> (#61)`.
 6. **PR aç:** başlık `G2 parametreli simülasyon`, açıklamada `Closes #61`, kendi kontrol sonuçları ve üretim satırı; Reviewers: DQ. DQ yorumlarına PR üzerinden cevap ver, düzeltmeleri aynı dala push et; DQ **Approve** verdikten sonra merge'ü PR sahibi yapar.
 7. **Devir yorumu merge'ün hemen ardından:** veriyi kullanan her Issue'ya (G2-analiz #62, G2-gorsel #63) ayrı ayrı şablonla yorum yaz; G2-veri Issue'suna kanıt yorumu (commit hash + dosya + satır sayısı + tohum + MD5). Her kapanış yorumunun ve PR açıklamasının sonunda üretim satırı olur.
@@ -81,6 +83,7 @@ Sıra veya çağrı değişirse kurallara uyan ama farklı bir dosya çıkar; MD
 - **Gerçek kişisel veri istenirse** (ad-soyad, TC kimlik no, telefon, e-posta, açık adres, gerçek müşteri/sipariş kaydı, gerçek bir firmanın satış verisi): üretmez, nedenini söyler, alanın sentetik karşılığını önerir (ör. `musteri_id = M0427`).
 - **Şema yayımlanmadan** (G2-veri Issue'sunda DQ'nun devir yorumu yokken) üretim istenirse: başlamaz, DQ'ya sorar.
 - **Şemada olmayan bir alan, değer veya aralık** istenirse: tek taraflı eklemez; önce DQ'nun sözlüğü güncellemesini ister.
+- **Görev 1 verisini değiştirmek** istenirse (`data/siparisler.csv`, `src/veri_uret.py`, `docs/veri-sozlugu-g1.md`): yapmaz. G1 analizi, testleri ve grafikleri bu dosyalara bağlıdır (#30 kararı); bunlar `be-veri` skill'inin alanıdır. Görev 2 yalnızca `data/siparisler-g2.csv`'ye yazar.
 - **`main`'e doğrudan commit** istenirse: yapmaz; dal → PR → inceleme → merge.
 
 ## Örnek giriş ve çıkış
@@ -101,7 +104,7 @@ Konsol özeti (kısaltılmış): `Satır: 8208 · Sütun: 14`, `Tarih: 2026-01-0
 **Örnek 2 — parametre değişikliği**
 
 - **Giriş:** "gun_sayisi=10 ile dene, ana dosyayı bozma."
-- **Çıkış:** `python src/simulasyon.py --gun_sayisi 10 --cikti data/deneme-10gun.csv` → `Satır: 424`, `Tarih: 2026-01-05 .. 2026-01-14`. Deneme dosyası commit'lenmez.
+- **Çıkış:** `python src/simulasyon.py --gun_sayisi 10 --cikti /tmp/deneme-10gun.csv` → `Satır: 424`, `Tarih: 2026-01-05 .. 2026-01-14`. Deneme dosyası `data/` dışında kalır, commit'lenmez; `data/siparisler-g2.csv` değişmez.
 
 **Örnek 3 — ret**
 
@@ -115,6 +118,12 @@ Konsol özeti (kısaltılmış): `Satır: 8208 · Sütun: 14`, `Tarih: 2026-01-0
 | Haftada ~10 sipariş, tek büyük sipariş haftalık ciroyu ikiye katlıyor | Haftada ~284 teslim edilen sipariş; `adet` 1–5 ve %50'si 1 |
 | Ürünün kendine özgü fiyatı yok | `birim_fiyat` = liste fiyatı ±%5 (kuruş tamsayısıyla, sınır aşılamaz) |
 | Dalgalanmaların nedeni yok | Hafta sonu `× 1,3` ve kampanya `× 1,5` + indirim; parametreli |
+
+## Bilinen sınırlılıklar ve açıklar
+
+- **Ürünler eşit sıklıkta satılır** (şema gereği). Bu yüzden "ciroda ilk 5 ürün" (M5) en çok satanları değil, liste fiyatı en yüksek ürünleri gösterir (Akıllı Saat, Kahve Makinesi, Mont, Spor Ayakkabı, Halı). Analizde bu not edilmelidir. Ürün bazlı satış ağırlığı istenirse önce DQ sözlüğe ekler.
+- **Haftalık ciro oynaklığı** (değişim katsayısı) toplamda %13,0, kampanyasız haftalarda %7,9. Kalan oynaklık büyük ölçüde fiyat karmasından (99 – 3.499 TL) gelir; kampanya haftalarındaki sıçrama bilerek modellenmiştir.
+- **Geçersiz parametre henüz `ValueError` vermiyor** (Hafta 6, `fix/error-handling`): BAŞ > SON olan bir kampanya dönemi **hata vermeden** kampanyasız dosya yazar; `gun_sayisi=0` anlamsız bir `TypeError` ile, negatif `gunluk_siparis` NumPy hatasıyla çöker; `musteri_sayisi=10000` iç kontrolde yanıltıcı bir mesajla durur. Bu düzeltilene kadar parametreler sözlükteki izinli aralıkta verilmelidir.
 
 ## Şema değişirse
 
@@ -135,4 +144,6 @@ Doğru olan `docs/veri-sozlugu.md`'dir. DQ sözlüğü güncellediğinde: `src/s
 
 ## Üretim kaydı
 
-- **İlk sürüm (#61):** Skill, `src/simulasyon.py` ve `data/siparisler-g2.csv` Claude (Claude Code) ile üretildi. Prompt özeti: "Görev 2'de BE oldum; Sema'nın docs/veri-sozlugu.md şemasına birebir parametreli simülasyonu feature/veri dalında yaz, #30 sınırlılıklarına da bak." Skill, betikten önce ayrı bir commit olarak eklendi.
+- **Skill (#61, `bf7b4d7`):** Skill Claude (Claude Code) ile yazıldı ve Görev 2 kuralı gereği betikten **önce** ayrı commit olarak eklendi. Prompt özeti: "Görev 2'de BE oldum; Sema'nın docs/veri-sozlugu.md şemasına birebir parametreli simülasyonu feature/veri dalında yaz, #30 sınırlılıklarına da bak." Not: bu ilk commit'teki örnek çıktı (ilk satırlar, MD5) betiğin deneme çalıştırmasından alınmıştı; betik ve veri bir sonraki commit'te geldi.
+- **Betik ve veri (#61, #30, `2159a98`):** `src/simulasyon.py` ve `data/siparisler-g2.csv` bu skill ile, Claude (Claude Code) kullanılarak üretildi. Kalite kuralları 1–11 betik içinde, kural 12 ve satır sayısı senaryoları elle doğrulandı.
+- **Skill düzeltmesi (#61):** Öz inceleme sonrası: N'yi değiştiren parametrelerin tüm dosyayı değiştirdiği düzeltildi (önceki "akış kaymaz" cümlesi yanlıştı), Görev 1 verisine dokunmama ret durumu, deneme dosyalarının `data/` dışına yazılması, bilinen sınırlılıklar/açıklar bölümü ve commit hash'leri eklendi. Betik ve veri değişmedi. Claude (Claude Code) ile.
