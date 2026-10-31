@@ -44,7 +44,28 @@ Betiğin başında sabit olarak tanımlıdır **ve** komut satırından değişt
 
 Deneme çalıştırmaları (`gun_sayisi=10` vb.) için **`--cikti` ile `data/` dışında** bir dosya verilir (ör. `/tmp/deneme-10gun.csv`); böylece deneme dosyası yanlışlıkla commit'lenemez. `data/siparisler-g2.csv` yalnızca varsayılanlarla üretilir.
 
-Geçersiz parametrede (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON) betik çökmez, parametrenin adını ve izinli aralığı söyleyen bir `ValueError` verir ve dosya yazmaz — bu Hafta 6'da `fix/error-handling` dalında eklenir.
+### Hata yönetimi (geçersiz parametre)
+
+Parametreler **üretimden önce** `parametreleri_dogrula()` ile sözlükteki aralıklara göre kontrol edilir (aralıklar betiğin başında `PARAMETRE_ARALIKLARI`). Geçersiz bir değerde:
+
+- `ValueError` verilir; mesaj **parametrenin adını, izinli aralığı/biçimi ve verilen değeri** Türkçe söyler.
+- Komut satırında betik çökmez (traceback yok): `Hata (ValueError): <mesaj>` yazar, **1** koduyla çıkar. Hata yutulmaz; betik `import` edilip `main()` çağrılırsa `ValueError` olduğu gibi yükselir.
+- **Hiçbir dosya yazılmaz** (doğrulama, çıktı klasörü oluşturulmadan önce çalışır).
+- Tipler `argparse`'a bırakılmaz: `--gun_sayisi abc` de İngilizce argparse hatası yerine aynı biçimde Türkçe `ValueError` verir.
+
+| Girdi | Mesaj |
+|---|---|
+| `--gun_sayisi 0` / `-3` | `gun_sayisi 1–366 arasında olmalı, verilen: 0` |
+| `--gun_sayisi abc` | `gun_sayisi tamsayı olmalı (1–366 arasında), verilen: 'abc'` |
+| `--gunluk_siparis 0` | `gunluk_siparis 1–500 arasında olmalı, verilen: 0` |
+| `--musteri_sayisi 10000` | `musteri_sayisi 1–9999 arasında olmalı, verilen: 10000` |
+| `--hafta_sonu_katsayisi nan` | `hafta_sonu_katsayisi 0.1–5.0 arasında olmalı, verilen: nan` |
+| `--tohum -1` | `tohum 0 veya büyük olmalı, verilen: -1` |
+| `--baslangic_tarihi 2026-13-01` | `baslangic_tarihi geçerli bir YYYY-MM-DD tarihi olmalı, verilen: '2026-13-01'` |
+| `--kampanya_donemleri 2026-03-09` | `kampanya_donemleri her dönem BAŞ:SON (YYYY-MM-DD:YYYY-MM-DD) biçiminde, dönemler virgülle ayrılmış olmalı, verilen: '2026-03-09'` |
+| `--kampanya_donemleri 2026-03-15:2026-03-09` | `kampanya_donemleri içinde başlangıç sondan sonra olamaz, verilen: '2026-03-15:2026-03-09'` |
+
+Sınır değerler geçerlidir (`gun_sayisi=1` ve `366`, `musteri_sayisi=9999`, `tohum=0`); boş `kampanya_donemleri` (`""`) kampanyasız dönem demektir. Sözlüğe yeni bir parametre veya aralık eklenirse `PARAMETRE_ARALIKLARI` ve bu tablo birlikte güncellenir.
 
 ## Üretim sırası (bayt bayt aynı dosya için)
 
@@ -63,7 +84,7 @@ Sıra veya çağrı değişirse kurallara uyan ama farklı bir dosya çıkar; MD
 1. **Şemayı oku:** `docs/veri-sozlugu.md` ve G2-veri Issue'sundaki DQ'nun "Şema yayımlandı" devir yorumu. Devir yorumu yoksa **üretime başlama**. Belirsiz bir yer varsa Issue'ya yaz, DQ ile netleştir; şemayı tek taraflı değiştirme.
 2. **Betiği yalnızca gerekirse yaz/güncelle:** `src/simulasyon.py` varsa ve şema değişmediyse yeniden yazma, 3. adıma geç. Sabitler (`SUTUNLAR`, `KATEGORI_URUN`, ağırlıklar, parametre varsayılanları) dosyanın başındadır; gömülü sihirli sayı bırakma.
 3. **Üret:** Depo kökünde `python src/simulasyon.py`.
-4. **Kendi kontrolünü yap.** Betik sözlüğün **Veri kalitesi kuralları 1–11**'i yazmadan önce kendisi kontrol eder (`kontrol()` ile, `assert` değil; `python -O` ile de atlanmaz), biri kalırsa `ValueError` verir ve dosya yazılmaz; yazdıktan sonra dosyayı diskten geri okuyup aynı metin mi diye bakar. Elle yapılacaklar:
+4. **Kendi kontrolünü yap.** Parametre hatası varsa betik daha 3. adımda durur (bkz. **Hata yönetimi**). Betik sözlüğün **Veri kalitesi kuralları 1–11**'i yazmadan önce kendisi kontrol eder (`kontrol()` ile, `assert` değil; `python -O` ile de atlanmaz), biri kalırsa `ValueError` verir ve dosya yazılmaz; yazdıktan sonra dosyayı diskten geri okuyup aynı metin mi diye bakar. Elle yapılacaklar:
    - **Kural 12 (tekrarlanabilirlik):** betiği ikinci kez çalıştır, konsoldaki `MD5` aynı mı?
    - **Parametre davranışı:** sözlükteki satır sayısı tablosu — `--gun_sayisi 10` → 424, `--gun_sayisi 7` → 304, `--gun_sayisi 10 --gunluk_siparis 10` → 106 (deneme dosyası `data/` dışına, `--cikti` ile).
 5. **Commit at** (`feature/veri` dalında; `main`'e doğrudan commit yok). Mesajda şema bulunur: satır sayısı + sütun listesi. Biçim: `G2-veri: <ne değişti> (#61)`.
@@ -123,7 +144,8 @@ Konsol özeti (kısaltılmış): `Satır: 8208 · Sütun: 14`, `Tarih: 2026-01-0
 
 - **Ürünler eşit sıklıkta satılır** (şema gereği). Bu yüzden "ciroda ilk 5 ürün" (M5) en çok satanları değil, liste fiyatı en yüksek ürünleri gösterir (Akıllı Saat, Kahve Makinesi, Mont, Spor Ayakkabı, Halı). Analizde bu not edilmelidir. Ürün bazlı satış ağırlığı istenirse önce DQ sözlüğe ekler.
 - **Haftalık ciro oynaklığı** (değişim katsayısı) toplamda %13,0, kampanyasız haftalarda %7,9. Kalan oynaklık büyük ölçüde fiyat karmasından (99 – 3.499 TL) gelir; kampanya haftalarındaki sıçrama bilerek modellenmiştir.
-- **Geçersiz parametre henüz `ValueError` vermiyor** (Hafta 6, `fix/error-handling`): BAŞ > SON olan bir kampanya dönemi **hata vermeden** kampanyasız dosya yazar; `gun_sayisi=0` anlamsız bir `TypeError` ile, negatif `gunluk_siparis` NumPy hatasıyla çöker; `musteri_sayisi=10000` iç kontrolde yanıltıcı bir mesajla durur. Bu düzeltilene kadar parametreler sözlükteki izinli aralıkta verilmelidir.
+- ~~Geçersiz parametre `ValueError` vermiyor~~ — Hafta 6'da `fix/error-handling` ile kapandı (bkz. **Hata yönetimi**).
+- **Müşteri havuzu rastgele:** `musteri_id` havuzdan eşit olasılıkla çekildiği için siparişlerin çoğu zamanla "tekrar müşteri" görünür (varsayılanda %81,8); bu gerçek bir sadakat göstergesi değildir (DQ'nun #62 ön denemesi).
 
 ## Şema değişirse
 
@@ -148,3 +170,4 @@ Doğru olan `docs/veri-sozlugu.md`'dir. DQ sözlüğü güncellediğinde: `src/s
 - **Betik ve veri (#61, #30, `2159a98`):** `src/simulasyon.py` ve `data/siparisler-g2.csv` bu skill ile, Claude (Claude Code) kullanılarak üretildi. Kalite kuralları 1–11 betik içinde, kural 12 ve satır sayısı senaryoları elle doğrulandı.
 - **Skill düzeltmesi (#61, #45):** Devir listesine G2-test (#64) eklendi.
 - **Skill düzeltmesi (#61):** Öz inceleme sonrası: N'yi değiştiren parametrelerin tüm dosyayı değiştirdiği düzeltildi (önceki "akış kaymaz" cümlesi yanlıştı), Görev 1 verisine dokunmama ret durumu, deneme dosyalarının `data/` dışına yazılması, bilinen sınırlılıklar/açıklar bölümü ve commit hash'leri eklendi. Betik ve veri değişmedi. Claude (Claude Code) ile.
+- **Hata yönetimi (Hafta 6, `fix/error-handling`):** Önce bu skill'e **Hata yönetimi** bölümü yazıldı, sonra `src/simulasyon.py`'ye `parametreleri_dogrula()` eklendi. Prompt özeti: "Hafta 6 BE görevi: geçersiz parametrede ValueError; Sema'nın PR #66'daki örnekleri (gun_sayisi 0/-3, musteri_sayisi 10000, ':' yok, BAŞ > SON) ve tests/test-cases.md G2-TC-21/22 karşılansın." Varsayılan çıktı değişmedi (MD5 `1b7f765e…`). Claude (Claude Code) ile.
