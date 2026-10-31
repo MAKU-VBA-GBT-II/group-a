@@ -12,8 +12,12 @@ Issue:        #61 (G2-veri — Parametreli simülasyon)
 
 Kullanım (depo kökünde):
     python src/simulasyon.py
-    python src/simulasyon.py --gun_sayisi 10 --cikti data/deneme.csv
+    python src/simulasyon.py --gun_sayisi 10 --cikti /tmp/deneme.csv
     python src/simulasyon.py --help
+
+Geçersiz parametrede (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON) betik çökmez:
+"Hata (ValueError): <parametre> <izinli aralık>, verilen: <değer>" yazar, 1 ile çıkar
+ve dosya yazmaz.
 """
 
 import argparse
@@ -42,6 +46,16 @@ MUSTERI_SAYISI = 1500
 TOHUM = 42
 
 CIKTI = "data/siparisler-g2.csv"
+
+# İzinli aralıklar — docs/veri-sozlugu.md → Simülasyon parametreleri (alt, üst; None = sınırsız)
+PARAMETRE_ARALIKLARI = {
+    "gun_sayisi": (int, 1, 366),
+    "gunluk_siparis": (int, 1, 500),
+    "hafta_sonu_katsayisi": (float, 0.1, 5.0),
+    "kampanya_katsayisi": (float, 1.0, 5.0),
+    "musteri_sayisi": (int, 1, 9999),
+    "tohum": (int, 0, None),
+}
 
 # ----------------------------------------------------------------------------
 # Şema sabitleri — değişirse skills/be-simulasyon/SKILL.md de güncellenmeli
@@ -138,15 +152,51 @@ def kontrol(kosul, mesaj):
         raise ValueError(mesaj)
 
 
+def aralik_metni(alt, ust):
+    return f"{alt} veya büyük" if ust is None else f"{alt}–{ust} arasında"
+
+
+def sayiyi_coz(ad, deger):
+    """Sayısal parametreyi tipine çevirir ve izinli aralıkta mı bakar; değilse ValueError."""
+    tip, alt, ust = PARAMETRE_ARALIKLARI[ad]
+    tip_adi = "tamsayı" if tip is int else "sayı"
+    try:
+        sayi = tip(deger)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{ad} {tip_adi} olmalı ({aralik_metni(alt, ust)}), verilen: {deger!r}"
+        ) from None
+    # NaN hiçbir karşılaştırmayı geçmez, bu yüzden aralık dışı sayılır
+    if not (alt <= sayi and (ust is None or sayi <= ust)):
+        raise ValueError(f"{ad} {aralik_metni(alt, ust)} olmalı, verilen: {deger}")
+    return sayi
+
+
+def tarihi_coz(ad, metin):
+    try:
+        return date.fromisoformat(str(metin).strip())
+    except ValueError:
+        raise ValueError(f"{ad} geçerli bir YYYY-MM-DD tarihi olmalı, verilen: {metin!r}") from None
+
+
 def kampanya_donemlerini_coz(metin):
-    """'BAŞ:SON,BAŞ:SON' metnini [(date, date), ...] listesine çevirir."""
+    """'BAŞ:SON,BAŞ:SON' metnini [(date, date), ...] listesine çevirir; bozuksa ValueError."""
+    bicim = "her dönem BAŞ:SON (YYYY-MM-DD:YYYY-MM-DD) biçiminde, dönemler virgülle ayrılmış olmalı"
     donemler = []
     for parca in metin.split(","):
         parca = parca.strip()
         if not parca:
             continue
-        bas, son = parca.split(":")
-        donemler.append((date.fromisoformat(bas.strip()), date.fromisoformat(son.strip())))
+        uclar = parca.split(":")
+        if len(uclar) != 2:
+            raise ValueError(f"kampanya_donemleri {bicim}, verilen: {parca!r}")
+        try:
+            bas, son = (date.fromisoformat(u.strip()) for u in uclar)
+        except ValueError:
+            raise ValueError(f"kampanya_donemleri {bicim}; geçersiz tarih, verilen: {parca!r}") from None
+        if bas > son:
+            raise ValueError(f"kampanya_donemleri içinde başlangıç sondan sonra olamaz, verilen: {parca!r}")
+        donemler.append((bas, son))
     return donemler
 
 
@@ -309,19 +359,31 @@ def metni_dogrula(metin):
 
 def parametreleri_al(argv=None):
     ap = argparse.ArgumentParser(description="Görev 2 parametreli sipariş simülasyonu (docs/veri-sozlugu.md)")
-    ap.add_argument("--gun_sayisi", type=int, default=GUN_SAYISI, help=f"simüle edilen gün (vars. {GUN_SAYISI})")
-    ap.add_argument("--gunluk_siparis", type=int, default=GUNLUK_SIPARIS, help=f"hafta içi günlük sipariş (vars. {GUNLUK_SIPARIS})")
-    ap.add_argument("--hafta_sonu_katsayisi", type=float, default=HAFTA_SONU_KATSAYISI, help=f"vars. {HAFTA_SONU_KATSAYISI}")
-    ap.add_argument("--kampanya_katsayisi", type=float, default=KAMPANYA_KATSAYISI, help=f"vars. {KAMPANYA_KATSAYISI}")
+    # Tipler burada çevrilmez: yanlış tip de aralık dışı değer gibi Türkçe ValueError versin
+    ap.add_argument("--gun_sayisi", default=GUN_SAYISI, help=f"simüle edilen gün (vars. {GUN_SAYISI})")
+    ap.add_argument("--gunluk_siparis", default=GUNLUK_SIPARIS, help=f"hafta içi günlük sipariş (vars. {GUNLUK_SIPARIS})")
+    ap.add_argument("--hafta_sonu_katsayisi", default=HAFTA_SONU_KATSAYISI, help=f"vars. {HAFTA_SONU_KATSAYISI}")
+    ap.add_argument("--kampanya_katsayisi", default=KAMPANYA_KATSAYISI, help=f"vars. {KAMPANYA_KATSAYISI}")
     ap.add_argument("--kampanya_donemleri", default=KAMPANYA_DONEMLERI, help=f"'BAŞ:SON,BAŞ:SON' (vars. {KAMPANYA_DONEMLERI})")
     ap.add_argument("--baslangic_tarihi", default=BASLANGIC_TARIHI, help=f"YYYY-MM-DD (vars. {BASLANGIC_TARIHI})")
-    ap.add_argument("--musteri_sayisi", type=int, default=MUSTERI_SAYISI, help=f"vars. {MUSTERI_SAYISI}")
-    ap.add_argument("--tohum", type=int, default=TOHUM, help=f"rastgelelik tohumu (vars. {TOHUM})")
+    ap.add_argument("--musteri_sayisi", default=MUSTERI_SAYISI, help=f"vars. {MUSTERI_SAYISI}")
+    ap.add_argument("--tohum", default=TOHUM, help=f"rastgelelik tohumu (vars. {TOHUM})")
     ap.add_argument("--cikti", default=CIKTI, help=f"çıktı dosyası (vars. {CIKTI})")
     p = ap.parse_args(argv)
-    p.baslangic = date.fromisoformat(p.baslangic_tarihi)
-    p.donemler = kampanya_donemlerini_coz(p.kampanya_donemleri)
+    parametreleri_dogrula(p)
     return p
+
+
+def parametreleri_dogrula(p):
+    """Üretimden önce tüm parametreleri sözlükteki aralıklarla kontrol eder (Hafta 6, hata yönetimi).
+
+    Geçersiz bir değerde parametrenin adını, izinli aralığı ve verilen değeri söyleyen bir
+    ValueError verir; bu noktada henüz hiçbir dosya yazılmamıştır.
+    """
+    for ad in PARAMETRE_ARALIKLARI:
+        setattr(p, ad, sayiyi_coz(ad, getattr(p, ad)))
+    p.baslangic = tarihi_coz("baslangic_tarihi", p.baslangic_tarihi)
+    p.donemler = kampanya_donemlerini_coz(p.kampanya_donemleri)
 
 
 def main(argv=None):
@@ -359,4 +421,9 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except ValueError as hata:
+        # Çökme yerine anlaşılır mesaj ve 1 çıkış kodu; hata yutulmaz, dosya yazılmamıştır
+        print(f"Hata (ValueError): {hata}", file=sys.stderr)
+        sys.exit(1)
