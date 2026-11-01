@@ -1,6 +1,6 @@
 # Kullanım Kılavuzu — Sepetix Analitik Mini Ürün (Görev 2)
 
-> **Durum:** başlangıç sürümü (Hafta 6, #64). Kurulum ve 1 kullanım senaryosu yazıldı; analiz ve grafik adımları ilgili PR'lar merge edildikçe eklenecek.
+> **Durum:** Görev 2 sürümü (Hafta 6, #64) — `main` @ `ffb363e` (PR #72, #75, #79 merge sonrası). Kurulum + 4 kullanım senaryosu.
 > Ürünün amacı ve kapsamı: `docs/requirements.md` · Alanlar, parametreler, kurallar: `docs/veri-sozlugu.md`
 
 ## 1. Ürün ne yapar?
@@ -14,7 +14,7 @@ Sentetik e-ticaret sipariş verisi üretir (`src/simulasyon.py`), veriyi veri s�
 ```bash
 git clone https://github.com/MAKU-VBA-GBT-II/group-a.git
 cd group-a
-python -m pip install pandas numpy matplotlib
+python -m pip install -r requirements.txt   # pandas, matplotlib
 ```
 
 Kurulumu doğrulamak için:
@@ -65,12 +65,80 @@ MD5 aynıysa dosya depodaki sürümle birebir aynıdır (veri sözlüğü kural 
 
 **Sık karşılaşılan durumlar**
 
-- `ModuleNotFoundError: No module named 'pandas'` → Kurulum adımındaki `pip install` komutunu çalıştırın.
+- `ModuleNotFoundError: No module named 'pandas'` → Kurulum adımındaki `pip install -r requirements.txt` komutunu çalıştırın.
 - `FileNotFoundError: data/siparisler-g2.csv` → Komutu depo kökünde çalıştırdığınızdan emin olun.
 - Test özeti `x/15` ve bazı satırlar `❌ Kaldı` → Kalan senaryonun "Gerçekleşen" sütunu sorunu söyler; `tests/test-cases.md`'deki aynı ID'ye bakın ve bir bug Issue'su açın.
 - A/B testleri **varsayılan** parametrelerle üretilmiş dosyayı bekler (ör. satır sayısı 8.208). Farklı parametreyle ürettiğiniz dosyada `--dosya` ile koşarsanız G2-TC-03, 08 ve 15 kalabilir; bu bir hata değildir.
 
-## 4. Parametreler (özet)
+## 4. Senaryo 2 — Metrikleri hesapla
+
+**Amaç:** veri sözlüğündeki metrikleri (M1–M6) hesaplamak.
+
+```bash
+python src/dq_analiz_g2.py                       # metrik tabloları ekrana
+python src/dq_analiz_g2.py --ek                  # yorumlar için ek istatistikler
+python src/dq_analiz_g2.py --cikti sonuc.md      # aynı çıktıyı dosyaya da yazar
+```
+
+**Beklenen sonuç (varsayılan veri):**
+
+| Metrik | Değer |
+|---|---|
+| M1 toplam net ciro | 11.973.617,93 TL |
+| M2 ortalama / medyan sepet | 1.621,78 TL / 728,95 TL |
+| M3 haftalık ortalama | 460.523,77 TL (26 hafta; en yüksek 2026-05-11 haftası) |
+| M4 kanal payı | Web %44,3 · Mobil %41,4 · Pazaryeri %14,3 |
+| M5 ilk 5 ürünün payı | %58,9 |
+| M6 iade + iptal | %10,1 |
+
+Sayıların yorumu, 3 bulgu ve eylem önerisi: `docs/analiz-g2.md`. Para metrikleri yalnızca `durum == "Teslim Edildi"` siparişlerden hesaplanır.
+
+## 5. Senaryo 3 — Grafikleri üret
+
+**Amaç:** üç grafiği `visuals/` klasörüne yazmak.
+
+```bash
+python src/fe_gorsel.py
+```
+
+Konsolda üç satır `Yazıldı: visuals/….png` görünür:
+
+| Dosya | Ne gösterir |
+|---|---|
+| `visuals/haftalik-net-ciro.png` | M3 — haftalık net ciro, ortalama çizgisi, kampanya haftaları bantlı |
+| `visuals/kanal-ciro-payi.png` | M4 — kanal bazlı net ciro ve pay |
+| `visuals/siparis-tutari-dagilimi.png` | Sipariş tutarı dağılımı, M2 ve medyan çizgisi; 7.000 TL üstü ayrı kovada |
+
+![Haftalık net ciro grafiği](../visuals/haftalik-net-ciro.png)
+
+*Şekil 2 — Senaryo 3 çıktısı: kampanya haftaları (9–15 Mart, 11–17 Mayıs) bantlı, ortalama 460.524 TL.*
+
+Başka bir veri dosyasının grafiklerini ayrı bir klasöre üretmek için: `python src/fe_gorsel.py deneme/kisa.csv --klasor deneme/grafikler`. Kampanya bantları ve başlıktaki tarih aralığı veriden okunur, dosyaya göre değişir.
+
+## 6. Senaryo 4 — Kendi parametrelerinle veri üret
+
+**Amaç:** farklı bir dönem veya hacimle veri üretmek ve hatalı girişte ne olduğunu görmek.
+
+```bash
+python src/simulasyon.py --gun_sayisi 30 --tohum 7 --cikti deneme/kisa.csv
+```
+
+> `--cikti` vermezseniz betik `data/siparisler-g2.csv`'nin **üstüne yazar**. Deneme dosyalarını başka bir klasöre yazın ve commit'lemeyin.
+
+![Senaryo 4 terminal çıktısı](img/kullanim-senaryo-4.png)
+
+*Şekil 3 — Senaryo 4: aralık dışı değer ve ters kampanya aralığı reddedilir; geçerli parametrelerle dosya yazılır.*
+
+| Ne gördünüz? | Anlamı |
+|---|---|
+| `Hata (ValueError): gun_sayisi 1–366 arasında olmalı, verilen: 400` | Değer izinli aralığın dışında; dosya yazılmadı (çıkış kodu 1). Bölüm 7'deki aralıklara bakın. |
+| `… başlangıç sondan sonra olamaz` | Kampanya dönemi `BAŞ:SON` sırasıyla yazılmalı. |
+| `Uyarı: kampanya_donemleri simülasyon aralığıyla kesişmiyor` | Hata değil; dosya yazıldı ama seçtiğiniz tarihlerde kampanya yok. Kampanya istiyorsanız dönemi simülasyon aralığına çekin. |
+| `Tüm iç kontroller geçti` | Dosya veri sözlüğünün kalite kurallarına uyuyor. |
+
+Aynı parametre ve tohumla ikinci çalıştırmada MD5 aynı çıkar (tekrar üretilebilirlik).
+
+## 7. Parametreler (özet)
 
 | Parametre | Varsayılan | Örnek |
 |---|---|---|
@@ -84,13 +152,7 @@ MD5 aynıysa dosya depodaki sürümle birebir aynıdır (veri sözlüğü kural 
 | `--tohum` | 42 | farklı tohum → farklı ama geçerli dosya |
 | `--cikti` | `data/siparisler-g2.csv` | başka dosyaya yazmak için |
 
-İzinli aralıklar ve satır sayısı formülü: `docs/veri-sozlugu.md` → Parametreler. Geçersiz parametre davranışı PR #72 ile düzeltiliyor (#76, #77).
-
-## 5. Sonraki bölümler (eklenecek)
-
-- Senaryo 2 — Analizi çalıştır: `python src/dq_analiz_g2.py` → `docs/analiz-g2.md` (PR #75 merge edilince)
-- Senaryo 3 — Grafikleri üret: `python src/fe_gorsel.py` → `visuals/` (FE PR'ı merge edilince)
-- Senaryo 4 — Kendi parametrelerinle veri üret ve hata mesajlarını oku (PR #72 merge edilince)
+İzinli aralıklar ve satır sayısı formülü: `docs/veri-sozlugu.md` → Parametreler. Aralık dışı veya biçimi bozuk bir değer verilirse betik dosya yazmadan durur ve `Hata (ValueError): …` mesajı verir (bkz. Senaryo 4).
 
 ---
-Üretim: dq-test skill'i ile, Claude — prompt özeti: "Merge edilmiş ürün üzerinde test turunu koş, sonuçları tests/test-log.md'ye tarihli yaz, docs/user-manual.md'ye kurulum ve ekran görüntülü 1 senaryo ile başla."
+Üretim: dq-test skill'i ile, Claude — prompt özeti: "Merge edilmiş ürün üzerinde test turunu koş, sonuçları tests/test-log.md'ye tarihli yaz, docs/user-manual.md'ye kurulum ve ekran görüntülü 1 senaryo ile başla." · Güncelleme: "PR #72, #75, #79 merge edildi; kılavuza analiz, grafik ve kendi parametrelerinle veri üretme senaryolarını ekle, komutları main'de çalıştırıp çıktıları doğrula."
