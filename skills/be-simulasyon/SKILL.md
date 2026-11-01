@@ -22,7 +22,8 @@ Gerçek kişi ya da işletme verisi asla kullanılmaz — tüm değerler simüla
 - Virgül ayraçlı, nokta ondalıklı, UTF-8, satır sonu `\n`, indeks sütunu yok.
 - `birim_fiyat`, `indirim_orani`, `toplam_tutar` ham metinde **tam 2 ondalık** (`1299.00`, `0.20`): CSV `float_format="%.2f"` ile yazılır (#27).
 - Tarih `YYYY-MM-DD`; dosya `siparis_tarihi` artan, `siparis_id` 1…N ardışık.
-- **Satır sayısı rastgele değildir**, sözlükteki formülle günden güne hesaplanır: `gun_adet = floor(gunluk_siparis × gun_k + 0.5)`, `gun_k` hafta sonunda `× hafta_sonu_katsayisi`, kampanya gününde `× kampanya_katsayisi`. Varsayılanla **N = 8.208**.
+- **Satır sayısı rastgele değildir**, sözlükteki formülle günden güne hesaplanır: `gun_adet = max(1, floor(gunluk_siparis × gun_k + 0.5))`, `gun_k` hafta sonunda `× hafta_sonu_katsayisi`, kampanya gününde `× kampanya_katsayisi`. `max(1, …)` her günün dosyada en az bir kez geçmesini sağlar (ör. `gunluk_siparis=1`, `hafta_sonu_katsayisi=0.4` → hafta sonu 0 yerine 1 sipariş); yoksa kural 5 izinli parametrelerle bile düşer (PR #72 incelemesi). Varsayılanla **N = 8.208**.
+- Kampanya dönemlerinden hiçbiri simülasyon aralığıyla kesişmiyorsa betik hata vermez (sözlük yasaklamıyor) ama konsola `Uyarı: … kesişmiyor; dosyada kampanyalı sipariş yok` yazar.
 - `toplam_tutar` **hesaplanır**: `round(adet × birim_fiyat × (1 − indirim_orani), 2)`.
 - `birim_fiyat` ürünün liste fiyatından en fazla ±%5 sapar (#30 çözümü). Sınırın yuvarlamayla aşılmaması için fiyat **kuruş cinsinden tamsayı** çekilir: `[liste × 95, liste × 105]` kuruş, uçlar dahil, sonra 100'e bölünür.
 
@@ -171,3 +172,4 @@ Doğru olan `docs/veri-sozlugu.md`'dir. DQ sözlüğü güncellediğinde: `src/s
 - **Skill düzeltmesi (#61, #45):** Devir listesine G2-test (#64) eklendi.
 - **Skill düzeltmesi (#61):** Öz inceleme sonrası: N'yi değiştiren parametrelerin tüm dosyayı değiştirdiği düzeltildi (önceki "akış kaymaz" cümlesi yanlıştı), Görev 1 verisine dokunmama ret durumu, deneme dosyalarının `data/` dışına yazılması, bilinen sınırlılıklar/açıklar bölümü ve commit hash'leri eklendi. Betik ve veri değişmedi. Claude (Claude Code) ile.
 - **Hata yönetimi (Hafta 6, `fix/error-handling`):** Önce bu skill'e **Hata yönetimi** bölümü yazıldı, sonra `src/simulasyon.py`'ye `parametreleri_dogrula()` eklendi. Prompt özeti: "Hafta 6 BE görevi: geçersiz parametrede ValueError; Sema'nın PR #66'daki örnekleri (gun_sayisi 0/-3, musteri_sayisi 10000, ':' yok, BAŞ > SON) ve tests/test-cases.md G2-TC-21/22 karşılansın." Varsayılan çıktı değişmedi (MD5 `1b7f765e…`). Claude (Claude Code) ile.
+- **İnceleme düzeltmesi (PR #72):** DQ'nun bulduğu durum: izinli parametrelerle bir günün adedi 0 çıkınca kural 5 düşüyordu → `gun_adet = max(1, …)`. Kesişmeyen kampanya dönemi için konsol uyarısı eklendi. Varsayılan çıktı aynı (MD5 `1b7f765e…`). Claude (Claude Code) ile.
