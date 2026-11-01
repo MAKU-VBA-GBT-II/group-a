@@ -1,106 +1,85 @@
 ---
 name: dq-analiz
-description: Grup A'nın sipariş verisinden (data/siparisler.csv) metrikleri src/dq_analiz.py ile hesaplar ve sonuçları, yorumları ve bulguları docs/analiz-g1.md'ye yazar. Veri analizi yapılacağı, metrik hesaplanacağı veya analiz raporu yazılacağı zaman kullan.
+description: Grup A'nın sipariş verisinden veri sözlüğündeki metrikleri betikle hesaplar; sonuçları, yorumları, bulguları ve sınırlılıkları analiz belgesine (Görev 2: docs/analiz-g2.md) yazar ve gereksinim belgesini (docs/requirements.md) hazırlar. Veri analizi yapılacağı, metrik hesaplanacağı veya analiz raporu yazılacağı zaman kullan.
 ---
 
-# dq-analiz — Metrik analizi ve bulgular
+# dq-analiz — Metrik analizi, bulgular ve gereksinimler (DQ)
 
-**Ne yapar:** BE'nin ürettiği veri dosyasından (`data/siparisler.csv`) 5 metriği (1 toplam, 1 ortalama, 2 kırılım: M3 kategori + M4 haftalık zaman serisi, top-3) `src/dq_analiz.py` ile hesaplar; tabloları `docs/analiz-g1.md`'ye aktarır, her metriğin altına 1–2 cümle yorum, sonuna 3 bulgu + 1 eylem önerisi ve sınırlılıklar yazar. Uydurma sayı yazmaz: tablolardaki sayılar betiğin ana çıktısından, yorum/bulgu/sınırlılık cümlelerindeki sayılar `--ek` çıktısından gelir; ikisi de belirtilen veri commit'ine bağlıdır.
+**Amaç:** Veri sözlüğünde tanımlı metrikleri, BE'nin "Veri hazır" dediği commit üzerinde **betikle** hesaplamak; her sayıyı yeniden üretilebilir kılmak ve FE'nin grafiklerine tek doğru kaynak olmak. Uydurma sayı yazmaz: tablolar betiğin ana çıktısından, yorum/bulgu/sınırlılık cümlelerindeki sayılar `--ek` çıktısından gelir.
 
-## Girdiler
+**Rol:** DQ (analiz) · **Sahibi:** Görev 1'de Tuğba Tuana Kaygısız, Görev 2'de Sema Nur Doğan · **Issue:** G2-analiz (#62)
 
-- Veri: `data/siparisler.csv` (BE'nin "Veri hazır" yorumundaki commit)
-- Şema: `docs/veri-sozlugu-g1.md`
-- Test sonuçları (varsa): `python src/dq_test.py` — veride hata varsa analizden önce BE'ye bildirilir
-- İlgili Issue'lar: G1-analiz (#14), G1-veri (#13), G1-gorsel (#15)
+## Görev 2 bağlamı
+
+| | Görev 2 |
+|---|---|
+| Veri | `data/siparisler-g2.csv` (BE'nin "Veri hazır" commit'i, #61) |
+| Metrik tanımları | `docs/veri-sozlugu.md` → Metrikler: M1 net ciro · M2 ortalama sepet · M3 haftalık ciro (zaman kırılımı) · M4 kanal (kategorik kırılım) · M5 ilk 5 ürün (top-N) · M6 iade+iptal (ek) |
+| Betik | `src/dq_analiz_g2.py` (Görev 1: `src/dq_analiz.py`, arşiv) |
+| Çıktılar | `docs/analiz-g2.md`, `docs/requirements.md` |
 
 ## Adımlar
 
-### A) Analizi yaz (Hafta 3)
+1. **Veri hazır mı?** G2-analiz Issue'sunda BE'nin "Veri hazır — commit …" yorumunu bul; yoksa dur. Veri commit'ini ve MD5'i not al.
+2. **Kalite kontrolü:** Veri sözlüğün kalite kurallarını geçmiyorsa (dq-test) analize geçme; sorunu BE Issue'suna yaz.
+3. **Hesapla:** `python src/dq_analiz_g2.py --ek --cikti analiz-cikti-g2.md` (geçici dosya, commit'lenmez). Ana çıktı M1–M6 tabloları; "Ek istatistikler" yorumlar için destek sayılarıdır (sepet dağılımı, kampanya/normal hafta, hafta içi/sonu, ürün sipariş sayıları, yeni/tekrar müşteri).
+4. **`docs/analiz-g2.md`'yi yaz** (başlık sırası aşağıda):
+   - En üstte veri commit'i, satır sayısı, tarih aralığı, MD5, parametreler.
+   - M1–M6 tabloları çıktıdan **birebir**; her metriğin altında 1–2 cümle yorum.
+   - **Bulgular:** sayıyla desteklenen 3 gözlem + 1 uygulanabilir eylem önerisi.
+   - **Sınırlılıklar:** simülasyon kurgusundan gelen etkiler (ör. eşit olasılıklı ürün seçimi → M5 = en pahalı ürünler; sabit müşteri havuzu → yeni/tekrar ayrımı anlamsız). Sentetik veri uyarısı.
+5. **`docs/requirements.md`'yi yaz (1 sayfa):** amaç · yaptıkları (numaralı) · yapmadıkları. Büyük proje önerisinin şablonu olacağı için yalnızca kodda gerçekten olanı yaz.
+6. **Dal → PR:** `src/` içerdiği için PR'ı DQ açar, inceleyici **PM** (ders kuralı §3.5); onaydan sonra merge.
+7. **Devir:** G2-gorsel Issue'suna *"Analiz hazır — `docs/analiz-g2.md`, commit `<hash>`"* + FE'nin kullanacağı sayılar (M3 ortalaması, M4 payları, M2 ortalama/medyan).
+8. **Kanıt + kapanış:** G2-analiz'e commit hash'leri + dosyalar + `Üretim: dq-analiz skill'i ile, <araç> — prompt özeti: …`
 
-1. **Veri hazır mı?** #13'te BE'nin "Veri hazır — commit …" yorumunu bul; yoksa dur, analiz yazma.
-2. **Güncel veriyi çek:** `git pull`.
-3. **Hızlı kalite kontrolü:** `python src/dq_test.py`. Kalan test varsa sonucu #13'e yaz ve BE'yi etiketle; kritik testlerden (TC-01…TC-08, TC-10…TC-12) biri kalıyorsa düzeltilene kadar analize geçme. TC-09 yalnızca dosyadaki yazım biçimini (2 ondalık) denetler, metrikleri değiştirmez; kalırsa hata Issue'su açılır ama analiz sürebilir.
-4. **Metrikleri hesapla:** `python src/dq_analiz.py --ek --cikti analiz-cikti.md`. Çıktının ilk kısmı M1–M5 tablolarıdır; sondaki "Ek istatistikler" bölümü yorumlarda kullanılacak destek sayılarıdır (sipariş tutarı ortalama/medyan/std, kategori başına ortalama adet ve tutar, aylık ciro, haftalık yoğunlaşma, en az ciro getiren ürünler, top-3 ürün fiyat aralığı). `analiz-cikti.md` geçicidir ve `.gitignore`'dadır, commit'lenmez.
-5. **`docs/analiz-g1.md`'yi doldur:**
-   - Başlıktaki veri satırına commit hash'i, satır sayısını ve tarih aralığını yaz.
-   - M1–M5 bölümlerindeki "Sonuç" ve tabloları betik çıktısından birebir aktar.
-   - Her metriğin altına 1–2 cümle yorum yaz: sayı ne anlatıyor, beklenenle uyumlu mu? **Yorumda geçen her sayı M1–M5 tablolarından ya da "Ek istatistikler" bölümünden okunmalı** (yuvarlama ve iki tablo değerinin toplamı/oranı serbest, ör. Elektronik + Ev & Yaşam payı); oradan çıkmayan bir sayıya ihtiyaç varsa önce `src/dq_analiz.py`'ye ekle, sonra yaz.
-   - **Bulgular:** veriye dayanan 3 somut gözlem (sayı vererek) + 1 uygulanabilir eylem önerisi.
-   - **Sınırlılıklar:** verinin sonuçları sınırlayan özelliklerini sayıyla yaz (örn. haftalık sipariş sayısı az olduğu için haftalık cironun tek siparişlere duyarlılığı, fiyatın üründen değil kategoriden üretilmesi, dalgalanmaların nedensiz olması). Verinin sentetik olduğunu ve gerçek müşteri davranışı iddiası taşımadığını belirt (bkz. #30).
-   - Başlığa "Veri kalitesi" satırını (`dq_test.py` sonucu, tarih) yaz; "Taslak" uyarı kutusu varsa kaldır.
-6. **Commit at:** `G1-analiz: analiz-g1.md tamamlandı (#14)`
-7. **Devir teslim (notlandırılır):** #15'e yaz: "Analiz hazır — docs/analiz-g1.md, commit <hash>. 5 metrik (2 kırılım: M3 kategori + M4 haftalık zaman serisi, top-3) + bulgular. FE görselleştirebilir."
-8. **#14'e kanıt yorumu yaz** (commit hash + dosyalar) ve Issue'yu kapat. Yorumun son satırı: `Üretim: dq-analiz skill'i ile, <araç>`.
+## Çıktı formatı kuralları
 
-### B) Nihai veriyle doğrula ve onayla (Hafta 4)
-
-1. BE'nin son veri commit'ini bul: `git log -1 --format=%h -- data/siparisler.csv`. `docs/analiz-g1.md`'deki veri commit'iyle aynı değilse aşağıdaki adımları yeni dosyayla yap.
-2. **Şema uyumu:** `python src/dq_test.py` → tüm testler geçmeli (çıkış kodu 0). Kalan test varsa uyumsuzlukları (senaryo + örnek satır) listeleyip #14'e yaz, BE'ye ata; onay verme.
-3. **Metrik uyumu:** `python src/dq_analiz.py --ek --cikti analiz-cikti.md` çıktısındaki tablo satırlarını `docs/analiz-g1.md` ile karşılaştır. Fark varsa tabloları, yorumları ve başlıktaki veri commit'ini güncelle; yoksa yalnızca başlıktaki commit/tarih satırını güncelle.
-4. Sonucu `tests/test-log.md`'ye tarihli satır olarak ekle (bkz. dq-test, B4).
-5. **Kapanış yorumu (#14):** *"Analiz nihai veri üzerinde doğrulandı — onaylıyorum."* + veri commit'i + `dq_test.py` sonucu (ör. 12/12) + `Üretim: dq-analiz skill'i ile, <araç>`.
-
-## Metrik tanım notları
-
-- **Hafta:** pazartesi başlar (`resample("W-MON", label="left", closed="left")`); tablo ilk haftanın pazartesisini gösterir.
-- **Kısmi haftalar:** veri 2026-01-01 (perşembe) başlayıp 2026-09-30 (çarşamba) bittiği için ilk ve son hafta 7 gün değildir. Bu iki hafta **en yüksek/en düşük** seçimine katılmaz ama **haftalık ortalamaya** (40 hafta) katılır; FE grafiğindeki ortalama çizgisi de aynı tanımı kullanır (#28). Tanımı değiştirirsen FE'ye haber ver.
-- **Kırılımlar:** M3 kategoriye göre, M4 zamana (haftaya) göre kırılımdır; ders tanımındaki "2 kırılım" şartı bu ikisiyle karşılanır (Duyuru-3; `ders/AGENTS.md` Grup A örnek metriklerinde "haftalık trend"). M4 aynı zamanda FE'nin zaman serisi grafiğinin kaynağıdır (#53).
-- **Para biçimi:** çıktıda Türkçe biçim (`1.234.567,89 TL`, `%38,1`); CSV'de nokta ondalık.
-
-## Ne zaman üretmez (reddeder)
-
-- Veri gerçek kişi/müşteri bilgisi içeriyorsa veya gerçek veriyle analiz istenirse (AGENTS.md kural 2) — durur, PM'e bildirir.
-- #13'te BE'nin "Veri hazır" yorumu yoksa veya `dq_test.py`'de kritik test (TC-01…TC-08, TC-10…TC-12) kalıyorsa — analiz yazmaz, sorunu #13'e yazar.
-- İstenen sayı betik çıktısında yoksa — tahmin etmez; önce betiğe ekler.
+- `docs/analiz-g2.md` başlıkları: `Metrikler` (M1…M6) → `Bulgular` → `Sınırlılıklar` → `Yeniden üretme`.
+- Para Türkçe biçimde (`11.973.617,93 TL`), yüzde `%44,3`; tarih `YYYY-MM-DD`; hafta `W-MON` (pazartesi başlangıçlı).
+- Para metrikleri yalnızca `durum == "Teslim Edildi"`; M6 tüm siparişler.
+- Yorumdaki her sayı betik çıktısından okunur; çıktıda olmayan bir sayı gerekiyorsa önce betiğe eklenir.
 
 ## Örnek giriş → çıkış
 
-**Giriş:** "dq-analiz skill'ini kullanarak data/siparisler.csv'yi analiz et ve docs/analiz-g1.md'yi doldur." (veri commit `1f8beb8`)
+**Giriş (ajana):** "dq-analiz skill'ini kullanarak data/siparisler-g2.csv'yi (commit f9dfca7) analiz et; docs/analiz-g2.md ve docs/requirements.md'yi yaz; PM'in yeni/tekrar müşteri ve M5 notlarını değerlendir."
 
-**Çıkış (`docs/analiz-g1.md`'den kısaltılmış):**
+**Çıkış (kısaltılmış):**
 
-```markdown
-**Kullanılan veri:** `data/siparisler.csv` · commit `1f8beb8` · 400 satır · tarih aralığı 2026-01-01 – 2026-09-30
+| Kanal | Teslim edilen sipariş | Net ciro | Pay |
+|---|---|---|---|
+| Web | 3.244 | 5.300.953,08 TL | %44,3 |
 
-### M1 — Toplam ciro
+> Web ve Mobil birlikte cironun %85,7'sini getiriyor ve aralarındaki fark yalnızca 2,9 puan.
 
-**3.114.411,51 TL** (400 sipariş)
+## Ne zaman üretmez (reddeder)
 
-**Yorum:** … sipariş başına ortalama tutar 7.786 TL. Ancak medyan sipariş tutarı 4.031 TL …
-```
-
-Aynı veri commit'iyle betik her çalıştırmada aynı sayıları verir; tabloların `docs/analiz-g1.md` ile birebir aynı olması beklenir.
-
-## Metrik formülleri
-
-| # | Metrik | Formül |
-|---|---|---|
-| M1 | Toplam ciro | `Σ toplam_tutar` |
-| M2 | Sipariş başına ortalama adet | `Σ adet / sipariş sayısı` |
-| M3 | Kategori bazlı ciro *(kırılım 1)* | kategoriye göre `Σ toplam_tutar` (+ pay %) |
-| M4 | Haftalık ciro trendi *(kırılım 2 — zaman serisi)* | pazartesi başlangıçlı haftaya göre `Σ toplam_tutar` |
-| M5 | Top-3 ürün | ürüne göre `Σ toplam_tutar`, ilk 3 (+ pay %) |
+- Veride **gerçek kişi/müşteri bilgisi** varsa veya gerçek veriyle analiz istenirse (ders kuralı §3.1) — durur, PM'e bildirir.
+- BE'nin "Veri hazır" yorumu yoksa ya da veri kalite kurallarını geçmiyorsa — analiz yazmaz.
+- İstenen sayı betik çıktısında yoksa — tahmin etmez; önce betiğe ekler.
+- Simülasyon kurgusunun sonucu olan bir örüntüyü (ör. %81,8 "tekrar müşteri") gerçek davranış gibi sunma isteği — sınırlılık olarak yazar.
 
 ## Kullanılan dosyalar
 
-- **Okur:** `data/siparisler.csv`, `docs/veri-sozlugu-g1.md`
-- **Yazar:** `docs/analiz-g1.md` (Hafta 4'te ayrıca `tests/test-log.md`'ye bir satır)
-- **Çalıştırır:** `src/dq_analiz.py`, `src/dq_test.py` (Python 3 + pandas)
+- **Okur:** `data/siparisler-g2.csv`, `docs/veri-sozlugu.md`
+- **Yazar:** `docs/analiz-g2.md`, `docs/requirements.md`
+- **Çalıştırır:** `src/dq_analiz_g2.py` (Python 3 + pandas; `pip install pandas`)
 
 ## Nasıl çalıştırılır
 
-Ajana (bu depoda Claude Code kullanıldı): "dq-analiz skill'ini kullanarak data/siparisler.csv'yi analiz et ve docs/analiz-g1.md'yi doldur."
+Ajana: "dq-analiz skill'ini kullanarak data/siparisler-g2.csv'yi analiz et ve docs/analiz-g2.md'yi yaz."
 
-Elle: depo kökünde `python src/dq_analiz.py` (farklı dosya için `python src/dq_analiz.py yol/dosya.csv`; yorum sayıları için `--ek`; çıktıyı dosyaya yazmak için `--cikti dosya.md`). Gereken: Python 3 + pandas (`pip install pandas`).
+Elle (depo kökünde):
 
-## Üretim kaydı (hangi araç, hangi prompt)
+```bash
+pip install pandas
+python src/dq_analiz_g2.py            # M1–M6
+python src/dq_analiz_g2.py --ek       # + ek istatistikler
+python src/dq_analiz_g2.py yol.csv    # başka parametrelerle üretilmiş dosya
+```
 
-- **Araç:** Claude (Claude Code, yapay zekâ ajanı).
-- **İlk üretim (#14):** Claude'a bu skill'in adımları ve #14 Issue'su verildi; `src/dq_analiz.py`, bu skill ve `docs/analiz-g1.md` Claude ile üretildi (commit `b8e50a0`, `7840e97`; commit'lerde `Co-Authored-By: Claude` izi var).
-- **Prompt:** "dq-analiz skill'ini kullanarak data/siparisler.csv'yi analiz et ve docs/analiz-g1.md'yi doldur."
-- **Sonraki güncellemeler:** Sınırlılıklar bölümü (#30, `5539020`) ve #27 düzeltmesinden sonra nihai veriyle (`1f8beb8`) yeniden doğrulama (commit `1868546`) Claude ile yapıldı.
-- **Güncelleme (Hafta 4):** `--ek` ek istatistikleri, Hafta 4 doğrulama adımları, metrik tanım notları, örnek ve reddetme koşulları eklendi; M4 yorumundaki "en yüksek haftalar" düzeltildi (16 Mart değil 20 Temmuz) — Claude ile.
-- **Güncelleme (#53, Grup B incelemesi):** metrik özeti ve M3/M4 satırları kırılım türünü açıkça gösterecek şekilde netleştirildi — Claude ile.
-- **Ajan izi olmayan commit'ler:** `5539020` da Claude ile üretildi; dosyalar Tuana'nın hesabından yüklendiği için bu commit'te `Co-Authored-By` satırı yok.
-- **Kural (Görev 2'den itibaren):** Commit'i ajan atar veya mesajın sonuna `Co-Authored-By:` satırı eklenir; kapanan Issue'ya "Üretim: dq-analiz skill'i ile, Claude" satırı yazılır.
+## Üretim kaydı
+
+**Görev 2 (Sema Nur Doğan, DQ):** Claude ile; önce bu skill Görev 2'ye güncellendi, sonra `src/dq_analiz_g2.py` yazıldı, veri commit `f9dfca7` üzerinde çalıştırıldı ve `docs/analiz-g2.md` + `docs/requirements.md` bu skill'in adımlarıyla yazıldı (#62). PM'in iki önerisi (yeni/tekrar müşteri, M5 sınırlılığı) veride denendi; ikisi de Sınırlılıklar'a yazıldı.
+
+**Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:** `src/dq_analiz.py` ve `docs/analiz-g1.md` (M1–M5, haftalık trend, top-3) Claude (Claude Code) ile üretildi; Hafta 4'te nihai veriyle doğrulandı (#14). Ajan izi olmayan commit'ler skill'in önceki sürümünde listelenmiştir.
