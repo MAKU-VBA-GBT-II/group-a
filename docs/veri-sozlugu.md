@@ -46,7 +46,7 @@ Satır sayısı rastgele değildir; her gün için hesaplanıp toplanır:
 gun_k     = 1.0
 gun_k    *= hafta_sonu_katsayisi   (gün Cumartesi veya Pazar ise)
 gun_k    *= kampanya_katsayisi     (gün bir kampanya dönemi içindeyse)
-gun_adet  = floor(gunluk_siparis × gun_k + 0.5)      # en yakın tamsayı, .5 yukarı
+gun_adet  = max(1, floor(gunluk_siparis × gun_k + 0.5))   # en yakın tamsayı (.5 yukarı), en az 1
 N         = Σ gun_adet   (gun_sayisi gün boyunca)
 ```
 
@@ -57,7 +57,7 @@ N         = Σ gun_adet   (gun_sayisi gün boyunca)
 | Tek hafta | `gun_sayisi = 7` | **304** | 2026-01-11 |
 | Kısa ve seyrek | `gun_sayisi = 10`, `gunluk_siparis = 10` | **106** | 2026-01-14 |
 
-Her gün en az bir kez geçer (`gunluk_siparis ≥ 1` olduğu için); dosyadaki farklı tarih sayısı = `gun_sayisi`.
+`max(1, …)` sayesinde **her gün en az bir sipariş** vardır (ör. `gunluk_siparis = 1`, `hafta_sonu_katsayisi = 0.4` → hafta sonu `floor(0.9) = 0` yerine 1); dosyadaki farklı tarih sayısı = `gun_sayisi`. Varsayılan ve tablodaki senaryolarda en küçük gün 40 sipariş olduğu için bu kural sonuçları değiştirmez.
 
 ## Alanlar
 
@@ -171,3 +171,4 @@ Hafta tanımı Görev 1 ile aynıdır: Pazartesi başlangıçlı (`W-MON`). Vars
 |---|---|---|
 | 2026-10-29 | İlk sürüm: 14 alan, 8 parametre, satır sayısı formülü, 12 kalite kuralı, M1–M6 | #60 |
 | 2026-10-30 | Kural 9: `indirim_orani` da ham metinde tam 2 ondalık (PR #66 incelemesi) | #64 |
+| 2026-11-01 | Satır sayısı: `gun_adet = max(1, …)`; izinli aralıktaki parametrelerle 0 siparişli gün oluşup kural 5'in düşmesi önlendi (PR #72 incelemesi) | #64 |
