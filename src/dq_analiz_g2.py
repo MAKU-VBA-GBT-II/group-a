@@ -21,7 +21,6 @@ import sys
 import pandas as pd
 
 VERI = "data/siparisler-g2.csv"
-KAMPANYA_DONEMLERI = [("2026-03-09", "2026-03-15"), ("2026-05-11", "2026-05-17")]  # sözlük varsayılanı
 TESLIM = "Teslim Edildi"
 TOP_N = 5
 
@@ -75,9 +74,11 @@ def haftalik(t):
     return t.set_index("siparis_tarihi").resample("W-MON", label="left", closed="left")["toplam_tutar"]
 
 
-def kampanya_haftasi_mi(hafta_basi):
-    son = hafta_basi + pd.Timedelta(days=6)
-    return any(pd.Timestamp(a) <= son and hafta_basi <= pd.Timestamp(b) for a, b in KAMPANYA_DONEMLERI)
+def kampanya_haftalari(df):
+    """Kampanya haftaları veriden türetilir (kampanya == 1 satırı olan W-MON haftaları);
+    böylece simülasyon farklı kampanya_donemleri ile çalıştırılsa da doğru kalır."""
+    k = df.loc[df["kampanya"] == 1, "siparis_tarihi"]
+    return set((k - pd.to_timedelta(k.dt.dayofweek, unit="D")).dt.normalize())
 
 
 # --------------------------------------------------------------------------- metrikler
@@ -101,10 +102,11 @@ def metrikler(df):
     h = haftalik(t)
     hs = h.sum()
     adet = h.count()
+    kh = kampanya_haftalari(df)
     out.append("\n### M3 — Haftalık net ciro trendi (W-MON)\n")
     satirlar = []
     for hb, v in hs.items():
-        satirlar.append([hb.strftime("%Y-%m-%d"), sayi(adet[hb]), tl(v), "✓" if kampanya_haftasi_mi(hb) else ""])
+        satirlar.append([hb.strftime("%Y-%m-%d"), sayi(adet[hb]), tl(v), "✓" if hb in kh else ""])
     out.append(tablo(["Hafta başı", "Teslim edilen sipariş", "Net ciro", "Kampanya"], satirlar))
     out.append(f"\nHafta sayısı: {len(hs)} · Haftalık ortalama: {tl(hs.mean())} · "
                f"En yüksek: {hs.idxmax():%Y-%m-%d} haftası ({tl(hs.max())}) · "
@@ -144,7 +146,8 @@ def ek_istatistikler(df):
                f"en yüksek {tl(x.max())} · 5.000 TL üstü sipariş {yuzde((x > 5000).mean() * 100)}")
 
     hs = haftalik(t).sum()
-    kamp = pd.Series({hb: kampanya_haftasi_mi(hb) for hb in hs.index})
+    kh = kampanya_haftalari(df)
+    kamp = pd.Series({hb: hb in kh for hb in hs.index})
     normal = hs[~kamp]
     out.append(f"- Normal hafta ortalaması {tl(normal.mean())} (n={len(normal)}) · kampanya haftaları: "
                + ", ".join(f"{hb:%Y-%m-%d} {tl(v)} ({yuzde((v / normal.mean() - 1) * 100)})" for hb, v in hs[kamp].items()))
