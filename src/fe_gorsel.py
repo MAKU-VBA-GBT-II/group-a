@@ -39,11 +39,9 @@ SUTUN_TARIH = "siparis_tarihi"
 SUTUN_TUTAR = "toplam_tutar"
 SUTUN_KANAL = "kanal"
 SUTUN_DURUM = "durum"
-GEREKLI_SUTUNLAR = (SUTUN_TARIH, SUTUN_TUTAR, SUTUN_KANAL, SUTUN_DURUM)
+SUTUN_KAMPANYA = "kampanya"
+GEREKLI_SUTUNLAR = (SUTUN_TARIH, SUTUN_TUTAR, SUTUN_KANAL, SUTUN_DURUM, SUTUN_KAMPANYA)
 DURUM_TESLIM = "Teslim Edildi"
-
-# Kampanya dönemleri — şemadaki kampanya_donemleri varsayılanı (BAŞ, SON, dahil)
-KAMPANYA_DONEMLERI = (("2026-03-09", "2026-03-15"), ("2026-05-11", "2026-05-17"))
 
 # Histogram: kuyruk uzun (en yüksek sipariş ~18.000 TL), son kova taşma kovasıdır.
 HIST_UST_SINIR = 7000
@@ -54,6 +52,8 @@ RENK_VURGU = "#c8553d"    # kampanya bandı, ortalama çizgisi
 RENK_GRI = "#8d99ae"      # ikincil çubuk, medyan çizgisi
 AYLAR = ("Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem",
          "Ağu", "Eyl", "Eki", "Kas", "Ara")
+AYLAR_TAM = ("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz",
+             "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
 KAYNAK = "Kaynak: data/siparisler-g2.csv (simülasyon) · durum = Teslim Edildi · Sepetix Analitik — Grup A"
 
 
@@ -123,26 +123,58 @@ def haftalik(teslim):
             .resample("W-MON", label="left", closed="left").sum())
 
 
-def zaman_serisi(teslim, yol):
+def kampanya_donemleri(df):
+    """kampanya == 1 olan ardışık günleri (başlangıç, bitiş) dönemlerine ayırır.
+
+    Dönemler veriden türetilir; simülasyon parametresi değişirse grafik de
+    değişir (DQ notu, #63). Elle yazılmış tarih yok.
+    """
+    gunler = sorted(pd.to_datetime(
+        df.loc[df[SUTUN_KAMPANYA] == 1, SUTUN_TARIH]).dt.normalize().unique())
+    donemler = []
+    if not gunler:
+        return donemler
+    bas = onceki = gunler[0]
+    for gun in gunler[1:]:
+        if (gun - onceki) > pd.Timedelta(days=1):
+            donemler.append((bas, onceki))
+            bas = gun
+        onceki = gun
+    donemler.append((bas, onceki))
+    return donemler
+
+
+def donem_basligi(df):
+    """'Ocak–Temmuz 2026' — veri aralığından türetilir, elle yazılmaz."""
+    ilk, son = df[SUTUN_TARIH].min(), df[SUTUN_TARIH].max()
+    if ilk.year == son.year:
+        return f"{AYLAR_TAM[ilk.month - 1]}–{AYLAR_TAM[son.month - 1]} {son.year}"
+    return (f"{AYLAR_TAM[ilk.month - 1]} {ilk.year}–"
+            f"{AYLAR_TAM[son.month - 1]} {son.year}")
+
+
+def zaman_serisi(df, teslim, yol):
     """M3 — haftalık net ciro trendi; kampanya haftaları bant olarak işaretli."""
     h = haftalik(teslim)
     ort = h.mean()
+    donemler = kampanya_donemleri(df)
 
     fig, ax = plt.subplots(figsize=(11, 5))
 
-    # Kampanya haftalarının tamamını kapsayan bant (DQ notu #63)
-    for i, (bas, son) in enumerate(KAMPANYA_DONEMLERI):
-        ax.axvspan(pd.Timestamp(bas), pd.Timestamp(son) + pd.Timedelta(days=1),
+    # Kampanya döneminin tamamını kapsayan bant (DQ notu #63), veriden türetilir
+    for i, (bas, son) in enumerate(donemler):
+        ax.axvspan(bas, son + pd.Timedelta(days=1),
                    color=RENK_VURGU, alpha=0.14,
-                   label="Kampanya haftası" if i == 0 else None)
+                   label="Kampanya dönemi" if i == 0 else None)
 
     ax.plot(h.index, h.values, color=RENK_ANA, lw=2, marker="o", ms=4,
             label="Haftalık net ciro")
 
     # Kampanya haftasının kendi noktası da işaretlenir: bandın sol kenarındaki
     # nokta o haftaya aittir, vurgu olmadan hangi hafta olduğu okunmuyor.
-    kampanya_baslari = [pd.Timestamp(bas) for bas, _ in KAMPANYA_DONEMLERI]
-    kampanya_noktalari = h[h.index.isin(kampanya_baslari)]
+    kampanya_haftalari = [h.index[h.index.get_indexer([bas], method="ffill")[0]]
+                          for bas, _ in donemler]
+    kampanya_noktalari = h[h.index.isin(kampanya_haftalari)]
     if not kampanya_noktalari.empty:
         ax.plot(kampanya_noktalari.index, kampanya_noktalari.values, ls="none",
                 marker="o", ms=9, mfc="white", mec=RENK_VURGU, mew=2.5, zorder=5)
@@ -150,7 +182,7 @@ def zaman_serisi(teslim, yol):
     ax.axhline(ort, color=RENK_GRI, ls="--", lw=1.2,
                label=f"Ortalama ({len(h)} hafta): {tl(ort)}")
 
-    ax.set_title("Haftalık net ciro trendi — Ocak–Temmuz 2026")
+    ax.set_title(f"Haftalık net ciro trendi — {donem_basligi(df)}")
     ax.set_xlabel("Hafta (pazartesi başlangıçlı)")
     ax.set_ylabel("Net ciro (bin TL)")
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(bin_tl))
@@ -250,7 +282,7 @@ def main():
     kr = os.path.join(a.klasor, KIRILIM)
     dg = os.path.join(a.klasor, DAGILIM)
 
-    hafta = zaman_serisi(teslim, zs)
+    hafta = zaman_serisi(df, teslim, zs)
     kanal = kirilim(teslim, kr)
     tasan = dagilim(teslim, dg)
 

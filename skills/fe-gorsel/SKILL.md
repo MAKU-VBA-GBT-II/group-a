@@ -94,7 +94,7 @@ Giriş:  "Grafiğe müşterilerin gerçek adlarını da ekle."
 
 - Renkler betiğin başındaki sabitlerde (`RENK_ANA`, `RENK_VURGU`, `RENK_GRI`); grafik içinde sihirli değer kullanma.
 - Sütun adları betiğin başında sabit olarak tutulur (`SUTUN_TARIH`, `SUTUN_TUTAR`, `SUTUN_KANAL`, `SUTUN_DURUM`); şema değişirse tek yerden güncellenir.
-- Kampanya haftaları şema parametrelerinden (`kampanya_donemleri`) okunur, tarih elle yazılmaz.
+- Kampanya dönemleri ve grafik başlığındaki tarih aralığı **veriden türetilir** (`kampanya == 1` olan ardışık günler; `siparis_tarihi` en küçük/en büyük). Simülasyon parametresi değişirse grafik de değişir; tarih elle yazılmaz (DQ notu, #63).
 - Dosya adları sabitlerde (`ZAMAN_SERISI`, `KIRILIM`, `DAGILIM`).
 - **Hata yönetimi:** veri dosyası yoksa, beklenen sütunlar eksikse veya filtre sonrası satır kalmazsa betik çökmez; `ValueError` ile neyin eksik olduğunu söyleyen bir mesaj verir ve PNG yazmaz.
 
