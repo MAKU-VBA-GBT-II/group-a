@@ -68,7 +68,8 @@ def beklenen_n(gun_sayisi=182, gunluk_siparis=40, hafta_sonu_katsayisi=1.3, kamp
 
 
 def md5(yol):
-    return hashlib.md5(open(yol, "rb").read()).hexdigest()
+    with open(yol, "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()
 
 
 def sonuc(tc, gecti, metin):
