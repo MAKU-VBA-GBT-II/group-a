@@ -43,7 +43,9 @@ SUTUN_KAMPANYA = "kampanya"
 GEREKLI_SUTUNLAR = (SUTUN_TARIH, SUTUN_TUTAR, SUTUN_KANAL, SUTUN_DURUM, SUTUN_KAMPANYA)
 DURUM_TESLIM = "Teslim Edildi"
 
-# Histogram: kuyruk uzun (en yüksek sipariş ~18.000 TL), son kova taşma kovasıdır.
+# Histogram: kuyruk uzun (en yüksek sipariş ~18.000 TL). Üst sınırın üstündeki
+# siparişler ayrı bir taşma kovasında ([HIST_UST_SINIR, +kova genişliği)) toplanır;
+# o kova normal siparişlerle karışmaz (DQ notu, PR #79).
 HIST_UST_SINIR = 7000
 HIST_KOVA_GENISLIGI = 250
 
@@ -54,7 +56,14 @@ AYLAR = ("Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem",
          "Ağu", "Eyl", "Eki", "Kas", "Ara")
 AYLAR_TAM = ("Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz",
              "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık")
-KAYNAK = "Kaynak: data/siparisler-g2.csv (simülasyon) · durum = Teslim Edildi · Sepetix Analitik — Grup A"
+# Kaynak satırı okunan dosyanın adını yazar; başka dosyayla çalıştırılınca da doğru kalır
+# (DQ notu, PR #79).
+SIRKET = "Sepetix Analitik — Grup A"
+
+
+def kaynak(dosya):
+    """Grafiklerin altındaki kaynak satırı — okunan dosyanın adıyla."""
+    return f"Kaynak: {dosya} (simülasyon) · durum = {DURUM_TESLIM} · {SIRKET}"
 
 
 def bin_tl(x, _pos=None):
@@ -153,7 +162,7 @@ def donem_basligi(df):
             f"{AYLAR_TAM[son.month - 1]} {son.year}")
 
 
-def zaman_serisi(df, teslim, yol):
+def zaman_serisi(df, teslim, yol, dosya):
     """M3 — haftalık net ciro trendi; kampanya haftaları bant olarak işaretli."""
     h = haftalik(teslim)
     ort = h.mean()
@@ -191,7 +200,7 @@ def zaman_serisi(df, teslim, yol):
     ax.xaxis.set_major_formatter(mticker.FuncFormatter(ay_etiketi))
     ax.grid(axis="y", alpha=0.3)
     ax.legend(loc="lower right", frameon=False, fontsize=9, ncol=3)
-    fig.text(0.01, 0.01, f"{KAYNAK} · {len(h)} hafta, {len(teslim)} sipariş · Metrik: M3",
+    fig.text(0.01, 0.01, f"{kaynak(dosya)} · {len(h)} hafta, {len(teslim)} sipariş · Metrik: M3",
              fontsize=8, color="#555")
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(yol, dpi=DPI)
@@ -199,7 +208,7 @@ def zaman_serisi(df, teslim, yol):
     return len(h)
 
 
-def kirilim(teslim, yol):
+def kirilim(teslim, yol, dosya):
     """M4 — kanal bazlı net ciro ve toplam içindeki payı."""
     ciro = teslim[SUTUN_TUTAR].sum()
     k = teslim.groupby(SUTUN_KANAL)[SUTUN_TUTAR].sum().sort_values()
@@ -218,7 +227,7 @@ def kirilim(teslim, yol):
     ax.xaxis.set_major_formatter(mticker.FuncFormatter(bin_tl))
     ax.set_xlim(0, k.max() * 1.35)
     ax.grid(axis="x", alpha=0.3)
-    fig.text(0.01, 0.01, f"{KAYNAK} · Toplam net ciro {tl(ciro)} · Metrik: M4",
+    fig.text(0.01, 0.01, f"{kaynak(dosya)} · Toplam net ciro {tl(ciro)} · Metrik: M4",
              fontsize=8, color="#555")
     fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig(yol, dpi=DPI)
@@ -226,15 +235,17 @@ def kirilim(teslim, yol):
     return len(k)
 
 
-def dagilim(teslim, yol):
+def dagilim(teslim, yol, dosya):
     """toplam_tutar histogramı; M2 (ortalama sepet) dikey çizgiyle, son kova taşma kovası."""
     tutar = teslim[SUTUN_TUTAR]
     ortalama, medyan = tutar.mean(), tutar.median()
     tasan = int((tutar > HIST_UST_SINIR).sum())
 
-    # Üst sınırın üstündeki siparişler son kovada toplanır (DQ notu: kuyruk çok uzun)
+    # Üst sınırın üstündeki siparişler AYRI bir taşma kovasında toplanır: kenarlar
+    # bir kova daha uzatılır, böylece [HIST_UST_SINIR, +250) yalnızca taşanları alır
+    # ve son normal kova (6.750–7.000) onlarla karışmaz (DQ notu, PR #79).
     kirpik = tutar.clip(upper=HIST_UST_SINIR)
-    kenarlar = np.arange(0, HIST_UST_SINIR + HIST_KOVA_GENISLIGI, HIST_KOVA_GENISLIGI)
+    kenarlar = np.arange(0, HIST_UST_SINIR + 2 * HIST_KOVA_GENISLIGI, HIST_KOVA_GENISLIGI)
 
     fig, ax = plt.subplots(figsize=(11, 5))
     ax.hist(kirpik, bins=kenarlar, color=RENK_ANA, alpha=0.75, edgecolor="white", lw=0.5)
@@ -246,15 +257,17 @@ def dagilim(teslim, yol):
     ax.set_title("Sipariş tutarı dağılımı")
     ax.set_xlabel("Sipariş tutarı (TL)")
     ax.set_ylabel("Sipariş sayısı")
-    ax.set_xlim(0, HIST_UST_SINIR)
+    ax.set_xlim(0, HIST_UST_SINIR + HIST_KOVA_GENISLIGI)
     ax.xaxis.set_major_locator(mticker.MultipleLocator(1000))
     ax.xaxis.set_major_formatter(
         mticker.FuncFormatter(lambda x, _p: f"{x:,.0f}".replace(",", ".")
                               + ("+" if x >= HIST_UST_SINIR else "")))
+    ax.yaxis.set_major_formatter(
+        mticker.FuncFormatter(lambda y, _p: f"{y:,.0f}".replace(",", ".")))
     ax.grid(axis="y", alpha=0.3)
     ax.legend(loc="upper right", frameon=False, fontsize=9)
     fig.text(0.01, 0.01,
-             f"{KAYNAK} · {len(tutar)} sipariş · kova {HIST_KOVA_GENISLIGI} TL · "
+             f"{kaynak(dosya)} · {len(tutar)} sipariş · kova {HIST_KOVA_GENISLIGI} TL · "
              f"{HIST_UST_SINIR:,}".replace(",", ".")
              + f" TL üstü {tasan} sipariş son kovada · Metrik: M2",
              fontsize=8, color="#555")
@@ -282,9 +295,9 @@ def main():
     kr = os.path.join(a.klasor, KIRILIM)
     dg = os.path.join(a.klasor, DAGILIM)
 
-    hafta = zaman_serisi(df, teslim, zs)
-    kanal = kirilim(teslim, kr)
-    tasan = dagilim(teslim, dg)
+    hafta = zaman_serisi(df, teslim, zs, a.dosya)
+    kanal = kirilim(teslim, kr, a.dosya)
+    tasan = dagilim(teslim, dg, a.dosya)
 
     print(f"Okunan: {a.dosya} — {len(df)} satır, {len(df.columns)} sütun")
     print(f"Filtre: {SUTUN_DURUM} == \"{DURUM_TESLIM}\" → {len(teslim)} satır")

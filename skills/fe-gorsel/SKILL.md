@@ -49,6 +49,19 @@ Bunlar `#63`'ün kabul kriterleriyle birebir örtüşür; biri sağlanmazsa tesl
 7. **PR aç (Hafta 6):** başlık `G2 grafik seti`, açıklamaya `Closes #63` + prompt özeti; **Reviewers: DQ**. DQ'nun yorumlarına PR üzerinden cevap ver, düzeltmeleri aynı dala commit'le, onay sonrası merge düğmesine PR sahibi basar.
 8. **Kanıt yorumu yaz (#63):** commit hash + üç dosya adı + hangi metrikleri gösterdikleri + "Üretim: fe-gorsel skill'i ile, \<araç\>". Ardından Issue'yu kapat ve panoda Done'a taşı.
 
+## Ne zaman yeniden üretilir
+
+Grafikler veriden türetilir; aşağıdakilerden biri değişirse üç PNG yeniden üretilip commit'lenir:
+
+| Değişen | Neden etkiler |
+|---|---|
+| `data/siparisler-g2.csv` (BE yeni veri üretti) | Tüm sayılar değişir |
+| `docs/veri-sozlugu.md` (alan adı, değer listesi, parametre) | Sütun adları ve kampanya dönemleri betikte veriden okunuyor; şema değişirse çıktı da değişir |
+| `docs/analiz-g2.md` (metrik tanımı güncellendi) | Grafikteki sayılar analizle birebir tutmak zorunda |
+| Hafta tanımı (`W-MON`) DQ tarafında değişti | Zaman serisi kırılımı DQ'nunkiyle aynı olmalı |
+
+Yeniden üretimden sonra adım 5'teki kontroller tekrarlanır ve kanıt yorumuna yeni commit hash'i yazılır. Görev 1 grafikleri (`visuals/haftalik-ciro.png`, `visuals/kategori-ciro-payi.png`) bu kapsamda değildir; `gorev1-final` sürümünde mühürlüdür, yeniden üretilmez.
+
 ## Reddetme durumları
 
 Aşağıdaki isteklerde üretim **yapılmaz**; sebebi yazılıp ilgili role yönlendirilir.
@@ -96,6 +109,9 @@ Giriş:  "Grafiğe müşterilerin gerçek adlarını da ekle."
 - Sütun adları betiğin başında sabit olarak tutulur (`SUTUN_TARIH`, `SUTUN_TUTAR`, `SUTUN_KANAL`, `SUTUN_DURUM`); şema değişirse tek yerden güncellenir.
 - Kampanya dönemleri ve grafik başlığındaki tarih aralığı **veriden türetilir** (`kampanya == 1` olan ardışık günler; `siparis_tarihi` en küçük/en büyük). Simülasyon parametresi değişirse grafik de değişir; tarih elle yazılmaz (DQ notu, #63).
 - Dosya adları sabitlerde (`ZAMAN_SERISI`, `KIRILIM`, `DAGILIM`).
+- **Histogram kova genişliği (`HIST_KOVA_GENISLIGI = 250` TL):** Scott kuralı (`3,49 × standart sapma / ⁿ√n`) bu veri için 256 TL veriyor; 250 TL okunabilir bir yuvarlama. Sonuç 0–7.000 TL aralığında 28 kova artı bir taşma kovası. Daha dar kova (ör. Freedman-Diaconis'in önerdiği 154 TL) tepeyi dişli gösterir, daha geniş kova (Sturges: 502 TL) medyan ile ortalama arasındaki farkı yutar.
+- **Histogram üst sınırı (`HIST_UST_SINIR = 7000` TL):** %95 dilimi 6.687 TL; bu sınırın üstünde siparişlerin yalnızca %4,1'i kalıyor. Eksen en uç değere (~18.000 TL) kadar uzatılırsa çubuklar sola sıkışır.
+- **Taşma kovası ayrı durur:** kenarlar bir kova daha uzatılır, böylece sınırın üstündeki siparişler `[7.000, 7.250)` kovasında toplanır ve son normal kovayla (6.750–7.000) karışmaz. Karışırsa çubuk ile dipnottaki sayı çelişir.
 - **Hata yönetimi:** veri dosyası yoksa, beklenen sütunlar eksikse veya filtre sonrası satır kalmazsa betik çökmez; `ValueError` ile neyin eksik olduğunu söyleyen bir mesaj verir ve PNG yazmaz.
 
 ## Kullanılan dosyalar
