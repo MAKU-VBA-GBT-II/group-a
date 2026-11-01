@@ -215,7 +215,8 @@ def gun_adetleri(p):
             gun_k *= p.hafta_sonu_katsayisi
         if kampanya:
             gun_k *= p.kampanya_katsayisi
-        adet = math.floor(p.gunluk_siparis * gun_k + 0.5)  # en yakın tamsayı, .5 yukarı
+        # en yakın tamsayı (.5 yukarı); en az 1: her gün dosyada geçsin (kural 5), küçük katsayıda 0 olmasın
+        adet = max(1, math.floor(p.gunluk_siparis * gun_k + 0.5))
         gunler.append((gun, kampanya, adet))
     return gunler
 
@@ -416,6 +417,8 @@ def main(argv=None):
     print(f"Kampanyalı sipariş: {int(df['kampanya'].sum())}  ·  Teslim edilen: {len(teslim)}")
     print(f"Net ciro (teslim edilen, M1): {teslim['toplam_tutar'].sum():,.2f} TL")
     print(f"MD5: {md5}")
+    if p.donemler and not df["kampanya"].any():
+        print("Uyarı: kampanya_donemleri simülasyon aralığıyla kesişmiyor; dosyada kampanyalı sipariş yok.")
     print("Tüm iç kontroller geçti (veri sözlüğü kalite kuralları 1–11; kural 12 için ikinci çalıştırmada MD5'i karşılaştır).")
     return 0
 
