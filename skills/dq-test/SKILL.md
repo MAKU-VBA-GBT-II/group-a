@@ -17,6 +17,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 | Test edilen veri | `data/siparisler-g2.csv` (BE, `src/simulasyon.py`, #61) |
 | Senaryolar | `tests/test-cases.md` (Görev 1 senaryoları `tests/test-cases-g1.md`'de arşivde) |
 | Sonuçlar | `tests/test-log.md` → "Görev 2" tablosu (tarihli satırlar) |
+| Test koşucusu | `src/dq_test_g2.py` — senaryoları ID'leriyle koşar (G2-TC-01…22 + sınır değer G2-TC-21+); gruplar `--grup A B C D`, başka dosya `--dosya`; tümü geçerse çıkış 0 |
 
 ## Kurallar (hocanın #47 notu)
 
@@ -25,6 +26,19 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 - `main`'e doğrudan commit yok: senaryolar ve skill `feature/test-g2` gibi bir dalda PR ile girer (belge PR'ı — yazarı merge eder).
 
 ## Adımlar
+
+### Devir teslim (gelen / giden)
+
+| Yön | Nerede | Ne zaman | Bu skill ne yapar |
+|---|---|---|---|
+| Gelen | G2-test'te "Şema yayımlandı — commit …" (dq-sozluk adım 9) | Hafta 5 | Senaryoları o commit'teki sözlükten yazar (A) |
+| Gelen | G2-test'te "Veri hazır — commit …" (BE) | Hafta 5–6 | Veri senaryolarını koşar (C) |
+| Gelen | G2-test'te "Analiz hazır — commit …" (dq-analiz adım 7) | Hafta 6 | Grafik–analiz tutarlılığını sınar (C5) |
+| Giden | `bug` Issue'su → BE (veri) / FE (grafik) | Test kaldığında | Yeniden üretme adımları + senaryo ID |
+| Giden | Bug Issue'suna "Yeniden test — düzeldi" | Düzeltme merge edilince | Yeni test-log satırı + kapanış |
+| Giden | G2-test'e kanıt yorumu → PM | Son ürün 23/23 | Commit'ler + dosyalar + test turu özeti; Issue kapanır, milestone PM'e geçer |
+
+Gelen yorum yoksa o adıma geçilmez; ilgili Issue'da sorulur.
 
 ### A) Senaryoları yaz (Hafta 5)
 
@@ -44,9 +58,11 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 ### C) Testleri koş (Hafta 6)
 
 1. BE'nin "Veri hazır" yorumunu ve merge commit'ini doğrula.
-2. Tüm senaryoları merge edilmiş ürün üzerinde koş (parametre senaryoları için betik farklı parametrelerle **geçici bir dosyaya** çalıştırılır; geçici dosyalar commit'lenmez).
+2. Tüm senaryoları merge edilmiş ürün üzerinde **`python src/dq_test_g2.py`** ile koş. Betik veri senaryolarını (A–B) dosyada sınar; parametre ve hata senaryolarında (C–D) `src/simulasyon.py`'yi **geçici bir klasöre** çalıştırır ve siler, repodaki veriye dokunmaz. Çıktı senaryo başına `| ID | Gerçekleşen | Geçti/Kaldı |` satırı + `Özet: g/n geçti`.
 3. Her koşu `tests/test-log.md` Görev 2 tablosuna tarihli satır olarak; kalan her test için **bug Issue'su** (en az 2): yeniden üretme adımları (komut + parametre + commit), beklenen, gözlenen, ilgili senaryo ID'si; atanan: veri → BE, grafik → FE.
 4. Düzeltme merge edilince yeniden test → yeni satır + bug Issue'suna "yeniden test edildi" kanıt yorumu.
+5. **Son ürün kontrolü** (FE grafikleri merge edilince): `python src/fe_gorsel.py` çıktısındaki değerler `docs/analiz-g2.md` ile aynı mı, repodaki PNG'ler betik çıktısıyla aynı mı → test-log'a satır.
+6. Senaryo eklenirse `src/dq_test_g2.py`'ye aynı ID ile bir kontrol eklenir; senaryo ile koşucu birebir eşleşir.
 
 ## Çıktı formatı kuralları
 
@@ -64,7 +80,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 |---|---|---|---|---|---|---|---|
 | G2-TC-17 | Satır sayısı tablosu | `gun_sayisi=10` satır sayısını değiştiriyor mu? | 1) `python src/simulasyon.py --gun_sayisi 10 --cikti <geçici>` 2) satır say | `--gun_sayisi 10`, diğerleri varsayılan | 424 satır; son tarih 2026-01-14; farklı tarih = 10 | | |
 
-**Hafta 6 test-log satırı:** `| 2026-11-xx | data/siparisler-g2.csv | <commit> | … | 22 | 0 | gun_sayisi=182 … tohum=42 |`
+**Hafta 6 test-log satırı:** `| 2026-11-xx | data/siparisler-g2.csv | <commit> | python src/dq_test_g2.py | 23 | 0 | gun_sayisi=182 … tohum=42 |`
 
 ## Ne zaman üretmez (reddeder)
 
@@ -83,8 +99,8 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 ## Kullanılan dosyalar
 
 - **Okur:** `docs/veri-sozlugu.md`, `data/siparisler-g2.csv`, `src/simulasyon.py` (yalnızca çalıştırır / inceler)
-- **Yazar:** `tests/test-cases.md`, `tests/test-log.md`, bug Issue'ları, PR inceleme yorumları
-- **Çalıştırır (Hafta 6):** `python src/simulasyon.py [--parametre değer] --cikti <geçici>` ve test kontrolleri (Python 3 + pandas; `pip install pandas`)
+- **Yazar:** `tests/test-cases.md`, `tests/test-log.md`, `src/dq_test_g2.py` (test koşucusu), `docs/user-manual.md`, bug Issue'ları, PR inceleme yorumları
+- **Çalıştırır (Hafta 6):** `python src/dq_test_g2.py [--grup A B C D] [--dosya yol.csv]`; koşucu kendi içinde `python src/simulasyon.py … --cikti <geçici>` çağırır (Python 3 + pandas; `pip install -r requirements.txt`)
 
 ## Nasıl çalıştırılır
 
@@ -94,11 +110,21 @@ Ajana (Claude):
 - PR incelemesi: "dq-test skill'ini kullanarak PR #<no>'yu DQ olarak incele; veriyi sözlüğe karşı bağımsız kontrol et, en az 2 somut satır yorumu öner."
 - Test koşusu: "dq-test skill'ini kullanarak tests/test-cases.md'deki senaryoları koş ve sonuçları tests/test-log.md Görev 2 tablosuna yaz."
 
+Elle (depo kökünde):
+
+```bash
+python src/dq_test_g2.py                 # A–D tüm senaryolar (son ürün: 23/23)
+python src/dq_test_g2.py --grup A B      # yalnızca veri senaryoları
+python src/dq_test_g2.py --dosya yol.csv --grup A B
+```
+
 ## Üretim kaydı (hangi araç, hangi prompt)
 
 **Görev 2 (Sema Nur Doğan, DQ):**
 - **Araç:** Claude. Skill Görev 2'ye bu sürümle uyarlandı (şema → `docs/veri-sozlugu.md`, parametre ve hata yönetimi senaryoları, #47 kuralı, PR inceleme adımları); ardından `tests/test-cases.md` bu skill ile yazıldı (#64).
 - **PR #66 incelemesi:** veri sözlüğe karşı bağımsız kontrol edildi (kural 1–11 geçti, 8.208 satır, MD5 `1b7f765e…`); satır 148, 301, 323'e yorum; cevaplardan sonra Approve.
+- **Test koşucusu ve test turu:** `src/dq_test_g2.py` bu skill'in C adımlarıyla yazıldı (PR #78). İlk tur `fe41763` 20/23 → bug #76, #77; PR #72 sonrası yeniden test 23/23 (PR #80); son ürün `ffb363e` 23/23 + grafik–analiz tutarlılığı (PR #81). PR #72 ve #79 incelemeleri (Approve) bu skill'le yapıldı.
+- **Düzeltme (Görev 2 değerlendirmesi):** Test koşucusu skill'de ve `AGENTS.md`'de geçmiyordu; "Test koşucusu", "Devir teslim" bölümü, C5–C6 adımları ve elle çalıştırma komutları eklendi.
 
 **Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:**
 - Senaryolar `tests/test-cases-g1.md` (TC-01…TC-12), betik `src/dq_test.py`; testler, hata Issue'ları (#27, #28, #29) ve #27 sonrası yeniden test (9/9, `1868546`) Claude (Claude Code) ile yapıldı.
