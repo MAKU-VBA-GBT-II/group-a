@@ -31,7 +31,7 @@ description: Grup A'nın Görev 2 mini ürünü için veri sözlüğünü (docs/
 6. **Veri kalitesi kurallarını listele:** boş değer, benzersizlik, sıralama, biçim (2 ondalık), çapraz alan kuralları. Her biri bir test senaryosuna dönüşebilecek kadar net olmalı.
 7. **Metrikleri yaz (en az 5):** toplam + ortalama + 2 kırılım (biri zaman: haftalık) + top-N. Her biri için kod (M1…), ad, formül (pandas'a çevrilebilir), hangi satırlar dahil, neyi ölçtüğü, hangi grafikte kullanılacağı.
 8. **Kontrol et** (aşağıdaki liste), sonra `feature/sozluk-g2` gibi bir dalda PR aç; belge PR'ı olduğu için yazarı merge eder.
-9. **Devir teslim:** BE (G2-veri) ve FE (G2-gorsel) Issue'larına: *"Şema yayımlandı — commit `<hash>`. Alanlar, aralıklar ve 5 metrik `docs/veri-sozlugu.md`'de. BE üretebilir."*
+9. **Devir teslim:** şemayı kullanan **üç** Issue'ya: BE (G2-veri), FE (G2-gorsel) ve test (G2-test). Ortak metin: *"Şema yayımlandı — commit `<hash>`. Alanlar, aralıklar ve 5 metrik `docs/veri-sozlugu.md`'de. BE üretebilir."* G2-test'e ek satır: *"Test senaryoları (`tests/test-cases.md`) bu commit'teki kalite kuralları ve satır sayısı tablosundan yazılır; sözlük değişirse senaryolar da güncellenir."* Sözlük sonradan değişirse (ör. PR #67, #74) aynı üç Issue'ya kısa bir "Şema güncellendi — commit `<hash>`, değişen: …" yorumu yazılır.
 
 ## Çıktı formatı kuralları
 
@@ -89,9 +89,10 @@ Ajana (Claude, Claude Code vb.):
 - Yeni sözlük: "dq-sozluk skill'ini kullanarak #60'ın kabul kriterlerine göre `docs/veri-sozlugu.md` yaz."
 - Değişiklik: "dq-sozluk skill'ini kullanarak sözlüğe `<alan>` alanını ekle; satır sayısı, kalite kuralları ve değişiklik günlüğünü güncelle."
 
-Sonra: dal (`feature/sozluk-g2`) → PR → merge → devir yorumları (adım 9).
+Sonra: dal (`feature/sozluk-g2`) → PR → merge → devir yorumları (adım 9: G2-veri, G2-gorsel, G2-test).
 
 ## Üretim kaydı
 
 - **Araç:** Claude (yapay zekâ ajanı).
 - **Görev 2 (#60):** Claude'a ders planı (Görev 2), #60, #30 ve Görev 1 sözlüğü verildi; önce bu skill yazıldı ve commit'lendi, ardından `docs/veri-sozlugu.md` bu skill'in adımlarıyla üretildi.
+- **Düzeltme (Görev 2 değerlendirmesi):** Devir adımı yalnızca G2-veri ve G2-gorsel'i sayıyordu; şemayı kullanan G2-test (#64) da eklendi ve sözlük güncellemelerinde aynı üç Issue'ya haber verme kuralı yazıldı.

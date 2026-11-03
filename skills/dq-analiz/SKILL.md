@@ -30,7 +30,7 @@ description: Grup A'nın sipariş verisinden veri sözlüğündeki metrikleri be
    - **Sınırlılıklar:** simülasyon kurgusundan gelen etkiler (ör. eşit olasılıklı ürün seçimi → M5 = en pahalı ürünler; sabit müşteri havuzu → yeni/tekrar ayrımı anlamsız). Sentetik veri uyarısı.
 5. **`docs/requirements.md`'yi yaz (1 sayfa):** amaç · yaptıkları (numaralı) · yapmadıkları. Büyük proje önerisinin şablonu olacağı için yalnızca kodda gerçekten olanı yaz.
 6. **Dal → PR:** `src/` içerdiği için PR'ı DQ açar, inceleyici **PM** (ders kuralı §3.5); onaydan sonra merge.
-7. **Devir:** G2-gorsel Issue'suna *"Analiz hazır — `docs/analiz-g2.md`, commit `<hash>`"* + FE'nin kullanacağı sayılar (M3 ortalaması, M4 payları, M2 ortalama/medyan).
+7. **Devir:** G2-gorsel Issue'suna *"Analiz hazır — `docs/analiz-g2.md`, commit `<hash>`"* + FE'nin kullanacağı sayılar (M3 ortalaması, M4 payları, M2 ortalama/medyan). Aynı yorum G2-test Issue'suna da yazılır: son ürün testinde grafikler bu sayılara karşı sınanır (grafik–analiz tutarlılığı).
 8. **Kanıt + kapanış:** G2-analiz'e commit hash'leri + dosyalar + `Üretim: dq-analiz skill'i ile, <araç> — prompt özeti: …`
 
 ## Çıktı formatı kuralları
@@ -80,6 +80,6 @@ python src/dq_analiz_g2.py yol.csv    # başka parametrelerle üretilmiş dosya
 
 ## Üretim kaydı
 
-**Görev 2 (Sema Nur Doğan, DQ):** Claude ile; önce bu skill Görev 2'ye güncellendi, sonra `src/dq_analiz_g2.py` yazıldı, veri commit `f9dfca7` üzerinde çalıştırıldı ve `docs/analiz-g2.md` + `docs/requirements.md` bu skill'in adımlarıyla yazıldı (#62). PM'in iki önerisi (yeni/tekrar müşteri, M5 sınırlılığı) veride denendi; ikisi de Sınırlılıklar'a yazıldı.
+**Görev 2 (Sema Nur Doğan, DQ):** Claude ile; önce bu skill Görev 2'ye güncellendi, sonra `src/dq_analiz_g2.py` yazıldı, veri commit `f9dfca7` üzerinde çalıştırıldı ve `docs/analiz-g2.md` + `docs/requirements.md` bu skill'in adımlarıyla yazıldı (#62). PM'in iki önerisi (yeni/tekrar müşteri, M5 sınırlılığı) veride denendi; ikisi de Sınırlılıklar'a yazıldı. Değerlendirme notu üzerine devir adımına G2-test eklendi.
 
 **Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:** `src/dq_analiz.py` ve `docs/analiz-g1.md` (M1–M5, haftalık trend, top-3) Claude (Claude Code) ile üretildi; Hafta 4'te nihai veriyle doğrulandı (#14). Ajan izi olmayan commit'ler skill'in önceki sürümünde listelenmiştir.
