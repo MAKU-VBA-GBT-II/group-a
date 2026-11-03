@@ -1,6 +1,6 @@
 # be-simulasyon — Üretim kaydı
 
-`SKILL.md`'nin değişiklik geçmişi ve prompt özetleri. Skill'i kısa tutmak için buraya taşındı (3 Kasım 2026, Skill Karşılaştırması — Görev 2 önerisi). Yeni değişiklikler sona eklenir.
+`SKILL.md`'nin değişiklik geçmişi ve prompt özetleri. Skill'i kısa tutmak için buraya taşındı (3 Kasım 2026). Yeni değişiklikler sona eklenir.
 
 - **Skill (#61, `bf7b4d7`):** Skill Claude (Claude Code) ile yazıldı ve Görev 2 kuralı gereği betikten **önce** ayrı commit olarak eklendi. Prompt özeti: "Görev 2'de BE oldum; Sema'nın docs/veri-sozlugu.md şemasına birebir parametreli simülasyonu feature/veri dalında yaz, #30 sınırlılıklarına da bak." Not: bu ilk commit'teki örnek çıktı (ilk satırlar, MD5) betiğin deneme çalıştırmasından alınmıştı; betik ve veri bir sonraki commit'te geldi.
 - **Betik ve veri (#61, #30, `2159a98`):** `src/simulasyon.py` ve `data/siparisler-g2.csv` bu skill ile, Claude (Claude Code) kullanılarak üretildi. Kalite kuralları 1–11 betik içinde, kural 12 ve satır sayısı senaryoları elle doğrulandı.
