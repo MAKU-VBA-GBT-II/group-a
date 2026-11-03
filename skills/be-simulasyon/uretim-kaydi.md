@@ -1,0 +1,10 @@
+# be-simulasyon — Üretim kaydı
+
+`SKILL.md`'nin değişiklik geçmişi ve prompt özetleri. Skill'i kısa tutmak için buraya taşındı (3 Kasım 2026, Skill Karşılaştırması — Görev 2 önerisi). Yeni değişiklikler sona eklenir.
+
+- **Skill (#61, `bf7b4d7`):** Skill Claude (Claude Code) ile yazıldı ve Görev 2 kuralı gereği betikten **önce** ayrı commit olarak eklendi. Prompt özeti: "Görev 2'de BE oldum; Sema'nın docs/veri-sozlugu.md şemasına birebir parametreli simülasyonu feature/veri dalında yaz, #30 sınırlılıklarına da bak." Not: bu ilk commit'teki örnek çıktı (ilk satırlar, MD5) betiğin deneme çalıştırmasından alınmıştı; betik ve veri bir sonraki commit'te geldi.
+- **Betik ve veri (#61, #30, `2159a98`):** `src/simulasyon.py` ve `data/siparisler-g2.csv` bu skill ile, Claude (Claude Code) kullanılarak üretildi. Kalite kuralları 1–11 betik içinde, kural 12 ve satır sayısı senaryoları elle doğrulandı.
+- **Skill düzeltmesi (#61, #45):** Devir listesine G2-test (#64) eklendi.
+- **Skill düzeltmesi (#61):** Öz inceleme sonrası: N'yi değiştiren parametrelerin tüm dosyayı değiştirdiği düzeltildi (önceki "akış kaymaz" cümlesi yanlıştı), Görev 1 verisine dokunmama ret durumu, deneme dosyalarının `data/` dışına yazılması, bilinen sınırlılıklar/açıklar bölümü ve commit hash'leri eklendi. Betik ve veri değişmedi. Claude (Claude Code) ile.
+- **Hata yönetimi (Hafta 6, `fix/error-handling`):** Önce bu skill'e **Hata yönetimi** bölümü yazıldı, sonra `src/simulasyon.py`'ye `parametreleri_dogrula()` eklendi. Prompt özeti: "Hafta 6 BE görevi: geçersiz parametrede ValueError; Sema'nın PR #66'daki örnekleri (gun_sayisi 0/-3, musteri_sayisi 10000, ':' yok, BAŞ > SON) ve tests/test-cases.md G2-TC-21/22 karşılansın." Varsayılan çıktı değişmedi (MD5 `1b7f765e…`). Claude (Claude Code) ile.
+- **İnceleme düzeltmesi (PR #72):** DQ'nun bulduğu durum: izinli parametrelerle bir günün adedi 0 çıkınca kural 5 düşüyordu → `gun_adet = max(1, …)`. Kesişmeyen kampanya dönemi için konsol uyarısı eklendi. Varsayılan çıktı aynı (MD5 `1b7f765e…`). Claude (Claude Code) ile.
