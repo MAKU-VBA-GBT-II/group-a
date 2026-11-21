@@ -206,9 +206,13 @@ def urun_agirliklarini_coz(metin):
             f"urun_agirliklari her değer 0 veya büyük bir sayı olmalı, verilen: {parca!r}",
         )
         degerler.append(sayi)
-    toplam = sum(degerler)
-    kontrol(toplam > 0, "urun_agirliklari toplamı 0'dan büyük olmalı, verilen: hepsi 0")
-    return np.array(degerler) / toplam
+    en_buyuk = max(degerler)
+    kontrol(en_buyuk > 0, "urun_agirliklari toplamı 0'dan büyük olmalı, verilen: hepsi 0")
+    # Önce en büyük değere böl: 1e308 gibi çok büyük ağırlıklarda toplam sonsuza taşmasın
+    # (taşarsa olasılıklar 0 olur ve numpy üretim sırasında İngilizce hata verir)
+    oranlar = np.array(degerler) / en_buyuk
+    return oranlar / oranlar.sum()
+
 
 def kampanya_donemlerini_coz(metin):
     """'BAŞ:SON,BAŞ:SON' metnini [(date, date), ...] listesine çevirir; bozuksa ValueError."""
