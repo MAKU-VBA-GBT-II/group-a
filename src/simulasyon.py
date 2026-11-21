@@ -44,6 +44,7 @@ KAMPANYA_DONEMLERI = "2026-03-09:2026-03-15,2026-05-11:2026-05-17"
 BASLANGIC_TARIHI = "2026-01-05"  # Pazartesi
 MUSTERI_SAYISI = 1500
 TOHUM = 42
+URUN_AGIRLIKLARI = "" # boş = 25 ürün eşit olasılıkla (eski davranış); dolu = 25 sayı, URUNLER sırasıyla
 
 CIKTI = "data/siparisler-g2.csv"
 
@@ -78,7 +79,7 @@ SUTUNLAR = [
     "durum",
 ]
 
-# kategori -> [(ürün, liste fiyatı TL)]; ürünler eşit olasılıkla seçilir
+# kategori -> [(ürün, liste fiyatı TL)]; ürünler varsayılanda eşit olasılıkla seçilir (--urun_agirliklari ile ağırlıklandırılabilir)
 KATEGORI_URUN = {
     "Elektronik": [
         ("Kablosuz Kulaklık", 1299),
@@ -179,6 +180,36 @@ def tarihi_coz(ad, metin):
         raise ValueError(f"{ad} geçerli bir YYYY-MM-DD tarihi olmalı, verilen: {metin!r}") from None
 
 
+def urun_agirliklarini_coz(metin):
+    """'a,b,c,…' (25 sayı, URUNLER sırasıyla) metnini olasılık dizisine çevirir; boşsa None.
+
+    None = ağırlık verilmedi → uret() eski rng.integers satırını aynen kullanır (MD5 değişmez).
+    Sayılar toplamı 1 olacak şekilde normalize edilir; bozuksa ValueError verir.
+    """
+    metin = str(metin).strip()
+    if not metin:
+        return None
+    parcalar = [x.strip() for x in metin.split(",")]
+    kontrol(
+        len(parcalar) == len(URUNLER),
+        f"urun_agirliklari {len(URUNLER)} sayı içermeli (virgülle ayrılmış), verilen: {len(parcalar)} değer",
+    )
+    degerler = []
+    for parca in parcalar:
+        try:
+            sayi = float(parca)
+        except ValueError:
+            raise ValueError(f"urun_agirliklari yalnızca sayı içermeli, verilen: {parca!r}") from None
+        # NaN ve sonsuz da burada elenir
+        kontrol(
+            math.isfinite(sayi) and sayi >= 0,
+            f"urun_agirliklari her değer 0 veya büyük bir sayı olmalı, verilen: {parca!r}",
+        )
+        degerler.append(sayi)
+    toplam = sum(degerler)
+    kontrol(toplam > 0, "urun_agirliklari toplamı 0'dan büyük olmalı, verilen: hepsi 0")
+    return np.array(degerler) / toplam
+
 def kampanya_donemlerini_coz(metin):
     """'BAŞ:SON,BAŞ:SON' metnini [(date, date), ...] listesine çevirir; bozuksa ValueError."""
     bicim = "her dönem BAŞ:SON (YYYY-MM-DD:YYYY-MM-DD) biçiminde, dönemler virgülle ayrılmış olmalı"
@@ -236,7 +267,10 @@ def uret(p):
 
     # Tüm rastgele değerler tek rng'den, bu sırayla çekilir (sıra değişirse dosya değişir)
     rng = np.random.default_rng(p.tohum)
-    urun_idx = rng.integers(0, len(URUNLER), size=n)
+    if p.agirliklar is None:
+        urun_idx = rng.integers(0, len(URUNLER), size=n) # ağırlık yok: eski satır aynen (MD5 korunur)
+    else:
+        urun_idx = rng.choice(len(URUNLER), size=n, p=p.agirliklar) # ağırlıklı: rastgele sayı akışı değişir
     liste_fiyat = np.array([URUNLER[i][2] for i in urun_idx], dtype=np.int64)
     # Fiyat kuruş cinsinden tamsayı çekilir: [liste × 95, liste × 105] kuruş, uçlar dahil
     kurus = rng.integers(liste_fiyat * 95, liste_fiyat * 105 + 1)
@@ -369,6 +403,7 @@ def parametreleri_al(argv=None):
     ap.add_argument("--baslangic_tarihi", default=BASLANGIC_TARIHI, help=f"YYYY-MM-DD (vars. {BASLANGIC_TARIHI})")
     ap.add_argument("--musteri_sayisi", default=MUSTERI_SAYISI, help=f"vars. {MUSTERI_SAYISI}")
     ap.add_argument("--tohum", default=TOHUM, help=f"rastgelelik tohumu (vars. {TOHUM})")
+    ap.add_argument("--urun_agirliklari", default=URUN_AGIRLIKLARI, help="25 ürünün satış ağırlığı, virgülle ayrılmış, URUNLER sırasıyla (vars. boş = eşit olasılık)")
     ap.add_argument("--cikti", default=CIKTI, help=f"çıktı dosyası (vars. {CIKTI})")
     p = ap.parse_args(argv)
     parametreleri_dogrula(p)
@@ -385,6 +420,7 @@ def parametreleri_dogrula(p):
         setattr(p, ad, sayiyi_coz(ad, getattr(p, ad)))
     p.baslangic = tarihi_coz("baslangic_tarihi", p.baslangic_tarihi)
     p.donemler = kampanya_donemlerini_coz(p.kampanya_donemleri)
+    p.agirliklar = urun_agirliklarini_coz(p.urun_agirliklari)
 
 
 def main(argv=None):
@@ -412,6 +448,8 @@ def main(argv=None):
         f"kampanya_donemleri={p.kampanya_donemleri}, baslangic_tarihi={p.baslangic_tarihi}, "
         f"musteri_sayisi={p.musteri_sayisi}, tohum={p.tohum}"
     )
+    if p.agirliklar is not None:
+        print(f"Ürün ağırlıkları: verildi (toplamı 1'e normalize edildi) · urun_agirliklari={p.urun_agirliklari}")
     print(f"Satır: {len(df)}  ·  Sütun: {len(df.columns)}")
     print(f"Tarih: {df['siparis_tarihi'].iloc[0]} .. {df['siparis_tarihi'].iloc[-1]}  ·  Farklı gün: {df['siparis_tarihi'].nunique()}")
     print(f"Kampanyalı sipariş: {int(df['kampanya'].sum())}  ·  Teslim edilen: {len(teslim)}")
