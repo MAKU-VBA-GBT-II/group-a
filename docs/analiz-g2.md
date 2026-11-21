@@ -103,7 +103,7 @@ Kategoriler arasında fark 1 puanın altında; oranlar sözlükteki %10 (iade %6
 
 ## Sınırlılıklar
 
-- **M5 en pahalı ürünleri gösteriyor:** Ürünler şema gereği eşit olasılıkla seçildiği için "ciroda ilk 5 ürün" gerçek bir talep tercihini değil, liste fiyatı sıralamasını yansıtıyor (Spearman 1,00). Bu metrik ancak ürün seçimi ağırlıklı yapılırsa anlam kazanır (BE skill'i → Bilinen sınırlılıklar; PM notu #62).
+- **M5 en pahalı ürünleri gösteriyor:** Ürünler şema gereği eşit olasılıkla seçildiği için "ciroda ilk 5 ürün" gerçek bir talep tercihini değil, liste fiyatı sıralamasını yansıtıyor (Spearman 1,00). Bu metrik ancak ürün seçimi ağırlıklı yapılırsa anlam kazanır (BE skill'i → Bilinen sınırlılıklar; PM notu #62). *Görev 3 notu (PR #95):* simülasyona isteğe bağlı `--urun_agirliklari` eklendi; ağırlık verilirse M5 değişir. Bu analiz varsayılan (ağırlıksız) dosyaya aittir ve değişmedi.
 - **Yeni / tekrar müşteri ayrımı anlamlı değil:** 1.500 kişilik havuzdan 8.208 sipariş rastgele çekildiği için siparişlerin %81,8'i "tekrar" görünüyor; haftalık tekrar payı ilk hafta %10,9'dan son hafta %99,3'e çıkıyor. Bu bir sadakat eğilimi değil, havuzun dolmasının sonucu; yeni ve tekrar müşterinin ortalama sepeti de yakın (1.704,51 TL / 1.603,44 TL). Bu nedenle gözlem olarak kullanılmadı (PM önerisi #62).
 - **Kampanya etkisi kısmen rastlantısal:** İndirim oranı her kampanyalı siparişte rastgele seçiliyor ve haftalık ciro büyük sepetlere duyarlı; iki kampanya arasındaki fark (+%16,4 / +%54,6) aynı kurgunun rastlantısal sonucudur.
 - **Durum (iade/iptal) ürün, kanal ve tutardan bağımsız** üretiliyor; M6'daki kategori farkları gerçek bir iade davranışı göstermez.
