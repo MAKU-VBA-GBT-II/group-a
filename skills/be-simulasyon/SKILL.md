@@ -41,6 +41,7 @@ Betiğin başında sabit olarak tanımlıdır **ve** komut satırından değişt
 | `baslangic_tarihi` | 2026-01-05 | `--baslangic_tarihi 2026-02-02` |
 | `musteri_sayisi` | 1500 | `--musteri_sayisi 300` |
 | `tohum` | 42 | `--tohum 7` |
+| `urun_agirliklari` (isteğe bağlı) | boş = 25 ürün eşit olasılık | `--urun_agirliklari "1,1,1,0.3,1,…"` (25 sayı) |
 | (çıktı yolu) | `data/siparisler-g2.csv` | `--cikti data/deneme.csv` |
 
 Deneme çalıştırmaları (`gun_sayisi=10` vb.) için **`--cikti` ile `data/` dışında** bir dosya verilir (ör. `/tmp/deneme-10gun.csv`); böylece deneme dosyası yanlışlıkla commit'lenemez. `data/siparisler-g2.csv` yalnızca varsayılanlarla üretilir.
@@ -66,13 +67,32 @@ Parametreler **üretimden önce** `parametreleri_dogrula()` ile sözlükteki ara
 | `--kampanya_donemleri 2026-03-09` | `kampanya_donemleri her dönem BAŞ:SON (YYYY-MM-DD:YYYY-MM-DD) biçiminde, dönemler virgülle ayrılmış olmalı, verilen: '2026-03-09'` |
 | `--kampanya_donemleri 2026-03-15:2026-03-09` | `kampanya_donemleri içinde başlangıç sondan sonra olamaz, verilen: '2026-03-15:2026-03-09'` |
 
+### Ürün ağırlıkları (isteğe bağlı, Görev 3)
+
+Varsayılanda 25 ürün **eşit olasılıkla** seçilir; bu yüzden M5 (ciroda ilk 5 ürün) en çok satanları değil liste fiyatı en yüksek ürünleri gösterir (bkz. Bilinen sınırlılıklar). `--urun_agirliklari` ile ürünlere satış ağırlığı verilebilir:
+
+- Değer **25 sayı**, virgülle ayrılmış, ürünler `URUNLER` sırasıyla (Elektronik 5 → Giyim 5 → Ev & Yaşam 5 → Kozmetik 5 → Kitap 5). Sayılar toplamı 1 olacak şekilde normalize edilir (`1,1,2` ile `0.25,0.25,0.5` aynıdır).
+- **Boş bırakılırsa** (varsayılan) eski `rng.integers` satırı **aynen** çalışır: dosya, MD5 `1b7f765e…` ve tüm testler değişmez.
+- Verilirse ürün `rng.choice(25, size=n, p=ağırlıklar)` ile seçilir. Satır sayısı ağırlıktan etkilenmez; ama `rng` akışı değiştiği için **dosyanın tamamı** (fiyat, adet, kanal… dahil) farklı çıkar. Eşit ağırlık (`1,1,…,1`) bile **farklı MD5** verir; bu yüzden eşit olasılık için parametreyi boş bırak.
+- Negatif değer `--urun_agirliklari=-1,…` biçiminde (eşittir ile) verilmelidir; yoksa `argparse` değeri seçenek sanır.
+- Yeni alan veya değer eklenmez, şema aynıdır; yalnızca `urun` dağılımı değişir. Sözlükteki parametre tablosuna eklenmesi DQ'nun işidir (Hilal'e bildirildi, bkz. PR).
+
+| Girdi | Mesaj |
+|---|---|
+| `--urun_agirliklari 1,2,3` | `urun_agirliklari 25 sayı içermeli (virgülle ayrılmış), verilen: 3 değer` |
+| 25 değerden biri `a` | `urun_agirliklari yalnızca sayı içermeli, verilen: 'a'` |
+| 25 değerden biri `-1` veya `nan` | `urun_agirliklari her değer 0 veya büyük bir sayı olmalı, verilen: '-1'` |
+| 25 değerin hepsi `0` | `urun_agirliklari toplamı 0'dan büyük olmalı, verilen: hepsi 0` |
+
+Bu hatalarda da betik çökmez, **1** koduyla çıkar ve dosya yazılmaz.
+
 Sınır değerler geçerlidir (`gun_sayisi=1` ve `366`, `musteri_sayisi=9999`, `tohum=0`); boş `kampanya_donemleri` (`""`) kampanyasız dönem demektir. Sözlüğe yeni bir parametre veya aralık eklenirse `PARAMETRE_ARALIKLARI` ve bu tablo birlikte güncellenir.
 
 ## Üretim sırası (bayt bayt aynı dosya için)
 
 1. Günler `baslangic_tarihi`'nden itibaren sırayla gezilir, her günün sipariş adedi formülle hesaplanır; `siparis_tarihi` ve `kampanya` bu sırayla açılır (dosya zaten tarihe göre sıralı çıkar).
 2. Tüm rastgele değerler tek `rng = numpy.random.default_rng(tohum)` nesnesinden **bu sırayla** ve tüm N satır için çekilir:
-   `urun` (25 ürün, eşit olasılık; `kategori` üründen gelir) → `birim_fiyat` (kuruş) → `adet` → `kanal` → `sehir` → `odeme_tipi` → `durum` → `musteri_id` → `indirim_orani`.
+   `urun` (25 ürün; varsayılanda eşit olasılık `rng.integers`, `--urun_agirliklari` verilmişse `rng.choice(p=…)`; `kategori` üründen gelir) → `birim_fiyat` (kuruş) → `adet` → `kanal` → `sehir` → `odeme_tipi` → `durum` → `musteri_id` → `indirim_orani`.
    Ağırlıklar sözlükteki **Ağırlıklı alanlar** tablosundandır. `indirim_orani` her satır için çekilir, kampanya dışı satırlarda `0.00` yapılır.
 3. `toplam_tutar` hesaplanır, `siparis_id` 1…N verilir.
 
@@ -143,7 +163,7 @@ Konsol özeti (kısaltılmış): `Satır: 8208 · Sütun: 14`, `Tarih: 2026-01-0
 
 ## Bilinen sınırlılıklar ve açıklar
 
-- **Ürünler eşit sıklıkta satılır** (şema gereği). Bu yüzden "ciroda ilk 5 ürün" (M5) en çok satanları değil, liste fiyatı en yüksek ürünleri gösterir (Akıllı Saat, Kahve Makinesi, Mont, Spor Ayakkabı, Halı). Analizde bu not edilmelidir. Ürün bazlı satış ağırlığı istenirse önce DQ sözlüğe ekler.
+- **Ürünler varsayılanda eşit sıklıkta satılır** (şema gereği). Bu yüzden "ciroda ilk 5 ürün" (M5) en çok satanları değil, liste fiyatı en yüksek ürünleri gösterir (Akıllı Saat, Kahve Makinesi, Mont, Spor Ayakkabı, Halı). Analizde bu not edilmelidir. Görev 3'te `--urun_agirliklari` eklendi (bkz. **Ürün ağırlıkları**): ağırlık verilirse M5 değişir; varsayılan dosya ve bu sınırlılık aynen kalır. Sözlüğe ekleme DQ'nun işidir.
 - **Haftalık ciro oynaklığı** (değişim katsayısı) toplamda %13,0, kampanyasız haftalarda %7,9. Kalan oynaklık büyük ölçüde fiyat karmasından (99 – 3.499 TL) gelir; kampanya haftalarındaki sıçrama bilerek modellenmiştir.
 - ~~Geçersiz parametre `ValueError` vermiyor~~ — Hafta 6'da `fix/error-handling` ile kapandı (bkz. **Hata yönetimi**).
 - **Müşteri havuzu rastgele:** `musteri_id` havuzdan eşit olasılıkla çekildiği için siparişlerin çoğu zamanla "tekrar müşteri" görünür (varsayılanda %81,8); bu gerçek bir sadakat göstergesi değildir (DQ'nun #62 ön denemesi).
