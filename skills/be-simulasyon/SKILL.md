@@ -83,6 +83,7 @@ Varsayılanda 25 ürün **eşit olasılıkla** seçilir; bu yüzden M5 (ciroda i
 | 25 değerden biri `a` | `urun_agirliklari yalnızca sayı içermeli, verilen: 'a'` |
 | 25 değerden biri `-1` veya `nan` | `urun_agirliklari her değer 0 veya büyük bir sayı olmalı, verilen: '-1'` |
 | 25 değerin hepsi `0` | `urun_agirliklari toplamı 0'dan büyük olmalı, verilen: hepsi 0` |
+| Çok büyük değerler (ör. 25 × `1e308`) | Hata yok: önce en büyük değere bölünüp normalize edilir, toplam taşmaz (PR #95 incelemesi) |
 
 Bu hatalarda da betik çökmez, **1** koduyla çıkar ve dosya yazılmaz.
 
