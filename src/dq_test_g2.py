@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Sepetix Analitik (Grup A) — DQ: Görev 2 test koşucusu (tests/test-cases.md → G2-TC-01…22)
+Sepetix Analitik (Grup A) — DQ: Görev 2 test koşucusu (tests/test-cases.md → G2-TC-01…25)
 
 Veri dosyasını docs/veri-sozlugu.md kurallarına göre sınar; parametre ve hata yönetimi
 senaryolarında src/simulasyon.py'yi geçici bir klasöre çalıştırır (geçici dosyalar silinir).
@@ -52,6 +52,13 @@ AGIRLIK = {"adet": {1: .50, 2: .25, 3: .12, 4: .08, 5: .05}, "kanal": {"Web": .4
            "odeme_tipi": {"Kredi Kartı": .50, "Banka Kartı": .25, "Kapıda Ödeme": .15, "Havale/EFT": .10},
            "durum": {"Teslim Edildi": .90, "İade": .06, "İptal": .04}}
 PARA = re.compile(r"^\d+\.\d{2}$")
+# Görev 3 (PR #95): urun_agirliklari senaryoları. Sıra = sözlükteki "Ürün sırası" (1–25) = LISTE sırası
+URUN_W = [1, 1, 2, 0.5, 1, 4, 3, 4, 1, 1, 1, 3, 2, 3, 1, 4, 4, 1, 3, 3, 2, 2, 1, 3, 1]
+URUN_TOL = 1.5  # puan; ürün payı beklenen w_i/Σw'nin ±1,5 puan içinde olmalı
+
+
+def agirlik_metni(w):
+    return ",".join(f"{x:g}" for x in w)
 
 
 def beklenen_n(gun_sayisi=182, gunluk_siparis=40, hafta_sonu_katsayisi=1.3, kampanya_katsayisi=1.5,
@@ -181,6 +188,31 @@ def parametre_testleri(veri_yolu):
             out.append(sonuc("G2-TC-20", ok, f"8.208 satır: {len(pd.read_csv(y)) == beklenen_n()}; MD5 farklı: {md5(y) != md5(veri_yolu)}; A/B kalan: {kalan or 'yok'}"))
         else:
             out.append(sonuc("G2-TC-20", False, f"çalışmadı: {r.stderr.strip()[-120:]}"))
+
+        # G2-TC-23: ağırlıklı ürün seçimi — N aynı, MD5 farklı, ürün payları w_i/Σw'ye uyuyor, A/B kuralları geçiyor
+        r, y = calistir(["--urun_agirliklari", agirlik_metni(URUN_W)], tmp, "c8.csv")
+        if r.returncode == 0:
+            df = pd.read_csv(y)
+            pay = df["urun"].value_counts(normalize=True)
+            toplam_w = sum(URUN_W)
+            sapma = [f"{u} %{pay.get(u, 0) * 100:.1f}≠%{w / toplam_w * 100:.1f}" for u, w in zip(LISTE, URUN_W)
+                     if abs(pay.get(u, 0) - w / toplam_w) * 100 > URUN_TOL]
+            ic = veri_testleri(y)
+            kalan = [x[0] for x in ic if not x[1] and x[0] not in ("G2-TC-15",)]
+            ok = len(df) == beklenen_n() and md5(y) != md5(veri_yolu) and not sapma and not kalan
+            out.append(sonuc("G2-TC-23", ok, f"{len(df):,} satır (beklenen {beklenen_n():,}); MD5 farklı: {md5(y) != md5(veri_yolu)}; "
+                                             f"±{URUN_TOL} puan dışı ürün: {', '.join(sapma) or 'yok'}; A/B kalan: {kalan or 'yok'}"))
+        else:
+            out.append(sonuc("G2-TC-23", False, f"çalışmadı: {r.stderr.strip()[-120:]}"))
+
+        # G2-TC-24: boş ağırlık = varsayılan dosya; ağırlıklar normalize edilir (×2 aynı dosya)
+        r1, a = calistir(["--urun_agirliklari", ""], tmp, "c9.csv")
+        r2, b = calistir(["--urun_agirliklari", agirlik_metni([x * 2 for x in URUN_W])], tmp, "c10.csv")
+        if r1.returncode == 0 and r2.returncode == 0 and r.returncode == 0:
+            ok = md5(a) == md5(veri_yolu) and md5(b) == md5(y)
+            out.append(sonuc("G2-TC-24", ok, f"boş → MD5 {md5(a)[:8]} (repo {md5(veri_yolu)[:8]}); ağırlık×2 → {md5(b)[:8]} (×1 {md5(y)[:8]})"))
+        else:
+            out.append(sonuc("G2-TC-24", False, f"çalışmadı: {(r1.stderr or r2.stderr).strip()[-120:]}"))
     return out
 
 
@@ -206,6 +238,29 @@ def hata_testleri():
         r, y = calistir(["--gunluk_siparis", "1", "--hafta_sonu_katsayisi", "0.4", "--gun_sayisi", "7"], tmp, "sinir.csv")
         out.append(sonuc("G2-TC-21+", r.returncode == 0, f"--gunluk_siparis 1 --hafta_sonu_katsayisi 0.4 (izinli) → çıkış {r.returncode}"
                          + (f", \"{(r.stderr.strip().splitlines() or [''])[-1][:70]}\"" if r.returncode else ", dosya yazıldı")))
+
+        # G2-TC-25: geçersiz urun_agirliklari → ValueError, mesajda parametre adı, çıkış 1, dosya yok
+        bir = ["1"] * 25
+        gecersiz = {"3 değer": "1,2,3", "sayı değil": ",".join(["a"] + bir[1:]), "negatif": ",".join(["-1"] + bir[1:]),
+                    "nan": ",".join(["nan"] + bir[1:]), "inf": ",".join(["inf"] + bir[1:]), "hepsi 0": ",".join(["0"] * 25)}
+        notlar, hepsi = [], True
+        for i, (ad, deger) in enumerate(gecersiz.items()):
+            r, y = calistir([f"--urun_agirliklari={deger}"], os.path.join(tmp, f"G2-TC-25-{i}"), "x.csv")
+            mesaj = (r.stderr.strip().splitlines() or ["(mesaj yok)"])[-1]
+            ok = (r.returncode == 1 and not os.path.exists(y) and mesaj.startswith("Hata (ValueError)")
+                  and "urun_agirliklari" in mesaj and "Traceback" not in r.stderr)
+            hepsi &= ok
+            notlar.append(f"{ad} → çıkış {r.returncode}, dosya {'var' if os.path.exists(y) else 'yok'}")
+        out.append(sonuc("G2-TC-25", hepsi, " · ".join(notlar)))
+
+        # G2-TC-25+: izinli uç değerler — çok büyük ağırlık taşmamalı (PR #95 incelemesi); ağırlığı 0 olan ürün hiç geçmemeli
+        r1, y1 = calistir([f"--urun_agirliklari={','.join(['1e308'] * 25)}"], tmp, "buyuk.csv")
+        r2, y2 = calistir([f"--urun_agirliklari={','.join(['0'] + bir[1:])}"], tmp, "sifir.csv")
+        yok = r2.returncode == 0 and "Kablosuz Kulaklık" not in set(pd.read_csv(y2)["urun"])
+        out.append(sonuc("G2-TC-25+", r1.returncode == 0 and yok,
+                         f"25 × 1e308 → çıkış {r1.returncode}"
+                         + (f" \"{(r1.stderr.strip().splitlines() or [''])[-1][:60]}\"" if r1.returncode else "")
+                         + f"; 1. ürüne 0 → çıkış {r2.returncode}, Kablosuz Kulaklık dosyada yok: {yok}"))
     return out
 
 

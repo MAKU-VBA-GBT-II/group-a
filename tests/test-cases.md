@@ -11,6 +11,7 @@
 - **Varsayılan parametreler:** `gun_sayisi=182` · `gunluk_siparis=40` · `hafta_sonu_katsayisi=1.3` · `kampanya_katsayisi=1.5` · `kampanya_donemleri=2026-03-09:2026-03-15,2026-05-11:2026-05-17` · `baslangic_tarihi=2026-01-05` · `musteri_sayisi=1500` · `tohum=42`
 - **Beklenen satır sayıları** sözlükteki formülden hesaplanmıştır (veriden kopyalanmamıştır): `gun_adet = floor(gunluk_siparis × katsayılar + 0.5)`, `N = Σ gun_adet`.
 - Parametre ve hata senaryolarında betik **geçici bir dosyaya** çalıştırılır (`--cikti` ile); geçici dosyalar commit'lenmez.
+- **Görev 3 eki (PR #95):** isteğe bağlı `urun_agirliklari` parametresi için G2-TC-23…25 eklendi; varsayılanı boştur, yukarıdaki varsayılan dosya değişmez. Beklenen ürün payları sözlükteki `w_i / Σw` formülünden hesaplanır.
 - Para metriklerinin hesabı (M1–M6) bu dosyanın değil, `docs/analiz-g2.md`'nin (#62) konusudur.
 
 ## Senaryolar
@@ -49,6 +50,8 @@
 | G2-TC-18 | Satır sayısı tablosu | `gunluk_siparis` satır sayısını değiştiriyor mu? | `--gun_sayisi 10 --gunluk_siparis 10` ile çalıştır. | `gun_sayisi=10`, `gunluk_siparis=10` | **106** satır; hafta içi günlerde 10, hafta sonu günlerinde 13 sipariş | | |
 | G2-TC-19 | Parametreler (katsayılar) | Hafta sonu ve kampanya katsayıları ayrı ayrı etkili mi? | Üç ayarla çalıştır, satır say. | a) `--hafta_sonu_katsayisi 1.0` · b) `--kampanya_katsayisi 1.0` · c) `--baslangic_tarihi 2026-03-09 --gun_sayisi 14` | a) **7.560** · b) **7.904** · c) **760** satır (ilk hafta kampanyalı: hafta içi 60, hafta sonu 78; ikinci hafta 40 / 52) | | |
 | G2-TC-20 | Parametreler (tohum) | `tohum` yalnızca içeriği değiştiriyor mu? | `--tohum 7` ile çalıştır; satır sayısı ve MD5'i varsayılanla karşılaştır. | `--tohum 7` | Satır sayısı yine **8.208**; MD5 varsayılandan **farklı**; G2-TC-02…14 bu dosyada da geçer | | |
+| G2-TC-23 | Parametreler (`urun_agirliklari`) · Ağırlıklı alanlar (`urun`) | Ürün ağırlığı dağılımı değiştiriyor, satır sayısını değiştirmiyor mu? | 1) Ağırlıkla geçici dosyaya çalıştır. 2) Satır say, MD5'i varsayılanla karşılaştır. 3) Ürün paylarını `w_i / Σw` ile karşılaştır. 4) G2-TC-02…14'ü bu dosyada koş. | `--urun_agirliklari 1,1,2,0.5,1,4,3,4,1,1,1,3,2,3,1,4,4,1,3,3,2,2,1,3,1` (Σw = 53) | **8.208** satır; MD5 varsayılandan **farklı**; her ürünün payı `w_i / 53`'ün **±1,5 puan** içinde (ör. Akıllı Saat %0,9, Tişört %7,5); G2-TC-02…14 geçer | | |
+| G2-TC-24 | Parametreler (`urun_agirliklari`) · Kural 12 | Boş ağırlık eski davranışı koruyor, ağırlıklar normalize ediliyor mu? | 1) `--urun_agirliklari ""` ile çalıştır, MD5'i repodaki dosyayla karşılaştır. 2) G2-TC-23 ağırlıklarının 2 katıyla çalıştır, MD5'i G2-TC-23 dosyasıyla karşılaştır. | a) `""` · b) G2-TC-23 ağırlıkları × 2 | a) MD5 = `1b7f765e…` (repo) · b) MD5 = G2-TC-23 dosyasının MD5'i | | |
 
 ### D — Hata yönetimi (Hafta 6, `fix/error-handling` sonrası koşulur)
 
@@ -58,6 +61,8 @@ Kaynak: sözlük → "Geçersiz parametre" kuralı ve PR #66 incelemesi (satır 
 |---|---|---|---|---|---|---|---|
 | G2-TC-21 | Geçersiz parametre | Aralık dışı sayısal parametreler anlamlı hata veriyor mu? | Her girdiyle ayrı ayrı, var olmayan bir `--cikti` yoluna çalıştır; hata mesajını ve dosyanın oluşup oluşmadığını kaydet. | a) `--gun_sayisi 0` · b) `--gun_sayisi -3` · c) `--musteri_sayisi 10000` · d) `--gunluk_siparis 0` | Her biri `ValueError`; mesajda parametre adı + izinli aralık + verilen değer (ör. `gun_sayisi 1–366 arasında olmalı, verilen: 0`); çıktı dosyası **oluşmaz** | | |
 | G2-TC-22 | Geçersiz parametre | Bozuk kampanya dönemi ve tarih anlamlı hata veriyor mu? | G2-TC-21 gibi. | a) `--kampanya_donemleri 2026-03-09` (`:` yok) · b) `--kampanya_donemleri 2026-03-15:2026-03-09` (BAŞ > SON) · c) `--baslangic_tarihi 2026-13-01` | Her biri `ValueError` ve Türkçe, parametre adını içeren mesaj; b) **sessizce kampanyasız dosya yazmaz**; çıktı dosyası oluşmaz | | |
+| G2-TC-25 | Geçersiz parametre (`urun_agirliklari`) | Bozuk ürün ağırlığı anlamlı hata veriyor mu? | G2-TC-21 gibi; değer `--urun_agirliklari=<değer>` (eşittir ile) verilir. | a) 3 değer (`1,2,3`) · b) ilk değer `a` · c) ilk değer `-1` · d) ilk değer `nan` · e) ilk değer `inf` · f) 25 değerin hepsi `0` | Her biri çıkış **1**, `Hata (ValueError)` ve mesajda `urun_agirliklari`; Traceback yok; çıktı dosyası oluşmaz | | |
+| G2-TC-25+ | Parametreler (`urun_agirliklari` izinli uç değerler) · Kural 6 istisnası | İzinli uç değerler hatasız çalışıyor mu? | Geçici dosyaya çalıştır. | a) 25 × `1e308` · b) 1. ürün (Kablosuz Kulaklık) `0`, diğerleri `1` | a) çıkış **0**, dosya yazılır (toplam taşmaz — PR #95 incelemesi) · b) çıkış 0; Kablosuz Kulaklık dosyada **hiç** geçmez | | |
 
 ## Kapsama
 
@@ -65,17 +70,18 @@ Kaynak: sözlük → "Geçersiz parametre" kuralı ve PR #66 incelemesi (satır 
 |---|---|
 | Kural 1 — boş değer yok | G2-TC-06 |
 | Kural 2 — sütunlar | G2-TC-02 |
-| Kural 3 — satır sayısı | G2-TC-03, G2-TC-17…20 |
+| Kural 3 — satır sayısı | G2-TC-03, G2-TC-17…20, G2-TC-23 |
 | Kural 4 — id ve sıralama | G2-TC-07 |
 | Kural 5 — tarih aralığı | G2-TC-08, G2-TC-17 |
-| Kural 6 — kategorik değerler | G2-TC-09 |
+| Kural 6 — kategorik değerler | G2-TC-09; istisna (ağırlığı 0 olan ürün) G2-TC-25+ |
 | Kural 7 — ürün–kategori | G2-TC-10 |
 | Kural 8 — fiyat (#30) | G2-TC-11 |
 | Kural 9 — 2 ondalık | G2-TC-12 |
 | Kural 10 — hesaplanan alan | G2-TC-13 |
 | Kural 11 — kampanya | G2-TC-14 |
-| Kural 12 — tekrarlanabilirlik | G2-TC-16, G2-TC-20 |
+| Kural 12 — tekrarlanabilirlik | G2-TC-16, G2-TC-20, G2-TC-24 |
 | Alan tablosu (tip, aralık, `musteri_id`) | G2-TC-04, G2-TC-05 |
-| Ağırlıklı alanlar | G2-TC-15 |
+| Ağırlıklı alanlar | G2-TC-15; `urun` (`w_i / Σw`) G2-TC-23 |
 | Satır sayısı tablosu (8.208 / 424 / 304 / 106) | G2-TC-03, G2-TC-17, G2-TC-18 |
-| Geçersiz parametre (`ValueError`, dosya yazılmaz) | G2-TC-21, G2-TC-22 |
+| Geçersiz parametre (`ValueError`, dosya yazılmaz) | G2-TC-21, G2-TC-22, G2-TC-25 |
+| Parametre `urun_agirliklari` (normalize, boş = varsayılan, izinli uç değerler) | G2-TC-23, G2-TC-24, G2-TC-25+ |
