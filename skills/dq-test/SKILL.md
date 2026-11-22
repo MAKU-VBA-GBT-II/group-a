@@ -17,7 +17,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 | Test edilen veri | `data/siparisler-g2.csv` (BE, `src/simulasyon.py`, #61) |
 | Senaryolar | `tests/test-cases.md` (Görev 1 senaryoları `tests/test-cases-g1.md`'de arşivde) |
 | Sonuçlar | `tests/test-log.md` → "Görev 2" tablosu (tarihli satırlar) |
-| Test koşucusu | `src/dq_test_g2.py` — senaryoları ID'leriyle koşar (G2-TC-01…22 + sınır değer G2-TC-21+); gruplar `--grup A B C D`, başka dosya `--dosya`; tümü geçerse çıkış 0 |
+| Test koşucusu | `src/dq_test_g2.py` — senaryoları ID'leriyle koşar (G2-TC-01…25 + sınır değerler G2-TC-21+ ve G2-TC-25+; G2-TC-23…25 Görev 3'te `urun_agirliklari` için eklendi); gruplar `--grup A B C D`, başka dosya `--dosya`; tümü geçerse çıkış 0 |
 
 ## Kurallar (hocanın #47 notu)
 
@@ -125,6 +125,11 @@ python src/dq_test_g2.py --dosya yol.csv --grup A B
 - **PR #66 incelemesi:** veri sözlüğe karşı bağımsız kontrol edildi (kural 1–11 geçti, 8.208 satır, MD5 `1b7f765e…`); satır 148, 301, 323'e yorum; cevaplardan sonra Approve.
 - **Test koşucusu ve test turu:** `src/dq_test_g2.py` bu skill'in C adımlarıyla yazıldı (PR #78). İlk tur `fe41763` 20/23 → bug #76, #77; PR #72 sonrası yeniden test 23/23 (PR #80); son ürün `ffb363e` 23/23 + grafik–analiz tutarlılığı (PR #81). PR #72 ve #79 incelemeleri (Approve) bu skill'le yapıldı.
 - **Düzeltme (Görev 2 değerlendirmesi):** Test koşucusu skill'de ve `AGENTS.md`'de geçmiyordu; "Test koşucusu", "Devir teslim" bölümü, C5–C6 adımları ve elle çalıştırma komutları eklendi.
+
+**Görev 3 (Hilal Elçin Şahin, DQ) — PR #95 incelemesi:**
+- **Araç:** Claude. Prompt özeti: "dq-test ve dq-sozluk skill'leriyle PR #95'i (`--urun_agirliklari`) DQ olarak incele, veriyi bağımsız kontrol et, bug ara; sözlüğü, senaryoları ve test koşucusunu güncelle."
+- Bağımsız kontrol: varsayılan MD5 `1b7f765e…` aynı; uç değer denemelerinde bug bulundu (25 × `1e308` → toplam taşıyor, numpy'nin İngilizce hatası) → düzeltme PR #95'e eklendi. G2-TC-09 ile sözlük arasındaki çelişki (ağırlığı 0 olan ürün, kural 6) sözlüğe istisna olarak yazıldı.
+- Senaryolar G2-TC-23…25 ve G2-TC-25+ yazıldı ve koşucuya aynı ID'lerle eklendi; düzeltilmemiş kodda G2-TC-25+ kaldı, düzeltmeyle tüm koşu 27/27.
 
 **Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:**
 - Senaryolar `tests/test-cases-g1.md` (TC-01…TC-12), betik `src/dq_test.py`; testler, hata Issue'ları (#27, #28, #29) ve #27 sonrası yeniden test (9/9, `1868546`) Claude (Claude Code) ile yapıldı.

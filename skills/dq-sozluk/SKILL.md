@@ -95,4 +95,5 @@ Sonra: dal (`feature/sozluk-g2`) → PR → merge → devir yorumları (adım 9:
 
 - **Araç:** Claude (yapay zekâ ajanı).
 - **Görev 2 (#60):** Claude'a ders planı (Görev 2), #60, #30 ve Görev 1 sözlüğü verildi; önce bu skill yazıldı ve commit'lendi, ardından `docs/veri-sozlugu.md` bu skill'in adımlarıyla üretildi.
+- **Görev 3 (Hilal Elçin Şahin, DQ — PR #95):** BE'nin isteğe bağlı `urun_agirliklari` parametresi bu skill'in "Değişiklik" kullanımıyla sözlüğe eklendi: parametre tablosu, geçersiz parametre kuralı, satır sayısına etkisizlik, ürün sırası, `urun` olasılığı (`w_i / Σw`), kural 6 istisnası ve değişiklik günlüğü. Claude ile.
 - **Düzeltme (Görev 2 değerlendirmesi):** Devir adımı yalnızca G2-veri ve G2-gorsel'i sayıyordu; şemayı kullanan G2-test (#64) da eklendi ve sözlük güncellemelerinde aynı üç Issue'ya haber verme kuralı yazıldı.

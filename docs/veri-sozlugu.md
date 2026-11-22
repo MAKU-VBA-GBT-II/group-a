@@ -35,8 +35,11 @@ Parametreler betiğin başında sabit olarak **ve** komut satırından değişti
 | `baslangic_tarihi` | tarih | `2026-01-05` (Pazartesi) | geçerli `YYYY-MM-DD` | İlk günün tarihi |
 | `musteri_sayisi` | int | `1500` | 1 – 9999 | `musteri_id` havuzunun büyüklüğü |
 | `tohum` | int | `42` | ≥ 0 | Rastgelelik tohumu |
+| `urun_agirliklari` *(isteğe bağlı, Görev 3)* | 25 sayılık liste (virgülle ayrılmış) | boş (= 25 ürün eşit olasılık) | tam **25** değer, ürün sırası aşağıdaki **Ürün sırası**; her değer sonlu ve ≥ 0; en az biri > 0 | Yalnızca `urun` dağılımını (dolayısıyla `kategori` ve ciro karmasını) değiştirir; satır sayısını değiştirmez. Boşken eski üretim aynen çalışır (MD5 `1b7f765e…`); verilince `rng` akışı değiştiği için dosyanın tamamı farklı çıkar |
 
-**Geçersiz parametre** (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON): betik çökmez, `ValueError` ile parametrenin adını ve izinli aralığı söyleyen bir mesaj verir; dosya **yazılmaz** (Hafta 6 hata yönetimi).
+**Geçersiz parametre** (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON; `urun_agirliklari` için 25'ten farklı sayıda değer, sayı olmayan değer, negatif / `nan` / `inf` değer veya hepsi 0): betik çökmez, `ValueError` ile parametrenin adını ve izinli aralığı söyleyen bir mesaj verir; dosya **yazılmaz** (Hafta 6 hata yönetimi).
+
+`urun_agirliklari` ağırlıkları toplamı 1 olacak şekilde normalize edilir: ürün *i*'nin olasılığı `w_i / Σw`'dir (`1,1,2,…` ile `2,2,4,…` aynı dosyayı verir). Eşit ağırlık (`1,1,…,1`) bile varsayılandan **farklı MD5** verir; eşit olasılık için parametre boş bırakılır. Negatif değer komut satırında `--urun_agirliklari=-1,…` (eşittir ile) yazılır, yoksa `argparse` değeri seçenek sanır.
 
 ## Satır sayısı
 
@@ -58,6 +61,8 @@ N         = Σ gun_adet   (gun_sayisi gün boyunca)
 | Kısa ve seyrek | `gun_sayisi = 10`, `gunluk_siparis = 10` | **106** | 2026-01-14 |
 
 `max(1, …)` sayesinde **her gün en az bir sipariş** vardır (ör. `gunluk_siparis = 1`, `hafta_sonu_katsayisi = 0.4` → hafta sonu `floor(0.9) = 0` yerine 1); dosyadaki farklı tarih sayısı = `gun_sayisi`. Varsayılan ve tablodaki senaryolarda en küçük gün 40 sipariş olduğu için bu kural sonuçları değiştirmez.
+
+`tohum` ve `urun_agirliklari` formülde yoktur: içeriği değiştirir, **satır sayısını değiştirmez** (ör. ağırlıklı varsayılan çalıştırma yine 8.208 satır).
 
 ## Alanlar
 
@@ -93,7 +98,7 @@ siparis_id,siparis_tarihi,musteri_id,kanal,kategori,urun,adet,birim_fiyat,indiri
 
 ### `kategori`, `urun` ve liste fiyatı
 
-`birim_fiyat` her siparişte **kendi ürününün liste fiyatından** en fazla ±%5 sapar. Ürünler eşit olasılıkla seçilir.
+`birim_fiyat` her siparişte **kendi ürününün liste fiyatından** en fazla ±%5 sapar. Ürünler **varsayılanda eşit olasılıkla** (her biri %4) seçilir; `urun_agirliklari` verilirse olasılıklar `w_i / Σw` olur (bkz. **Ağırlıklı alanlar**).
 
 | Kategori | Ürün → liste fiyatı (TL) |
 |---|---|
@@ -105,10 +110,13 @@ siparis_id,siparis_tarihi,musteri_id,kanal,kategori,urun,adet,birim_fiyat,indiri
 
 Buna göre `birim_fiyat` tüm dosyada **94,05 – 3.673,95 TL** aralığındadır.
 
+**Ürün sırası** (`urun_agirliklari`'ndaki 25 değerin sırası; tabloyu soldan sağa, yukarıdan aşağı okuyun): 1 Kablosuz Kulaklık · 2 Bluetooth Hoparlör · 3 Powerbank · 4 Akıllı Saat · 5 Klavye · 6 Tişört · 7 Kot Pantolon · 8 Sweatshirt · 9 Spor Ayakkabı · 10 Mont · 11 Kahve Makinesi · 12 Battaniye · 13 Masa Lambası · 14 Saklama Kabı Seti · 15 Halı · 16 Nemlendirici · 17 Şampuan · 18 Parfüm · 19 Güneş Kremi · 20 Ruj · 21 Roman · 22 Deneme · 23 Ders Kitabı · 24 Çocuk Kitabı · 25 Şiir Kitabı. Bu sıra `src/simulasyon.py` → `URUNLER` ile birebir aynıdır.
+
 ### Ağırlıklı alanlar
 
 | Alan | Değer → olasılık |
 |---|---|
+| `urun` | Varsayılan: 25 ürün eşit, her biri %4 · `urun_agirliklari` verilirse ürün *i* → `w_i / Σw` |
 | `adet` | 1 → %50 · 2 → %25 · 3 → %12 · 4 → %8 · 5 → %5 |
 | `kanal` | Web %45 · Mobil %40 · Pazaryeri %15 |
 | `sehir` | İstanbul %35 · Ankara %20 · İzmir %20 · Antalya %15 · Burdur %10 |
@@ -126,7 +134,7 @@ Her kural bir test senaryosuna dönüşür (`tests/test-cases.md`, #64):
 3. **Satır sayısı** — kullanılan parametrelerle formülden hesaplanan N'ye eşit.
 4. **`siparis_id`** — 1…N ardışık ve benzersiz; dosya `siparis_tarihi`'ne göre artan.
 5. **Tarih aralığı** — tüm tarihler `baslangic_tarihi` … `+ gun_sayisi − 1` içinde; farklı tarih sayısı = `gun_sayisi`.
-6. **Kategorik değerler** — `kanal`, `kategori`, `urun`, `sehir`, `odeme_tipi`, `durum` yalnızca listelerdeki değerleri alır; yazım birebir.
+6. **Kategorik değerler** — `kanal`, `kategori`, `urun`, `sehir`, `odeme_tipi`, `durum` yalnızca listelerdeki değerleri alır; yazım birebir. Listedeki her değerin dosyada en az bir kez geçmesi beklenir; **istisna:** `urun_agirliklari`'nda ağırlığı 0 verilen ürün (ve tüm ürünleri 0 olan kategori) dosyada hiç geçmez.
 7. **Ürün–kategori** — her `urun` kendi `kategori`sine aittir.
 8. **Fiyat** — `birim_fiyat`, kendi ürününün liste fiyatının [%95, %105] aralığında.
 9. **Sayı biçimi** — `birim_fiyat`, `toplam_tutar` ve `indirim_orani` ham metinde tam 2 ondalık (`^\d+\.\d{2}$`; ör. `0.20`, `0.00`).
@@ -172,3 +180,4 @@ Hafta tanımı Görev 1 ile aynıdır: Pazartesi başlangıçlı (`W-MON`). Vars
 | 2026-10-29 | İlk sürüm: 14 alan, 8 parametre, satır sayısı formülü, 12 kalite kuralı, M1–M6 | #60 |
 | 2026-10-30 | Kural 9: `indirim_orani` da ham metinde tam 2 ondalık (PR #66 incelemesi) | #64 |
 | 2026-11-01 | Satır sayısı: `gun_adet = max(1, …)`; izinli aralıktaki parametrelerle 0 siparişli gün oluşup kural 5'in düşmesi önlendi (PR #72 incelemesi) | #64 |
+| 2026-11-22 | 9. parametre `urun_agirliklari` (isteğe bağlı ürün popülerlik ağırlığı): parametre tablosu, geçersiz parametre kuralı, normalize ve MD5 notu, satır sayısına etkisizlik, **Ürün sırası**, `urun` olasılığı (Ağırlıklı alanlar), kural 6 istisnası (ağırlığı 0 olan ürün). Alanlar, tipler, aralıklar ve varsayılan dosya değişmedi | PR #95, #86 |
