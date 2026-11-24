@@ -16,6 +16,8 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 
 ## Tablo
 
+TL sütunları bugünkü liste fiyatlarından (`src/simulasyon.py`) hesaplandı. Liste fiyatları web medyanlarına göre güncellenecek (Hilal'in fiyat tablosu, `--urun_listesi`); o zaman kurallar (çarpanlar) aynı kalır, TL sütunları yeni fiyatlardan yeniden hesaplanır.
+
 | # | Kategori | Ürün | Liste (TL) | Dahil anahtar kelimeler | Hariç anahtar kelimeler | Beklenen birim/miktar | Makul aralık (TL) | Oto. eleme sınırı (TL) |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Elektronik | Kablosuz Kulaklık | 1299 | kablosuz kulaklık, bluetooth kulaklık, tws kulaklık | kablolu, kılıf, kulaklık ucu, şarj kutusu, stand, adaptör | 1 adet (çift) | 520–3250 | <389,70 / >3897 |
@@ -57,7 +59,8 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 
 1. Makul aralık varsayılanı 0,4x–2,5x (Kitap: 0,5x–2x). Otomatik bant 0,3x–3x aynen kalır.
 2. Çoklu paketler (2'li, 3'lü, set) şimdilik elenir; adet başı fiyata bölme yapılmaz.
-3. Kozmetikte ml başı fiyat karşılaştırması sonraki haftaya bırakıldı.
+3. Liste fiyatları web medyanlarına göre güncellenecek; TL bantları ayrı PR'da yeniden hesaplanacak (Hilal'in #100 incelemesi, 1. madde).
+4. Kozmetikte ml başı fiyat karşılaştırması sonraki haftaya bırakıldı.
 
 ---
 
