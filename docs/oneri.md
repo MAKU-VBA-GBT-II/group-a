@@ -54,8 +54,9 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 
 Mevcut yapı: `src/simulasyon.py`, `data/siparisler-g2.csv`, `docs/veri-sozlugu.md`. PR #95 (`--urun_agirliklari`) birleşti ve temel alınacak.
 
-- `[TODO — Tuğba]` Dışarıdan ürün listesi alma: ürün adı, kategori ve liste fiyatı içeren bir dosya (örn. `--urun_listesi`). Verilmezse bugünkü 25 ürün ve varsayılan MD5 değişmez.
-- `[TODO — Tuğba]` Fiyat aralığı parametresi: ürün başına liste fiyatı sapması dışarıdan verilebilsin.
+- **Yapıldı (Tuğba, PR #102):** Dışarıdan ürün listesi: `--urun_listesi <csv>` (`kategori,urun,liste_fiyati[,fiyat_sapmasi]`). Verilmezse bugünkü 25 ürün ve varsayılan MD5 (`1b7f765e…`) değişmez. Örnek: `data/urun-listesi-ornek.csv`.
+- **Yapıldı (Tuğba, PR #102):** Fiyat aralığı: `--fiyat_sapmasi` (0–0.5, vars. 0.05) ve listede ürün başına `fiyat_sapmasi` sütunu.
+- **Yapıldı (Tuğba, PR #102):** Web fiyatlı liste `data/urun-listesi-web.csv` (`onerilen_liste_tl`; Spor Ayakkabı, Masa Lambası ve Kahve Makinesi eski fiyatta, gerekçe `docs/eslesme-tanimlari.md`) ve bununla üretilen örnek veri `data/siparisler-web.csv`.
 - Ürün adları, Ajan 1'in eşleştirdiği web ürünleriyle uyuşacak; eşleşme tanımları `docs/eslesme-tanimlari.md` (PR #100). Liste fiyatları için önerilen yeni değerler `data/web-fiyat-taramasi.csv` → `onerilen_liste_tl` sütununda (Hilal, 24 Kasım).
 - Örnek veri `data/` altına, yeni parametreler `docs/veri-sozlugu.md` Simülasyon parametreleri tablosuna ve değişiklik günlüğüne yazılacak (Hilal, DQ).
 - `[TODO — Sema]` Yeni parametreler için test kuralları.
