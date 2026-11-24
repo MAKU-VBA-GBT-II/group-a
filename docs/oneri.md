@@ -22,20 +22,33 @@ Kullanıcı programa "rakiplere göre fiyat ve kampanya stratejisi çıkar" işi
 
 ## 3. Web kaynakları
 
-Kontrol tarihi: 22 Kasım 2026. `robots.txt` sonuçları sitelerin dosyalarının o gün okunmasıyla yazıldı. **Kullanım şartları henüz okunmadı**; her aday için `[TODO]`.
+Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosyası ve kullanım şartları / üyelik sözleşmesi okundu. İncelenen sitelerin hepsinde **arama sayfaları `robots.txt` ile yasak, ürün sayfaları serbest**; bu yüzden Ajan 1 ürünlere site içi aramayla değil, kategori sayfaları ve site haritaları üzerinden ulaşır. İstekler arasına bekleme konur, yalnız ürün adı ve fiyat bilgisi toplanır; yorum, kullanıcı adı ve bireysel satıcı profili gibi kişisel veriler toplanmaz.
 
-| # | Kaynak | Adres | Vereceği veri | Tarayıcı gerekir mi? | robots.txt sonucu | Kullanım şartları | Karar |
-|---|---|---|---|---|---|---|---|
-| 1 | Kitapyurdu | https://www.kitapyurdu.com | Kitap adı ve fiyatı (listeleme/arama sayfaları) | Hayır: fiyat ham HTML'de | Yalnızca `/admin/`, `/system/`, `/image/`, `/img/`, `/download/` yasak; arama ve listeleme serbest | `[TODO]` | Aday (yalnız Kitap kategorisi) |
-| 2 | Vatan Bilgisayar | https://www.vatanbilgisayar.com | Elektronik fiyatları | — | `/arama/*` ve `?page=` yasak | — | Elendi (sayfalama ve arama yasak) |
-| 3 | n11 | https://www.n11.com | Çok kategorili fiyat | — | Çok sayıda filtre parametresi, `/rest/`, `getProduct*` yasak | — | Elendi (riskli) |
-| 4 | Akakçe | https://www.akakce.com | Fiyat karşılaştırma | — | `?sayfa=`, `/yorum*`, `/siparis/*` yasak | — | Elendi (sayfalama yasak) |
-| 5 | webscraper.io test siteleri | https://webscraper.io/test-sites | Eğitim amaçlı ürün/fiyat | Evet (load-more, scroll, pagination) | `/test-sites/pagination/`, `/load-more/`, `/scroll/` yasak | `[TODO]` (şartlar sayfası bulunamadı) | Kullanılamaz |
+| # | Kategori | Kaynak | Adres | Vereceği veri | Tarayıcı gerekir mi? | robots.txt sonucu | Kullanım şartları | Karar |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Elektronik (+ Kahve Makinesi) | MediaMarkt | https://www.mediamarkt.com.tr | Ürün adı, güncel/liste fiyatı, stok | **Evet.** Ürün kartları JavaScript ile çiziliyor (ham HTML'de kart yok, veri gömülü JSON'da); sonraki ürünler "12 ürün daha göster" düğmesiyle yükleniyor, adres `?page=2` oluyor. Tarayıcıda doğrulandı | Ürün sayfaları ve `page=` serbest; `/search.html`, `query=`, `sort=`, `filter=` yasak | Otomatik erişim yasağı yok; site materyali yalnız şahsi kullanım içindir, ticari/genel amaçlı çoğaltma yazılı izne tabidir. Akademik, ticari olmayan, düşük hacimli fiyat toplama | **Seçildi** (tarayıcı gerektiren kaynak) |
+| 2 | Kozmetik | Gratis | https://www.gratis.com | Ürün adı, fiyat, indirim, miktar (ml/g) | Hayır (fiyat liste sayfasında) | Ürün sayfaları serbest; `/search` ve `query=` yasak | Otomatik erişimi açıkça yasaklayan madde yok; siteyi başkalarının kullanımını zorlaştıracak biçimde kullanmak yasak | **Seçildi** |
+| 3 | Kitap | D&R | https://www.dr.com.tr | Kitap adı, fiyat, indirim, stok | Hayır | Ürün sayfaları serbest, ürün site haritası var; arama yasak | Genel kullanım koşulları sayfası yok (altbilgide yalnız üyelik ve aydınlatma metinleri) | **Seçildi** |
+| 4 | Ev & Yaşam | Koçtaş | https://www.koctas.com.tr | Ürün adı, fiyat, indirim, satıcı (kurumsal) | Hayır | Ürün sayfaları serbest (bazı varyantlar hariç); arama yasak | Site kullanım koşulları sayfası yok; "Tüm Politikalarımız" listesinde otomatik erişimle ilgili metin yok | **Seçildi** |
+| 5 | Giyim | Koton | https://www.koton.com | Ürün adı, fiyat, indirim | Hayır | Ürün sayfaları serbest; `search_text=` yasak | Altbilgide bağlantı yok; üyelik sözleşmesi sunucuları otomatik programlarla yüklemeyi yasaklıyor, site içeriğinin izinsiz kullanımını ve kopyalanmasını sınırlıyor. Açık bot yasağı yok | **Seçildi, gri alan** (aşağıdaki nota bakınız) |
 
-**Açık sorunlar**
-- `[TODO — Hilal]` JavaScript ile yüklenen veya sayfalamalı en az bir kaynak bulunmalı (duyuru şartı). Şu an uygun kaynak yok.
-- `[TODO — Hilal]` Kitapyurdu yalnızca Kitap kategorisini kapsıyor. Elektronik, Giyim, Ev & Yaşam, Kozmetik için kaynak gerekiyor; ya da simülasyonun ürün listesi kaynağı olan kategorilere daraltılacak.
-- `[TODO — Hilal]` Seçilen her kaynak için kullanım şartları okunup sonuç tabloya yazılacak; istekler arasına bekleme konacak; kişisel veri (yorum, isim, profil) çekilmeyecek.
+**Elenen adaylar**
+
+| Kaynak | Neden |
+|---|---|
+| lcw.com | Kullanım koşulları otomatik program, örümcek, robot ve veri madenciliğini yazılı izin olmadan yasaklıyor |
+| decathlon.com.tr | `robots.txt` uygun, ama üyelik sözleşmesi yazılı izin olmadan robot, crawler, veri madenciliği ve "screen scraping" kullanımını yasaklıyor |
+| defacto.com.tr | `robots.txt` ürün sayfalarını (`/Product/`) yasaklıyor |
+| mavi.com | Koton ile aynı sözleşme şablonu; Koton tercih edildi |
+| kitapyurdu.com | 24 Kasım'da `robots.txt` isteği reddedildi; kitap kaynağı olarak D&R tercih edildi |
+| n11.com, teknosa.com, boyner.com.tr, colins.com.tr | `robots.txt` dosyasına erişilemedi |
+| vatanbilgisayar.com, akakce.com | Sayfalama/arama yasak (22 Kasım kontrolü) |
+| englishhome.com | `*.html*` kuralı ürün sayfalarını engelleyebilir; belirsiz |
+| trendyol.com, hepsiburada.com | Ürün sayfaları `robots.txt` ile serbest, ama kullanım şartları okunmadı; yedek |
+
+**Hocaya not (giyim):** Giyim kategorisinde incelenen sitelerin hiçbiri tamamen temiz çıkmadı: LC Waikiki ve Decathlon otomatik erişimi açıkça yasaklıyor, Koton ve Mavi yalnız sunucuyu aşırı yüklemeyi yasaklıyor. Koton'u düşük hacim, istekler arasında bekleme ve yalnız fiyat bilgisiyle kullanmayı öneriyoruz; uygun görmezseniz giyim ürünlerini rakip verisiz bırakıp diğer dört kategoriyle ilerleriz.
+
+**İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md) (veri: `data/web-fiyat-taramasi.csv`). 25 ürünün hepsinde web medyanı bugünkü liste fiyatımızın üstünde, 17'sinde 2 katından fazla; simülasyon liste fiyatları bu tabloya göre güncellenecek (bölüm 4).
 
 ## 4. Simülasyonun genişletilmesi (plan)
 
@@ -43,7 +56,7 @@ Mevcut yapı: `src/simulasyon.py`, `data/siparisler-g2.csv`, `docs/veri-sozlugu.
 
 - `[TODO — Tuğba]` Dışarıdan ürün listesi alma: ürün adı, kategori ve liste fiyatı içeren bir dosya (örn. `--urun_listesi`). Verilmezse bugünkü 25 ürün ve varsayılan MD5 değişmez.
 - `[TODO — Tuğba]` Fiyat aralığı parametresi: ürün başına liste fiyatı sapması dışarıdan verilebilsin.
-- Ürün adları, Ajan 1'in eşleştirdiği web ürünleriyle uyuşacak; eşleştirme listesi Hilal'den gelecek.
+- Ürün adları, Ajan 1'in eşleştirdiği web ürünleriyle uyuşacak; eşleşme tanımları `docs/eslesme-tanimlari.md` (PR #100). Liste fiyatları için önerilen yeni değerler `data/web-fiyat-taramasi.csv` → `onerilen_liste_tl` sütununda (Hilal, 24 Kasım).
 - Örnek veri `data/` altına, yeni parametreler `docs/veri-sozlugu.md` Simülasyon parametreleri tablosuna ve değişiklik günlüğüne yazılacak (Hilal, DQ).
 - `[TODO — Sema]` Yeni parametreler için test kuralları.
 
