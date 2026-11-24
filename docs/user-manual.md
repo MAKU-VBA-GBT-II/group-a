@@ -150,6 +150,7 @@ Aynı parametre ve tohumla ikinci çalıştırmada MD5 aynı çıkar (tekrar ür
 | `--baslangic_tarihi` | 2026-01-05 | `YYYY-AA-GG` |
 | `--musteri_sayisi` | 1500 | müşteri havuzu |
 | `--tohum` | 42 | farklı tohum → farklı ama geçerli dosya |
+| `--urun_agirliklari` | boş (25 ürün eşit olasılık) | 25 sayı, virgülle, sözlükteki **Ürün sırası** ile; satır sayısını değiştirmez, ağırlığı 0 olan ürün üretilmez. Negatif değer için `--urun_agirliklari=…` (eşittir ile) yazın (PR #95) |
 | `--cikti` | `data/siparisler-g2.csv` | başka dosyaya yazmak için |
 
 İzinli aralıklar ve satır sayısı formülü: `docs/veri-sozlugu.md` → Parametreler. Aralık dışı veya biçimi bozuk bir değer verilirse betik dosya yazmadan durur ve `Hata (ValueError): …` mesajı verir (bkz. Senaryo 4).
