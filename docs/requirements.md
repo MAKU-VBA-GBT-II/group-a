@@ -18,7 +18,7 @@ Bir e-ticaret şirketinin sipariş verisini **gerçek kişi verisi kullanmadan**
 7. **Geçersiz girdide durur:** aralık dışı, yanlış tipte ya da bozuk biçimli parametrede çökmeden Türkçe `ValueError` mesajı verir, 1 ile çıkar ve dosya yazmaz (PR #72).
 8. **Analiz eder:** `python src/dq_analiz_g2.py --ek` ile M1 net ciro, M2 ortalama sepet, M3 haftalık ciro, M4 kanal kırılımı, M5 ilk 5 ürün ve M6 iade/iptal oranını hesaplar; sonuçlar `docs/analiz-g2.md`'dedir.
 9. **Görselleştirir:** `python src/fe_gorsel.py` ile 3 PNG üretir: haftalık net ciro (zaman serisi), kanal bazlı ciro (kırılım), sipariş tutarı dağılımı (histogram).
-10. **Test edilebilirdir:** `tests/test-cases.md`'deki 22 senaryo (şema, değerler, parametre davranışı, hata yönetimi) ile sınanır; sonuçlar `tests/test-log.md`'ye tarihli yazılır.
+10. **Test edilebilirdir:** `tests/test-cases.md`'deki 34 senaryo (şema, değerler, parametre davranışı, hata yönetimi) ile sınanır; sonuçlar `tests/test-log.md`'ye tarihli yazılır.
 
 ## Ürünün yapmadıkları
 
