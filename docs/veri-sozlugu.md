@@ -35,11 +35,28 @@ Parametreler betiğin başında sabit olarak **ve** komut satırından değişti
 | `baslangic_tarihi` | tarih | `2026-01-05` (Pazartesi) | geçerli `YYYY-MM-DD` | İlk günün tarihi |
 | `musteri_sayisi` | int | `1500` | 1 – 9999 | `musteri_id` havuzunun büyüklüğü |
 | `tohum` | int | `42` | ≥ 0 | Rastgelelik tohumu |
-| `urun_agirliklari` *(isteğe bağlı, Görev 3)* | 25 sayılık liste (virgülle ayrılmış) | boş (= 25 ürün eşit olasılık) | tam **25** değer, ürün sırası aşağıdaki **Ürün sırası**; her değer sonlu ve ≥ 0; en az biri > 0 | Yalnızca `urun` dağılımını (dolayısıyla `kategori` ve ciro karmasını) değiştirir; satır sayısını değiştirmez. Boşken eski üretim aynen çalışır (MD5 `1b7f765e…`); verilince `rng` akışı değiştiği için dosyanın tamamı farklı çıkar |
+| `urun_agirliklari` *(isteğe bağlı, Görev 3)* | ürün sayısı kadar sayı (virgülle ayrılmış) | boş (= ürünler eşit olasılık) | tam olarak ürün listesindeki ürün sayısı kadar değer (varsayılan listede **25**), sıra ürün listesinin sırası (varsayılanda aşağıdaki **Ürün sırası**); her değer sonlu ve ≥ 0; en az biri > 0 | Yalnızca `urun` dağılımını (dolayısıyla `kategori` ve ciro karmasını) değiştirir; satır sayısını değiştirmez. Boşken eski üretim aynen çalışır (MD5 `1b7f765e…`); verilince `rng` akışı değiştiği için dosyanın tamamı farklı çıkar |
+| `urun_listesi` *(isteğe bağlı, Duyuru-10)* | CSV dosya yolu | boş (= betikteki 25 ürün, aşağıdaki tablo) | var olan UTF-8 CSV; biçimi aşağıdaki **Ürün listesi dosyası** | Ürün kümesini, kategorilerini ve liste fiyatlarını dışarıdan verir; satır sayısını değiştirmez. Varsayılan 25 ürünle aynı içerikteki `data/urun-listesi-ornek.csv` verilirse dosya varsayılanla **aynı MD5**'i (`1b7f765e…`) verir |
+| `fiyat_sapmasi` *(isteğe bağlı, Duyuru-10)* | float | `0.05` | 0 – 0.5 | `birim_fiyat`'ın liste fiyatından en fazla sapma oranı: [liste × (1 − sapma), liste × (1 + sapma)]. Ürün listesi dosyasında ürün başına ayrıca verilebilir; dosyadaki değer bu parametreye üstün gelir. Varsayılanda eski ±%5 kuralıyla birebir aynı (MD5 değişmez) |
 
-**Geçersiz parametre** (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON; `urun_agirliklari` için 25'ten farklı sayıda değer, sayı olmayan değer, negatif / `nan` / `inf` değer veya hepsi 0): betik çökmez, `ValueError` ile parametrenin adını ve izinli aralığı söyleyen bir mesaj verir; dosya **yazılmaz** (Hafta 6 hata yönetimi).
+**Geçersiz parametre** (aralık dışı, yanlış tip, bozuk tarih, BAŞ > SON; `urun_agirliklari` için ürün sayısından farklı sayıda değer, sayı olmayan değer, negatif / `nan` / `inf` değer veya hepsi 0; `fiyat_sapmasi` 0–0.5 dışında; `urun_listesi` için bulunamayan dosya, UTF-8 olarak okunamayan dosya, eksik zorunlu sütun, boş liste, boş `kategori`/`urun`, iki kez geçen ürün, 0 veya negatif ya da 2'den fazla ondalıklı `liste_fiyati`, 0–0.5 dışında ürün başı `fiyat_sapmasi`): betik çökmez, `ValueError` ile parametrenin adını ve izinli aralığı söyleyen bir mesaj verir; dosya **yazılmaz** (Hafta 6 hata yönetimi).
 
 `urun_agirliklari` ağırlıkları toplamı 1 olacak şekilde normalize edilir: ürün *i*'nin olasılığı `w_i / Σw`'dir (`1,1,2,…` ile `2,2,4,…` aynı dosyayı verir). Eşit ağırlık (`1,1,…,1`) bile varsayılandan **farklı MD5** verir; eşit olasılık için parametre boş bırakılır. Negatif değer komut satırında `--urun_agirliklari=-1,…` (eşittir ile) yazılır, yoksa `argparse` değeri seçenek sanır.
+
+### Ürün listesi dosyası (`--urun_listesi`)
+
+UTF-8 CSV (BOM'lu da okunur), virgül ayraçlı, ilk satır başlık. Sütun sırası önemli değildir; ürünlerin sırası dosyadaki satır sırasıdır (`urun_agirliklari` bu sırayı izler).
+
+| Sütun | Zorunlu | Tip / kural | Örnek |
+|---|---|---|---|
+| `kategori` | evet | boş olmayan metin | `Elektronik` |
+| `urun` | evet | boş olmayan metin; dosyada bir kez geçer | `Kablosuz Kulaklık` |
+| `liste_fiyati` | evet | TL, nokta ondalıklı, > 0, en fazla 2 ondalık | `2999` |
+| `fiyat_sapmasi` | hayır | 0 – 0.5; boş hücre = `--fiyat_sapmasi` değeri | `0.10` |
+
+Repodaki örnekler: `data/urun-listesi-ornek.csv` (betikteki 25 ürün ve liste fiyatları; varsayılan dosyayı aynen üretir) · `data/urun-listesi-web.csv` (aynı 25 ürün, liste fiyatları Ajan 1'in 24 Kasım web fiyat taramasına göre güncellenmiş; bkz. `docs/fiyat-taramasi.md`, `data/web-fiyat-taramasi.csv`).
+
+**Web fiyatlı örnek veri:** `python src/simulasyon.py --urun_listesi data/urun-listesi-web.csv --cikti data/siparisler-web.csv` → `data/siparisler-web.csv`, **8.208** satır, 14 sütun, MD5 `628b4351250b4065b9669baf233449e7`, `birim_fiyat` 170,12 – 15.743,03 TL; iç kontroller (kural 1–11) geçti.
 
 ## Satır sayısı
 
@@ -62,7 +79,7 @@ N         = Σ gun_adet   (gun_sayisi gün boyunca)
 
 `max(1, …)` sayesinde **her gün en az bir sipariş** vardır (ör. `gunluk_siparis = 1`, `hafta_sonu_katsayisi = 0.4` → hafta sonu `floor(0.9) = 0` yerine 1); dosyadaki farklı tarih sayısı = `gun_sayisi`. Varsayılan ve tablodaki senaryolarda en küçük gün 40 sipariş olduğu için bu kural sonuçları değiştirmez.
 
-`tohum` ve `urun_agirliklari` formülde yoktur: içeriği değiştirir, **satır sayısını değiştirmez** (ör. ağırlıklı varsayılan çalıştırma yine 8.208 satır).
+`tohum`, `urun_agirliklari`, `urun_listesi` ve `fiyat_sapmasi` formülde yoktur: içeriği değiştirir, **satır sayısını değiştirmez** (ör. ağırlıklı varsayılan çalıştırma yine 8.208 satır).
 
 ## Alanlar
 
@@ -98,7 +115,7 @@ siparis_id,siparis_tarihi,musteri_id,kanal,kategori,urun,adet,birim_fiyat,indiri
 
 ### `kategori`, `urun` ve liste fiyatı
 
-`birim_fiyat` her siparişte **kendi ürününün liste fiyatından** en fazla ±%5 sapar. Ürünler **varsayılanda eşit olasılıkla** (her biri %4) seçilir; `urun_agirliklari` verilirse olasılıklar `w_i / Σw` olur (bkz. **Ağırlıklı alanlar**).
+`birim_fiyat` her siparişte **kendi ürününün liste fiyatından** en fazla ±`fiyat_sapmasi` (varsayılan ±%5) sapar. Aşağıdaki tablo varsayılan (betikteki) ürün listesidir; `--urun_listesi` verilirse ürünler, kategoriler ve liste fiyatları o dosyadan gelir. Ürünler **varsayılanda eşit olasılıkla** (her biri %4) seçilir; `urun_agirliklari` verilirse olasılıklar `w_i / Σw` olur (bkz. **Ağırlıklı alanlar**).
 
 | Kategori | Ürün → liste fiyatı (TL) |
 |---|---|
@@ -134,9 +151,9 @@ Her kural bir test senaryosuna dönüşür (`tests/test-cases.md`, #64):
 3. **Satır sayısı** — kullanılan parametrelerle formülden hesaplanan N'ye eşit.
 4. **`siparis_id`** — 1…N ardışık ve benzersiz; dosya `siparis_tarihi`'ne göre artan.
 5. **Tarih aralığı** — tüm tarihler `baslangic_tarihi` … `+ gun_sayisi − 1` içinde; farklı tarih sayısı = `gun_sayisi`.
-6. **Kategorik değerler** — `kanal`, `kategori`, `urun`, `sehir`, `odeme_tipi`, `durum` yalnızca listelerdeki değerleri alır; yazım birebir. Listedeki her değerin dosyada en az bir kez geçmesi beklenir; **istisna:** `urun_agirliklari`'nda ağırlığı 0 verilen ürün (ve tüm ürünleri 0 olan kategori) dosyada hiç geçmez.
+6. **Kategorik değerler** — `kanal`, `kategori`, `urun` (`kategori` ve `urun` için geçerli liste, kullanılan ürün listesidir), `sehir`, `odeme_tipi`, `durum` yalnızca listelerdeki değerleri alır; yazım birebir. Listedeki her değerin dosyada en az bir kez geçmesi beklenir; **istisna:** `urun_agirliklari`'nda ağırlığı 0 verilen ürün (ve tüm ürünleri 0 olan kategori) dosyada hiç geçmez.
 7. **Ürün–kategori** — her `urun` kendi `kategori`sine aittir.
-8. **Fiyat** — `birim_fiyat`, kendi ürününün liste fiyatının [%95, %105] aralığında.
+8. **Fiyat** — `birim_fiyat`, kendi ürününün liste fiyatının [1 − sapma, 1 + sapma] aralığında (varsayılan [%95, %105]; kuruş cinsinden, alt sınır yukarı, üst sınır aşağı yuvarlanır).
 9. **Sayı biçimi** — `birim_fiyat`, `toplam_tutar` ve `indirim_orani` ham metinde tam 2 ondalık (`^\d+\.\d{2}$`; ör. `0.20`, `0.00`).
 10. **Hesaplanan alan** — `toplam_tutar == round(adet × birim_fiyat × (1 − indirim_orani), 2)`.
 11. **Kampanya tutarlılığı** — `kampanya = 1` ⇔ tarih bir kampanya dönemi içinde; `kampanya = 0` ⇒ `indirim_orani = 0.00`; `kampanya = 1` ⇒ `indirim_orani ∈ {0.10, …, 0.30}`.
@@ -181,3 +198,4 @@ Hafta tanımı Görev 1 ile aynıdır: Pazartesi başlangıçlı (`W-MON`). Vars
 | 2026-10-30 | Kural 9: `indirim_orani` da ham metinde tam 2 ondalık (PR #66 incelemesi) | #64 |
 | 2026-11-01 | Satır sayısı: `gun_adet = max(1, …)`; izinli aralıktaki parametrelerle 0 siparişli gün oluşup kural 5'in düşmesi önlendi (PR #72 incelemesi) | #64 |
 | 2026-11-22 | 9. parametre `urun_agirliklari` (isteğe bağlı ürün popülerlik ağırlığı): parametre tablosu, geçersiz parametre kuralı, normalize ve MD5 notu, satır sayısına etkisizlik, **Ürün sırası**, `urun` olasılığı (Ağırlıklı alanlar), kural 6 istisnası (ağırlığı 0 olan ürün). Alanlar, tipler, aralıklar ve varsayılan dosya değişmedi | PR #95, #86 |
+| 2026-11-24 | Duyuru-10 simülasyon genişletmesi (PR #102): 10. ve 11. parametreler `urun_listesi` ve `fiyat_sapmasi`; **Ürün listesi dosyası** biçimi; `urun_agirliklari` ürün sayısına bağlandı; geçersiz parametre kuralı, satır sayısına etkisizlik, kural 6 ve kural 8 genelleştirildi; web fiyatlı örnek veri `data/siparisler-web.csv`. Varsayılan dosya ve MD5 değişmedi | PR #102, #96 |
