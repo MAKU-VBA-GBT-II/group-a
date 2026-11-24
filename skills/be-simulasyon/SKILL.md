@@ -25,7 +25,7 @@ Gerçek kişi ya da işletme verisi asla kullanılmaz — tüm değerler simüla
 - **Satır sayısı rastgele değildir**, sözlükteki formülle günden güne hesaplanır: `gun_adet = max(1, floor(gunluk_siparis × gun_k + 0.5))`, `gun_k` hafta sonunda `× hafta_sonu_katsayisi`, kampanya gününde `× kampanya_katsayisi`. `max(1, …)` her günün dosyada en az bir kez geçmesini sağlar (ör. `gunluk_siparis=1`, `hafta_sonu_katsayisi=0.4` → hafta sonu 0 yerine 1 sipariş); yoksa kural 5 izinli parametrelerle bile düşer (PR #72 incelemesi). Varsayılanla **N = 8.208**.
 - Kampanya dönemlerinden hiçbiri simülasyon aralığıyla kesişmiyorsa betik hata vermez (sözlük yasaklamıyor) ama konsola `Uyarı: … kesişmiyor; dosyada kampanyalı sipariş yok` yazar.
 - `toplam_tutar` **hesaplanır**: `round(adet × birim_fiyat × (1 − indirim_orani), 2)`.
-- `birim_fiyat` ürünün liste fiyatından en fazla ±%5 sapar (#30 çözümü). Sınırın yuvarlamayla aşılmaması için fiyat **kuruş cinsinden tamsayı** çekilir: `[liste × 95, liste × 105]` kuruş, uçlar dahil, sonra 100'e bölünür.
+- `birim_fiyat` ürünün liste fiyatından en fazla `fiyat_sapmasi` (varsayılan ±%5) sapar (#30 çözümü). Sınırın yuvarlamayla aşılmaması için fiyat **kuruş cinsinden tamsayı** çekilir: `[⌈liste × (1 − sapma)⌉, ⌊liste × (1 + sapma)⌋]` kuruş, uçlar dahil, tam ondalıkla (`Decimal`) hesaplanır, sonra 100'e bölünür. Varsayılanda bu `[liste × 95, liste × 105]` kuruştur.
 
 ## Parametreler
 
@@ -41,7 +41,9 @@ Betiğin başında sabit olarak tanımlıdır **ve** komut satırından değişt
 | `baslangic_tarihi` | 2026-01-05 | `--baslangic_tarihi 2026-02-02` |
 | `musteri_sayisi` | 1500 | `--musteri_sayisi 300` |
 | `tohum` | 42 | `--tohum 7` |
-| `urun_agirliklari` (isteğe bağlı) | boş = 25 ürün eşit olasılık | `--urun_agirliklari "1,1,1,0.3,1,…"` (25 sayı) |
+| `urun_agirliklari` (isteğe bağlı) | boş = 25 ürün eşit olasılık | `--urun_agirliklari "1,1,1,0.3,1,…"` (ürün sayısı kadar) |
+| `urun_listesi` (isteğe bağlı, Duyuru-10) | boş = betikteki 25 ürün | `--urun_listesi data/urun-listesi-ornek.csv` |
+| `fiyat_sapmasi` (Duyuru-10) | 0.05 (0–0.5) | `--fiyat_sapmasi 0.10` |
 | (çıktı yolu) | `data/siparisler-g2.csv` | `--cikti data/deneme.csv` |
 
 Deneme çalıştırmaları (`gun_sayisi=10` vb.) için **`--cikti` ile `data/` dışında** bir dosya verilir (ör. `/tmp/deneme-10gun.csv`); böylece deneme dosyası yanlışlıkla commit'lenemez. `data/siparisler-g2.csv` yalnızca varsayılanlarla üretilir.
@@ -88,6 +90,28 @@ Varsayılanda 25 ürün **eşit olasılıkla** seçilir; bu yüzden M5 (ciroda i
 Bu hatalarda da betik çökmez, **1** koduyla çıkar ve dosya yazılmaz.
 
 Sınır değerler geçerlidir (`gun_sayisi=1` ve `366`, `musteri_sayisi=9999`, `tohum=0`); boş `kampanya_donemleri` (`""`) kampanyasız dönem demektir. Sözlüğe yeni bir parametre veya aralık eklenirse `PARAMETRE_ARALIKLARI` ve bu tablo birlikte güncellenir.
+
+### Ürün listesi ve fiyat sapması (isteğe bağlı, Duyuru-10)
+
+Ajan 1'in topladığı rakip fiyatlarıyla uyuşması için ürünler ve liste fiyatları dışarıdan verilebilir (`docs/oneri.md` §4).
+
+- `--urun_listesi <yol>`: UTF-8 CSV (Excel BOM'u kabul edilir), virgül ayraçlı, nokta ondalıklı. Zorunlu sütunlar `kategori,urun,liste_fiyati`; isteğe bağlı `fiyat_sapmasi` (ürün başına; boş hücre = `--fiyat_sapmasi`). `liste_fiyati` TL, > 0, en fazla 2 ondalık. Ürün adı tekil olmalı. Örnek: `data/urun-listesi-ornek.csv` (bugünkü 25 ürün).
+- `--fiyat_sapmasi <oran>`: tüm ürünler için varsayılan sapma, 0–0.5 (vars. 0.05). `0` verilirse `birim_fiyat` = liste fiyatı.
+- **Boş bırakılırsa** (varsayılan) betikteki 25 ürün kullanılır ve dosya, MD5 `1b7f765e…` değişmez. `data/urun-listesi-ornek.csv` ile çalıştırmak da aynı MD5'i verir (aynı ürünler, aynı sıra).
+- Liste verildiğinde `kategori`/`urun` geçerli değerleri, kural 7 (ürün kendi kategorisinde) ve kural 8 (fiyat sınırı) bu listeden kontrol edilir; `urun_agirliklari` ürün sayısı kadar değer almalıdır.
+- Şema (14 sütun) değişmez. Sözlükteki parametre tablosuna eklenmesi DQ'nun işidir (`docs/oneri.md` §4).
+
+| Girdi | Mesaj |
+|---|---|
+| Dosya yok | `urun_listesi dosyası bulunamadı, verilen: 'yok.csv'` |
+| `liste_fiyati` sütunu yok | `urun_listesi şu sütunları içermeli: kategori, urun, liste_fiyati; eksik: liste_fiyati` |
+| Başlık var, satır yok | `urun_listesi en az 1 ürün içermeli, verilen: '…'` |
+| Aynı ürün iki kez | `urun_listesi 3. satır: urun iki kez geçiyor, verilen: 'B'` |
+| `liste_fiyati` `-3` / `nan` | `urun_listesi 2. satır: liste_fiyati 0'dan büyük olmalı, verilen: '-3'` |
+| `liste_fiyati` `1.234` | `urun_listesi 2. satır: liste_fiyati en fazla 2 ondalık olmalı, verilen: '1.234'` |
+| Satırda `fiyat_sapmasi` `0.9` | `urun_listesi 2. satır: fiyat_sapmasi 0.0–0.5 arasında olmalı, verilen: '0.9'` |
+| `--fiyat_sapmasi 0.6` | `fiyat_sapmasi 0.0–0.5 arasında olmalı, verilen: 0.6` |
+| 3 ürünlük listeyle `--urun_agirliklari 1,2` | `urun_agirliklari 3 sayı içermeli (virgülle ayrılmış), verilen: 2 değer` |
 
 ## Üretim sırası (bayt bayt aynı dosya için)
 
@@ -159,7 +183,7 @@ Konsol özeti (kısaltılmış): `Satır: 8208 · Sütun: 14`, `Tarih: 2026-01-0
 | Görev 1 sınırlılığı | Görev 2 simülasyonundaki karşılığı |
 |---|---|
 | Haftada ~10 sipariş, tek büyük sipariş haftalık ciroyu ikiye katlıyor | Haftada ~284 teslim edilen sipariş; `adet` 1–5 ve %50'si 1 |
-| Ürünün kendine özgü fiyatı yok | `birim_fiyat` = liste fiyatı ±%5 (kuruş tamsayısıyla, sınır aşılamaz) |
+| Ürünün kendine özgü fiyatı yok | `birim_fiyat` = liste fiyatı ±`fiyat_sapmasi` (vars. %5; kuruş tamsayısıyla, sınır aşılamaz) |
 | Dalgalanmaların nedeni yok | Hafta sonu `× 1,3` ve kampanya `× 1,5` + indirim; parametreli |
 
 ## Bilinen sınırlılıklar ve açıklar

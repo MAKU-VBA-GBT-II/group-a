@@ -26,6 +26,7 @@ import io
 import math
 import sys
 from datetime import date, timedelta
+from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, InvalidOperation
 from pathlib import Path
 
 import numpy as np
@@ -44,7 +45,9 @@ KAMPANYA_DONEMLERI = "2026-03-09:2026-03-15,2026-05-11:2026-05-17"
 BASLANGIC_TARIHI = "2026-01-05"  # Pazartesi
 MUSTERI_SAYISI = 1500
 TOHUM = 42
-URUN_AGIRLIKLARI = "" # boş = 25 ürün eşit olasılıkla (eski davranış); dolu = 25 sayı, URUNLER sırasıyla
+URUN_AGIRLIKLARI = "" # boş = ürünler eşit olasılıkla (eski davranış); dolu = ürün sayısı kadar sayı, ürün listesi sırasıyla
+URUN_LISTESI = ""  # boş = aşağıdaki 25 ürünlük KATEGORI_URUN; dolu = kategori,urun,liste_fiyati[,fiyat_sapmasi] CSV yolu
+FIYAT_SAPMASI = 0.05  # birim_fiyat = liste fiyatı × [1 − sapma, 1 + sapma]; ürün listesinde ürün başına verilebilir
 
 CIKTI = "data/siparisler-g2.csv"
 
@@ -56,6 +59,7 @@ PARAMETRE_ARALIKLARI = {
     "kampanya_katsayisi": (float, 1.0, 5.0),
     "musteri_sayisi": (int, 1, 9999),
     "tohum": (int, 0, None),
+    "fiyat_sapmasi": (float, 0.0, 0.5),
 }
 
 # ----------------------------------------------------------------------------
@@ -120,8 +124,6 @@ KATEGORI_URUN = {
 # 25 ürünlük düz liste: (kategori, ürün, liste fiyatı) — sıra yukarıdaki gibi
 URUNLER = [(kat, ad, fiyat) for kat, liste in KATEGORI_URUN.items() for ad, fiyat in liste]
 
-FIYAT_SAPMA = 0.05  # birim_fiyat = liste fiyatı × [0,95 – 1,05]
-
 ADET_DEGERLERI = [1, 2, 3, 4, 5]
 ADET_OLASILIK = [0.50, 0.25, 0.12, 0.08, 0.05]
 
@@ -180,8 +182,8 @@ def tarihi_coz(ad, metin):
         raise ValueError(f"{ad} geçerli bir YYYY-MM-DD tarihi olmalı, verilen: {metin!r}") from None
 
 
-def urun_agirliklarini_coz(metin):
-    """'a,b,c,…' (25 sayı, URUNLER sırasıyla) metnini olasılık dizisine çevirir; boşsa None.
+def urun_agirliklarini_coz(metin, urun_sayisi=len(URUNLER)):
+    """'a,b,c,…' (ürün sayısı kadar sayı, ürün listesi sırasıyla) metnini olasılık dizisine çevirir; boşsa None.
 
     None = ağırlık verilmedi → uret() eski rng.integers satırını aynen kullanır (MD5 değişmez).
     Sayılar toplamı 1 olacak şekilde normalize edilir; bozuksa ValueError verir.
@@ -191,8 +193,8 @@ def urun_agirliklarini_coz(metin):
         return None
     parcalar = [x.strip() for x in metin.split(",")]
     kontrol(
-        len(parcalar) == len(URUNLER),
-        f"urun_agirliklari {len(URUNLER)} sayı içermeli (virgülle ayrılmış), verilen: {len(parcalar)} değer",
+        len(parcalar) == urun_sayisi,
+        f"urun_agirliklari {urun_sayisi} sayı içermeli (virgülle ayrılmış), verilen: {len(parcalar)} değer",
     )
     degerler = []
     for parca in parcalar:
@@ -212,6 +214,70 @@ def urun_agirliklarini_coz(metin):
     # (taşarsa olasılıklar 0 olur ve numpy üretim sırasında İngilizce hata verir)
     oranlar = np.array(degerler) / en_buyuk
     return oranlar / oranlar.sum()
+
+
+def sapmayi_coz(metin, yer):
+    """Fiyat sapmasını tam ondalık (Decimal) olarak çözer: 0–0,5 arasında olmalı."""
+    alt, ust = PARAMETRE_ARALIKLARI["fiyat_sapmasi"][1:]
+    try:
+        sapma = Decimal(str(metin).strip())
+    except InvalidOperation:
+        raise ValueError(f"{yer} sayı olmalı ({alt}–{ust} arasında), verilen: {metin!r}") from None
+    kontrol(sapma.is_finite() and Decimal(str(alt)) <= sapma <= Decimal(str(ust)),
+            f"{yer} {alt}–{ust} arasında olmalı, verilen: {metin!r}")
+    return sapma
+
+
+def fiyat_sinirlari(liste_kurus, sapma):
+    """Ürünün kuruş cinsinden [alt, üst] fiyat sınırı; tam ondalıkla hesaplanır (yuvarlama sınırı aşmaz).
+
+    Varsayılan 0,05 sapmada tamsayı TL liste fiyatı için [liste × 95, liste × 105] kuruş verir,
+    yani eski formülle aynıdır (MD5 değişmez).
+    """
+    alt = int((liste_kurus * (1 - sapma)).to_integral_value(rounding=ROUND_CEILING))
+    ust = int((liste_kurus * (1 + sapma)).to_integral_value(rounding=ROUND_FLOOR))
+    return alt, ust
+
+
+def urun_listesini_coz(yol, varsayilan_sapma):
+    """Ürün listesini [(kategori, ürün, liste_kurus, sapma), ...] olarak döndürür.
+
+    yol boşsa betikteki 25 ürün (KATEGORI_URUN) kullanılır. Doluysa UTF-8 CSV okunur:
+    zorunlu sütunlar kategori, urun, liste_fiyati (TL, en fazla 2 ondalık, > 0);
+    isteğe bağlı fiyat_sapmasi (boş hücre = --fiyat_sapmasi). Bozuk dosyada ValueError.
+    """
+    sapma = sapmayi_coz(varsayilan_sapma, "fiyat_sapmasi")
+    yol = str(yol).strip()
+    if not yol:
+        return [(k, u, int(f) * 100, sapma) for k, u, f in URUNLER]
+    dosya = Path(yol)
+    kontrol(dosya.is_file(), f"urun_listesi dosyası bulunamadı, verilen: {yol!r}")
+    try:
+        tablo = pd.read_csv(dosya, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    except (UnicodeDecodeError, pd.errors.ParserError, pd.errors.EmptyDataError) as hata:
+        raise ValueError(f"urun_listesi UTF-8 CSV olarak okunamadı ({type(hata).__name__}), verilen: {yol!r}") from None
+    tablo.columns = [str(c).strip() for c in tablo.columns]
+    eksik = [c for c in ("kategori", "urun", "liste_fiyati") if c not in tablo.columns]
+    kontrol(not eksik, f"urun_listesi şu sütunları içermeli: kategori, urun, liste_fiyati; eksik: {', '.join(eksik)}")
+    kontrol(len(tablo) > 0, f"urun_listesi en az 1 ürün içermeli, verilen: {yol!r}")
+    urunler, gorulen = [], set()
+    for sira, satir in enumerate(tablo.to_dict("records"), start=2):  # 1. satır başlık
+        yer = f"urun_listesi {sira}. satır"
+        kat, urun, fiyat = (str(satir[c]).strip() for c in ("kategori", "urun", "liste_fiyati"))
+        kontrol(kat and urun, f"{yer}: kategori ve urun boş olamaz")
+        kontrol(urun not in gorulen, f"{yer}: urun iki kez geçiyor, verilen: {urun!r}")
+        gorulen.add(urun)
+        try:
+            tl = Decimal(fiyat)
+        except InvalidOperation:
+            raise ValueError(f"{yer}: liste_fiyati sayı olmalı (nokta ondalıklı), verilen: {fiyat!r}") from None
+        kontrol(tl.is_finite() and tl > 0, f"{yer}: liste_fiyati 0'dan büyük olmalı, verilen: {fiyat!r}")
+        kurus = tl * 100
+        kontrol(kurus == kurus.to_integral_value(), f"{yer}: liste_fiyati en fazla 2 ondalık olmalı, verilen: {fiyat!r}")
+        urun_sapma = str(satir.get("fiyat_sapmasi", "")).strip()
+        urun_sapma = sapmayi_coz(urun_sapma, f"{yer}: fiyat_sapmasi") if urun_sapma else sapma
+        urunler.append((kat, urun, int(kurus), urun_sapma))
+    return urunler
 
 
 def kampanya_donemlerini_coz(metin):
@@ -272,12 +338,13 @@ def uret(p):
     # Tüm rastgele değerler tek rng'den, bu sırayla çekilir (sıra değişirse dosya değişir)
     rng = np.random.default_rng(p.tohum)
     if p.agirliklar is None:
-        urun_idx = rng.integers(0, len(URUNLER), size=n) # ağırlık yok: eski satır aynen (MD5 korunur)
+        urun_idx = rng.integers(0, len(p.urunler), size=n) # ağırlık yok: eski satır aynen (MD5 korunur)
     else:
-        urun_idx = rng.choice(len(URUNLER), size=n, p=p.agirliklar) # ağırlıklı: rastgele sayı akışı değişir
-    liste_fiyat = np.array([URUNLER[i][2] for i in urun_idx], dtype=np.int64)
-    # Fiyat kuruş cinsinden tamsayı çekilir: [liste × 95, liste × 105] kuruş, uçlar dahil
-    kurus = rng.integers(liste_fiyat * 95, liste_fiyat * 105 + 1)
+        urun_idx = rng.choice(len(p.urunler), size=n, p=p.agirliklar) # ağırlıklı: rastgele sayı akışı değişir
+    # Fiyat kuruş cinsinden tamsayı çekilir: [liste × (1 − sapma), liste × (1 + sapma)] kuruş, uçlar dahil
+    # (varsayılanda [liste × 95, liste × 105], eskisiyle aynı)
+    sinirlar = np.array([fiyat_sinirlari(lk, sp) for _, _, lk, sp in p.urunler], dtype=np.int64)
+    kurus = rng.integers(sinirlar[urun_idx, 0], sinirlar[urun_idx, 1] + 1)
     adet = rng.choice(ADET_DEGERLERI, size=n, p=ADET_OLASILIK)
     kanal = rng.choice(KANALLAR, size=n, p=KANAL_OLASILIK)
     sehir = rng.choice(SEHIRLER, size=n, p=SEHIR_OLASILIK)
@@ -296,8 +363,8 @@ def uret(p):
             "siparis_tarihi": tarih,
             "musteri_id": [f"M{m:04d}" for m in musteri],
             "kanal": kanal,
-            "kategori": [URUNLER[i][0] for i in urun_idx],
-            "urun": [URUNLER[i][1] for i in urun_idx],
+            "kategori": [p.urunler[i][0] for i in urun_idx],
+            "urun": [p.urunler[i][1] for i in urun_idx],
             "adet": adet,
             "birim_fiyat": birim_fiyat,
             "indirim_orani": indirim,
@@ -346,8 +413,8 @@ def dogrula(df, p, beklenen_n):
     # Kural 6 — kategorik değerler listelerde
     for alan, izinli in [
         ("kanal", KANALLAR),
-        ("kategori", list(KATEGORI_URUN)),
-        ("urun", [u for _, u, _ in URUNLER]),
+        ("kategori", [k for k, _, _, _ in p.urunler]),
+        ("urun", [u for _, u, _, _ in p.urunler]),
         ("sehir", SEHIRLER),
         ("odeme_tipi", ODEME_TIPLERI),
         ("durum", DURUMLAR),
@@ -361,14 +428,16 @@ def dogrula(df, p, beklenen_n):
     # adet aralığı
     kontrol(df["adet"].between(1, 5).all(), "adet 1–5 dışında")
     # Kural 7 — ürün kendi kategorisinde
-    urun_kategori = {u: k for k, u, _ in URUNLER}
+    urun_kategori = {u: k for k, u, _, _ in p.urunler}
     kontrol((df["urun"].map(urun_kategori) == df["kategori"]).all(), "Kural 7: ürün kendi kategorisinde değil")
-    # Kural 8 — fiyat liste fiyatının [%95, %105] aralığında (kuruş cinsinden, yuvarlama payı yok)
-    liste = df["urun"].map({u: f for _, u, f in URUNLER})
+    # Kural 8 — fiyat liste fiyatının ±sapma aralığında (varsayılan ±%5; kuruş cinsinden, yuvarlama payı yok)
+    sinir = {u: fiyat_sinirlari(lk, sp) for _, u, lk, sp in p.urunler}
+    alt = df["urun"].map({u: a for u, (a, _) in sinir.items()})
+    ust = df["urun"].map({u: b for u, (_, b) in sinir.items()})
     kurus = (df["birim_fiyat"] * 100).round().astype(int)
     kontrol(
-        ((kurus >= liste * 95) & (kurus <= liste * 105)).all(),
-        "Kural 8: birim_fiyat liste fiyatının ±%5'i dışında",
+        ((kurus >= alt) & (kurus <= ust)).all(),
+        "Kural 8: birim_fiyat liste fiyatının ±fiyat_sapmasi aralığı dışında",
     )
     # Kural 10 — hesaplanan alan
     hesap = (df["adet"] * df["birim_fiyat"] * (1 - df["indirim_orani"])).round(2)
@@ -407,7 +476,9 @@ def parametreleri_al(argv=None):
     ap.add_argument("--baslangic_tarihi", default=BASLANGIC_TARIHI, help=f"YYYY-MM-DD (vars. {BASLANGIC_TARIHI})")
     ap.add_argument("--musteri_sayisi", default=MUSTERI_SAYISI, help=f"vars. {MUSTERI_SAYISI}")
     ap.add_argument("--tohum", default=TOHUM, help=f"rastgelelik tohumu (vars. {TOHUM})")
-    ap.add_argument("--urun_agirliklari", default=URUN_AGIRLIKLARI, help="25 ürünün satış ağırlığı, virgülle ayrılmış, URUNLER sırasıyla (vars. boş = eşit olasılık)")
+    ap.add_argument("--urun_agirliklari", default=URUN_AGIRLIKLARI, help="ürünlerin satış ağırlığı, virgülle ayrılmış, ürün listesi sırasıyla (vars. boş = eşit olasılık)")
+    ap.add_argument("--urun_listesi", default=URUN_LISTESI, help="kategori,urun,liste_fiyati[,fiyat_sapmasi] sütunlu UTF-8 CSV (vars. boş = betikteki 25 ürün)")
+    ap.add_argument("--fiyat_sapmasi", default=FIYAT_SAPMASI, help=f"birim_fiyat'ın liste fiyatından en fazla sapma oranı, 0–0.5 (vars. {FIYAT_SAPMASI})")
     ap.add_argument("--cikti", default=CIKTI, help=f"çıktı dosyası (vars. {CIKTI})")
     p = ap.parse_args(argv)
     parametreleri_dogrula(p)
@@ -424,7 +495,8 @@ def parametreleri_dogrula(p):
         setattr(p, ad, sayiyi_coz(ad, getattr(p, ad)))
     p.baslangic = tarihi_coz("baslangic_tarihi", p.baslangic_tarihi)
     p.donemler = kampanya_donemlerini_coz(p.kampanya_donemleri)
-    p.agirliklar = urun_agirliklarini_coz(p.urun_agirliklari)
+    p.urunler = urun_listesini_coz(p.urun_listesi, p.fiyat_sapmasi)
+    p.agirliklar = urun_agirliklarini_coz(p.urun_agirliklari, len(p.urunler))
 
 
 def main(argv=None):
@@ -450,8 +522,10 @@ def main(argv=None):
         f"Parametreler: gun_sayisi={p.gun_sayisi}, gunluk_siparis={p.gunluk_siparis}, "
         f"hafta_sonu_katsayisi={p.hafta_sonu_katsayisi}, kampanya_katsayisi={p.kampanya_katsayisi}, "
         f"kampanya_donemleri={p.kampanya_donemleri}, baslangic_tarihi={p.baslangic_tarihi}, "
-        f"musteri_sayisi={p.musteri_sayisi}, tohum={p.tohum}"
+        f"musteri_sayisi={p.musteri_sayisi}, tohum={p.tohum}, fiyat_sapmasi={p.fiyat_sapmasi}"
     )
+    if p.urun_listesi.strip():
+        print(f"Ürün listesi: {p.urun_listesi} ({len(p.urunler)} ürün)")
     if p.agirliklar is not None:
         print(f"Ürün ağırlıkları: verildi (toplamı 1'e normalize edildi) · urun_agirliklari={p.urun_agirliklari}")
     print(f"Satır: {len(df)}  ·  Sütun: {len(df.columns)}")
