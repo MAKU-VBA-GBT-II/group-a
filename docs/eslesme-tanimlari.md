@@ -16,35 +16,45 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 
 ## Tablo
 
-TL sütunları bugünkü liste fiyatlarından (`src/simulasyon.py`) hesaplandı. Liste fiyatları web medyanlarına göre güncellenecek (Hilal'in fiyat tablosu, `--urun_listesi`); o zaman kurallar (çarpanlar) aynı kalır, TL sütunları yeni fiyatlardan yeniden hesaplanır.
+TL sütunları web fiyat taramasına göre güncellenen liste fiyatlarından (`data/urun-listesi-web.csv`) hesaplandı; kaynak Hilal'in taraması (`data/web-fiyat-taramasi.csv`, 24.11.2026, PR #103). 22 üründe taramadaki `onerilen_liste_tl` kullanıldı. Üç üründe eski liste fiyatı korundu:
+
+- **Spor Ayakkabı (1899) ve Masa Lambası (399):** Web karşılığı zayıf (ilk sayfada spor ayakkabı yok; yalnızca "Çocuk Masa Lambası" kategorisi bulundu).
+- **Kahve Makinesi (2999):** Tarama espresso ağırlıklı (medyan 14.999). Bu fiyat liste olsaydı otomatik bant 4.500 TL altını eleyecek, "dahil" listesindeki filtre kahve makinelerinin hepsi (taramada okunan tek örnek 1.299 TL) elenecekti.
+
+Uyarı ile kullanılanlar:
+
+- **Bluetooth Hoparlör (7499):** Medyanı parti hoparlörleri yükseltiyor (p25 2.799). Küçük taşınabilir hoparlörler makul aralığın altında kalıp `dusuk` güven alabilir.
+- **Saklama Kabı Seti (639):** Taramada tekli kaplar da var; bizim kuralımızda tekli kap elenir. Medyan setlerin gerçek fiyatından düşük olabilir.
+
+Varsayılan simülasyon (`data/siparisler-g2.csv`, betikteki 25 ürün) değişmedi; web fiyatlı veri `--urun_listesi data/urun-listesi-web.csv` ile üretilir.
 
 | # | Kategori | Ürün | Liste (TL) | Dahil anahtar kelimeler | Hariç anahtar kelimeler | Beklenen birim/miktar | Makul aralık (TL) | Oto. eleme sınırı (TL) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Elektronik | Kablosuz Kulaklık | 1299 | kablosuz kulaklık, bluetooth kulaklık, tws kulaklık | kablolu, kılıf, kulaklık ucu, şarj kutusu, stand, adaptör | 1 adet (çift) | 520–3250 | <389,70 / >3897 |
-| 2 | Elektronik | Bluetooth Hoparlör | 899 | bluetooth hoparlör, taşınabilir hoparlör, kablosuz hoparlör | soundbar, ev sinema, kablolu, kılıf, askı | 1 adet | 360–2250 | <269,70 / >2697 |
-| 3 | Elektronik | Powerbank | 599 | powerbank, taşınabilir şarj cihazı | güç istasyonu, kablo, adaptör, kılıf | 1 adet; 10.000–20.000 mAh | 240–1500 | <179,70 / >1797 |
-| 4 | Elektronik | Akıllı Saat | 3499 | akıllı saat, smartwatch | akıllı bileklik, kordon, kayış, ekran koruyucu, şarj kablosu, çocuk | 1 adet | 1400–8750 | <1049,70 / >10497 |
-| 5 | Elektronik | Klavye | 749 | klavye, mekanik klavye, oyuncu klavyesi, kablosuz klavye | elektronik klavye (müzik aleti), piyano, keycap, tuş seti, kılıf, bilek desteği, klavye mouse seti | 1 adet | 300–1870 | <224,70 / >2247 |
-| 6 | Giyim | Tişört | 249 | tişört, t-shirt, tshirt | uzun kollu, polo, çocuk, bebek, 2'li, 3'lü | 1 adet | 100–620 | <74,70 / >747 |
-| 7 | Giyim | Kot Pantolon | 699 | kot pantolon, jean, denim pantolon | kot ceket, kot şort, etek, çocuk | 1 adet | 280–1750 | <209,70 / >2097 |
-| 8 | Giyim | Sweatshirt | 549 | sweatshirt, kapüşonlu sweatshirt, hoodie | eşofman takımı, eşofman altı, çocuk | 1 adet | 220–1370 | <164,70 / >1647 |
+| 1 | Elektronik | Kablosuz Kulaklık | 2999 | kablosuz kulaklık, bluetooth kulaklık, tws kulaklık | kablolu, kılıf, kulaklık ucu, şarj kutusu, stand, adaptör | 1 adet (çift) | 1200–7500 | <899,70 / >8997 |
+| 2 | Elektronik | Bluetooth Hoparlör | 7499 | bluetooth hoparlör, taşınabilir hoparlör, kablosuz hoparlör | soundbar, ev sinema, kablolu, kılıf, askı | 1 adet | 3000–18750 | <2249,70 / >22497 |
+| 3 | Elektronik | Powerbank | 2999 | powerbank, taşınabilir şarj cihazı | güç istasyonu, kablo, adaptör, kılıf | 1 adet; 10.000–20.000 mAh | 1200–7500 | <899,70 / >8997 |
+| 4 | Elektronik | Akıllı Saat | 14999 | akıllı saat, smartwatch | akıllı bileklik, kordon, kayış, ekran koruyucu, şarj kablosu, çocuk | 1 adet | 6000–37500 | <4499,70 / >44997 |
+| 5 | Elektronik | Klavye | 1169 | klavye, mekanik klavye, oyuncu klavyesi, kablosuz klavye | elektronik klavye (müzik aleti), piyano, keycap, tuş seti, kılıf, bilek desteği, klavye mouse seti | 1 adet | 470–2920 | <350,70 / >3507 |
+| 6 | Giyim | Tişört | 1099 | tişört, t-shirt, tshirt | uzun kollu, polo, çocuk, bebek, 2'li, 3'lü | 1 adet | 440–2750 | <329,70 / >3297 |
+| 7 | Giyim | Kot Pantolon | 1599 | kot pantolon, jean, denim pantolon | kot ceket, kot şort, etek, çocuk | 1 adet | 640–4000 | <479,70 / >4797 |
+| 8 | Giyim | Sweatshirt | 1199 | sweatshirt, kapüşonlu sweatshirt, hoodie | eşofman takımı, eşofman altı, çocuk | 1 adet | 480–3000 | <359,70 / >3597 |
 | 9 | Giyim | Spor Ayakkabı | 1899 | spor ayakkabı, sneaker, koşu ayakkabısı | terlik, krampon, bağcık, ayakkabı boyası, temizleyici, çocuk | 1 çift | 760–4750 | <569,70 / >5697 |
-| 10 | Giyim | Mont | 2299 | mont, şişme mont, parka | yelek, yağmurluk, çocuk | 1 adet | 920–5750 | <689,70 / >6897 |
+| 10 | Giyim | Mont | 3499 | mont, şişme mont, parka | yelek, yağmurluk, çocuk | 1 adet | 1400–8750 | <1049,70 / >10497 |
 | 11 | Ev & Yaşam | Kahve Makinesi | 2999 | kahve makinesi, filtre kahve makinesi, türk kahvesi makinesi, espresso makinesi | kahve çekirdeği, kapsül, filtre kağıdı, kireç çözücü, kahve değirmeni, yedek parça | 1 adet | 1200–7500 | <899,70 / >8997 |
-| 12 | Ev & Yaşam | Battaniye | 449 | battaniye, polar battaniye, welsoft battaniye | elektrikli battaniye, bebek, kılıf | 1 adet; tek veya çift kişilik | 180–1120 | <134,70 / >1347 |
+| 12 | Ev & Yaşam | Battaniye | 999 | battaniye, polar battaniye, welsoft battaniye | elektrikli battaniye, bebek, kılıf | 1 adet; tek veya çift kişilik | 400–2500 | <299,70 / >2997 |
 | 13 | Ev & Yaşam | Masa Lambası | 399 | masa lambası, çalışma lambası, led masa lambası | ampul, lambader, avize, abajur başlığı | 1 adet | 160–1000 | <119,70 / >1197 |
-| 14 | Ev & Yaşam | Saklama Kabı Seti | 299 | saklama kabı seti, erzak saklama seti, vakumlu saklama kabı seti | tekli, beslenme çantası, yedek kapak | 1 set; 3–12 parça (parça sayısı kaydedilir) | 120–750 | <89,70 / >897 |
-| 15 | Ev & Yaşam | Halı | 1799 | halı, salon halısı | paspas, kapı önü, banyo, yolluk, halı yıkama | 1 adet; yaklaşık 160x230 cm (120x180 – 200x290 kabul) | 720–4500 | <539,70 / >5397 |
-| 16 | Kozmetik | Nemlendirici | 189 | nemlendirici krem, yüz nemlendirici | hava nemlendirici, ortam nemlendirici, saç, dudak | 1 adet; 30–100 ml | 80–470 | <56,70 / >567 |
-| 17 | Kozmetik | Şampuan | 129 | şampuan | kuru şampuan, köpek, kedi, evcil, halı, oto, saç kremi | 1 adet; 300–600 ml | 50–320 | <38,70 / >387 |
-| 18 | Kozmetik | Parfüm | 999 | parfüm, edp, edt, eau de parfum, eau de toilette | deodorant, vücut spreyi, body mist, oda parfümü, araç kokusu, tester | 1 adet; 50–100 ml | 400–2500 | <299,70 / >2997 |
-| 19 | Kozmetik | Güneş Kremi | 279 | güneş kremi, güneş koruyucu, spf | bronzlaştırıcı, güneş sonrası, after sun, güneş gözlüğü | 1 adet; 40–100 ml | 110–700 | <83,70 / >837 |
-| 20 | Kozmetik | Ruj | 159 | ruj, mat ruj, likit ruj | dudak kalemi, dudak balmı, dudak parlatıcısı, ruj seti | 1 adet | 60–400 | <47,70 / >477 |
-| 21 | Kitap | Roman | 149 | D&R kategori: Roman | e-kitap, sesli kitap, set, kutulu, ikinci el | 1 kitap | 70–300 | <44,70 / >447 |
-| 22 | Kitap | Deneme | 129 | D&R kategori: Deneme Yazın | deneme sınavı, soru bankası, tyt, ayt, lgs, kpss, set | 1 kitap | 60–260 | <38,70 / >387 |
-| 23 | Kitap | Ders Kitabı | 349 | D&R kategori: Ders ve Sınav Kitapları; konu anlatımlı, ders kitabı, yardımcı ders kitabı | deneme sınavı, soru bankası, e-kitap, set | 1 kitap | 170–700 | <104,70 / >1047 |
-| 24 | Kitap | Çocuk Kitabı | 99 | D&R kategori: Çocuk ve Gençlik; masal, hikaye kitabı | boyama, çıkartma, set, kutulu, oyuncak | 1 kitap | 50–200 | <29,70 / >297 |
-| 25 | Kitap | Şiir Kitabı | 119 | D&R kategori: Şiir | set, kutulu, ikinci el | 1 kitap | 60–240 | <35,70 / >357 |
+| 14 | Ev & Yaşam | Saklama Kabı Seti | 639 | saklama kabı seti, erzak saklama seti, vakumlu saklama kabı seti | tekli, beslenme çantası, yedek kapak | 1 set; 3–12 parça (parça sayısı kaydedilir) | 260–1600 | <191,70 / >1917 |
+| 15 | Ev & Yaşam | Halı | 2239 | halı, salon halısı | paspas, kapı önü, banyo, yolluk, halı yıkama | 1 adet; yaklaşık 160x230 cm (120x180 – 200x290 kabul) | 900–5600 | <671,70 / >6717 |
+| 16 | Kozmetik | Nemlendirici | 559 | nemlendirici krem, yüz nemlendirici | hava nemlendirici, ortam nemlendirici, saç, dudak | 1 adet; 30–100 ml | 220–1400 | <167,70 / >1677 |
+| 17 | Kozmetik | Şampuan | 269 | şampuan | kuru şampuan, köpek, kedi, evcil, halı, oto, saç kremi | 1 adet; 300–600 ml | 110–670 | <80,70 / >807 |
+| 18 | Kozmetik | Parfüm | 1199 | parfüm, edp, edt, eau de parfum, eau de toilette | deodorant, vücut spreyi, body mist, oda parfümü, araç kokusu, tester | 1 adet; 50–100 ml | 480–3000 | <359,70 / >3597 |
+| 19 | Kozmetik | Güneş Kremi | 619 | güneş kremi, güneş koruyucu, spf | bronzlaştırıcı, güneş sonrası, after sun, güneş gözlüğü | 1 adet; 40–100 ml | 250–1550 | <185,70 / >1857 |
+| 20 | Kozmetik | Ruj | 379 | ruj, mat ruj, likit ruj | dudak kalemi, dudak balmı, dudak parlatıcısı, ruj seti | 1 adet | 150–950 | <113,70 / >1137 |
+| 21 | Kitap | Roman | 299 | D&R kategori: Roman | e-kitap, sesli kitap, set, kutulu, ikinci el | 1 kitap | 150–600 | <89,70 / >897 |
+| 22 | Kitap | Deneme | 249 | D&R kategori: Deneme Yazın | deneme sınavı, soru bankası, tyt, ayt, lgs, kpss, set | 1 kitap | 120–500 | <74,70 / >747 |
+| 23 | Kitap | Ders Kitabı | 449 | D&R kategori: Ders ve Sınav Kitapları; konu anlatımlı, ders kitabı, yardımcı ders kitabı | deneme sınavı, soru bankası, e-kitap, set | 1 kitap | 220–900 | <134,70 / >1347 |
+| 24 | Kitap | Çocuk Kitabı | 179 | D&R kategori: Çocuk ve Gençlik; masal, hikaye kitabı | boyama, çıkartma, set, kutulu, oyuncak | 1 kitap | 90–360 | <53,70 / >537 |
+| 25 | Kitap | Şiir Kitabı | 189 | D&R kategori: Şiir | set, kutulu, ikinci el | 1 kitap | 90–380 | <56,70 / >567 |
 
 ## Dikkat edilecek tuzaklar
 
@@ -59,7 +69,7 @@ TL sütunları bugünkü liste fiyatlarından (`src/simulasyon.py`) hesaplandı.
 
 1. Makul aralık varsayılanı 0,4x–2,5x (Kitap: 0,5x–2x). Otomatik bant 0,3x–3x aynen kalır.
 2. Çoklu paketler (2'li, 3'lü, set) şimdilik elenir; adet başı fiyata bölme yapılmaz.
-3. Liste fiyatları web medyanlarına göre güncellenecek; TL bantları ayrı PR'da yeniden hesaplanacak (Hilal'in #100 incelemesi, 1. madde).
+3. Liste fiyatları web medyanlarına göre güncellendi (`data/urun-listesi-web.csv`); TL bantları bu fiyatlardan yeniden hesaplandı (Hilal'in #100 incelemesi, 1. madde; PR #102).
 4. Kozmetikte ml başı fiyat karşılaştırması sonraki haftaya bırakıldı.
 
 ---
