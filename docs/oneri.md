@@ -59,7 +59,7 @@ Mevcut yapı: `src/simulasyon.py`, `data/siparisler-g2.csv`, `docs/veri-sozlugu.
 - **Yapıldı (Tuğba, PR #102):** Web fiyatlı liste `data/urun-listesi-web.csv` (`onerilen_liste_tl`; Spor Ayakkabı, Masa Lambası ve Kahve Makinesi eski fiyatta, gerekçe `docs/eslesme-tanimlari.md`) ve bununla üretilen örnek veri `data/siparisler-web.csv`.
 - Ürün adları, Ajan 1'in eşleştirdiği web ürünleriyle uyuşacak; eşleşme tanımları `docs/eslesme-tanimlari.md` (PR #100). Liste fiyatları için önerilen yeni değerler `data/web-fiyat-taramasi.csv` → `onerilen_liste_tl` sütununda (Hilal, 24 Kasım).
 - Örnek veri `data/` altına, yeni parametreler `docs/veri-sozlugu.md` Simülasyon parametreleri tablosuna ve değişiklik günlüğüne yazılacak (Hilal, DQ).
-- `[TODO — Sema]` Yeni parametreler için test kuralları.
+- Yeni parametreler (`--urun_listesi`, `--fiyat_sapmasi`) için test kuralları: `tests/test-cases.md` G2-TC-26…34, koşucu `src/dq_test_g2.py` (36/36), sonuç `tests/test-log.md` (Sema, DQ).
 
 ## 5. Abonelikler
 

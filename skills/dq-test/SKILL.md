@@ -17,7 +17,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 | Test edilen veri | `data/siparisler-g2.csv` (BE, `src/simulasyon.py`, #61) |
 | Senaryolar | `tests/test-cases.md` (Görev 1 senaryoları `tests/test-cases-g1.md`'de arşivde) |
 | Sonuçlar | `tests/test-log.md` → "Görev 2" tablosu (tarihli satırlar) |
-| Test koşucusu | `src/dq_test_g2.py` — senaryoları ID'leriyle koşar (G2-TC-01…25 + sınır değerler G2-TC-21+ ve G2-TC-25+; G2-TC-23…25 Görev 3'te `urun_agirliklari` için eklendi); gruplar `--grup A B C D`, başka dosya `--dosya`; tümü geçerse çıkış 0 |
+| Test koşucusu | `src/dq_test_g2.py` — senaryoları ID'leriyle koşar (G2-TC-01…34 + sınır değerler G2-TC-21+ ve G2-TC-25+; G2-TC-23…25 Görev 3'te `urun_agirliklari` için, G2-TC-26…34 `urun_listesi` ve `fiyat_sapmasi` için eklendi); gruplar `--grup A B C D`, başka dosya `--dosya`; tümü geçerse çıkış 0 |
 
 ## Kurallar (hocanın #47 notu)
 
@@ -36,7 +36,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 | Gelen | G2-test'te "Analiz hazır — commit …" (dq-analiz adım 7) | Hafta 6 | Grafik–analiz tutarlılığını sınar (C5) |
 | Giden | `bug` Issue'su → BE (veri) / FE (grafik) | Test kaldığında | Yeniden üretme adımları + senaryo ID |
 | Giden | Bug Issue'suna "Yeniden test — düzeldi" | Düzeltme merge edilince | Yeni test-log satırı + kapanış |
-| Giden | G2-test'e kanıt yorumu → PM | Son ürün 27/27 (PR #95 sonrası; önce 23/23) | Commit'ler + dosyalar + test turu özeti; Issue kapanır, milestone PM'e geçer |
+| Giden | G2-test'e kanıt yorumu → PM | Son ürün 36/36 (PR #102 sonrası; önce 27/27, 23/23) | Commit'ler + dosyalar + test turu özeti; Issue kapanır, milestone PM'e geçer |
 
 Gelen yorum yoksa o adıma geçilmez; ilgili Issue'da sorulur.
 
@@ -113,7 +113,7 @@ Ajana (Claude):
 Elle (depo kökünde):
 
 ```bash
-python src/dq_test_g2.py                 # A–D tüm senaryolar (son ürün: 27/27, PR #95 sonrası)
+python src/dq_test_g2.py                 # A–D tüm senaryolar (son ürün: 36/36, PR #102 sonrası)
 python src/dq_test_g2.py --grup A B      # yalnızca veri senaryoları
 python src/dq_test_g2.py --dosya yol.csv --grup A B
 ```
@@ -130,6 +130,10 @@ python src/dq_test_g2.py --dosya yol.csv --grup A B
 - **Araç:** Claude. Prompt özeti: "dq-test ve dq-sozluk skill'leriyle PR #95'i (`--urun_agirliklari`) DQ olarak incele, veriyi bağımsız kontrol et, bug ara; sözlüğü, senaryoları ve test koşucusunu güncelle."
 - Bağımsız kontrol: varsayılan MD5 `1b7f765e…` aynı; uç değer denemelerinde bug bulundu (25 × `1e308` → toplam taşıyor, numpy'nin İngilizce hatası) → düzeltme PR #95'e eklendi. G2-TC-09 ile sözlük arasındaki çelişki (ağırlığı 0 olan ürün, kural 6) sözlüğe istisna olarak yazıldı.
 - Senaryolar G2-TC-23…25 ve G2-TC-25+ yazıldı ve koşucuya aynı ID'lerle eklendi; düzeltilmemiş kodda G2-TC-25+ kaldı, düzeltmeyle tüm koşu 27/27.
+
+**Görev 3 (Sema Nur Doğan, DQ) — yeni parametrelerin test kuralları (PR #102):**
+- **Araç:** Claude. Prompt özeti: "`--urun_listesi` ve `--fiyat_sapmasi` için test kurallarını yaz: senaryoları `tests/test-cases.md`'ye ekle, koşucuya ekle, gerçekten koş, sonucu `tests/test-log.md`'ye yaz."
+- G2-TC-26…34 yazıldı ve koşucuya aynı ID'lerle eklendi; G2-TC-09/10/11 sabit 25 ürün yerine fiilen kullanılan listeye ve sapmaya göre genelleştirildi (varsayılan çıktı değişmedi). Koşu 36/36; ayrıca koşucunun yakalama gücü, simülasyonda 6 bilinçli bozulmayla (ürün sapması yok sayma, yuvarlama yönü, genel sapma yok sayma, ürün sıralama, 2 ondalık ve tekrar kontrolü kaldırma) denendi — hepsi en az bir senaryoda kaldı.
 
 **Görev 1 (Tuğba Tuana Kaygısız, DQ) — arşiv:**
 - Senaryolar `tests/test-cases-g1.md` (TC-01…TC-12), betik `src/dq_test.py`; testler, hata Issue'ları (#27, #28, #29) ve #27 sonrası yeniden test (9/9, `1868546`) Claude (Claude Code) ile yapıldı.
