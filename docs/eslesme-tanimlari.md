@@ -8,8 +8,8 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 
 1. **Eşleşme türü:** Sadece "benzer". Rakip ürün adında en az bir "dahil" ifadesi geçmeli, hiçbir "hariç" ifadesi geçmemeli (büyük/küçük harf ve Türkçe karakter duyarsız).
 2. **Otomatik eleme (anlaşma):** Fiyat < 0,3x veya > 3x liste fiyatı → `elendi`, gerekçe "fiyat bandı dışı". Satır silinmez.
-3. **Makul aralık (bu taslağın önerisi):** Varsayılan 0,4x–2,5x liste fiyatı; Kitap kategorisinde 0,5x–2x (kitap fiyatları daha dar dağılıyor). Otomatik bandın içinde kalıp makul aralığın dışına düşen satırlar elenmez, `eslesme_guveni = dusuk` işaretlenir.
-4. **Güven:** Dahil ifadesi + birim/miktar uyumlu + makul aralıkta → `yuksek`; biri eksik → `orta`; makul aralık dışı → `dusuk`.
+3. **Makul aralık:** Varsayılan 0,4x–2,5x liste fiyatı; Kitap kategorisinde 0,5x–2x (kitap fiyatları daha dar dağılıyor). Otomatik bandın içinde kalıp makul aralığın dışına düşen satırlar elenmez, `eslesme_guveni = dusuk` işaretlenir.
+4. **Güven (`eslesme_guveni`):** Yalnızca üç değer alır: `yuksek` / `orta` / `dusuk`. Dahil ifadesi + birim/miktar uyumlu + makul aralıkta → `yuksek`; biri eksik → `orta`; makul aralık dışı → `dusuk`.
 5. **Çoklu paket (2'li, 3'lü, set):** Şimdilik elenir, gerekçe "çoklu paket". (Saklama Kabı Seti hariç; o zaten set.)
 6. **İkinci el / yenilenmiş / teşhir:** Hep elenir, gerekçe "ikinci el".
 7. **Fiyat:** Karşılaştırmada indirimli fiyat varsa o, yoksa liste fiyatı kullanılır; TL dışı para birimi elenir.
@@ -38,11 +38,11 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 | 18 | Kozmetik | Parfüm | 999 | parfüm, edp, edt, eau de parfum, eau de toilette | deodorant, vücut spreyi, body mist, oda parfümü, araç kokusu, tester | 1 adet; 50–100 ml | 400–2500 | <299,70 / >2997 |
 | 19 | Kozmetik | Güneş Kremi | 279 | güneş kremi, güneş koruyucu, spf | bronzlaştırıcı, güneş sonrası, after sun, güneş gözlüğü | 1 adet; 40–100 ml | 110–700 | <83,70 / >837 |
 | 20 | Kozmetik | Ruj | 159 | ruj, mat ruj, likit ruj | dudak kalemi, dudak balmı, dudak parlatıcısı, ruj seti | 1 adet | 60–400 | <47,70 / >477 |
-| 21 | Kitap | Roman | 149 | Kitapyurdu kategori: Roman | e-kitap, sesli kitap, set, kutulu, ikinci el | 1 kitap | 70–300 | <44,70 / >447 |
-| 22 | Kitap | Deneme | 129 | Kitapyurdu kategori: Deneme | deneme sınavı, soru bankası, tyt, ayt, lgs, kpss, set | 1 kitap | 60–260 | <38,70 / >387 |
-| 23 | Kitap | Ders Kitabı | 349 | konu anlatımlı, ders kitabı, yardımcı ders kitabı | deneme sınavı, soru bankası, e-kitap, set | 1 kitap | 170–700 | <104,70 / >1047 |
-| 24 | Kitap | Çocuk Kitabı | 99 | Kitapyurdu kategori: Çocuk Kitapları; masal, hikaye kitabı | boyama, çıkartma, set, kutulu, oyuncak | 1 kitap | 50–200 | <29,70 / >297 |
-| 25 | Kitap | Şiir Kitabı | 119 | Kitapyurdu kategori: Şiir | set, kutulu, ikinci el | 1 kitap | 60–240 | <35,70 / >357 |
+| 21 | Kitap | Roman | 149 | D&R kategori: Roman | e-kitap, sesli kitap, set, kutulu, ikinci el | 1 kitap | 70–300 | <44,70 / >447 |
+| 22 | Kitap | Deneme | 129 | D&R kategori: Deneme Yazın | deneme sınavı, soru bankası, tyt, ayt, lgs, kpss, set | 1 kitap | 60–260 | <38,70 / >387 |
+| 23 | Kitap | Ders Kitabı | 349 | D&R kategori: Ders ve Sınav Kitapları; konu anlatımlı, ders kitabı, yardımcı ders kitabı | deneme sınavı, soru bankası, e-kitap, set | 1 kitap | 170–700 | <104,70 / >1047 |
+| 24 | Kitap | Çocuk Kitabı | 99 | D&R kategori: Çocuk ve Gençlik; masal, hikaye kitabı | boyama, çıkartma, set, kutulu, oyuncak | 1 kitap | 50–200 | <29,70 / >297 |
+| 25 | Kitap | Şiir Kitabı | 119 | D&R kategori: Şiir | set, kutulu, ikinci el | 1 kitap | 60–240 | <35,70 / >357 |
 
 ## Dikkat edilecek tuzaklar
 
@@ -51,7 +51,7 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 - **Deneme:** "deneme" kelimesi sınav deneme kitaplarını yakalar; bu yüzden Kitap kategorisi + sınav kelimeleri hariç.
 - **Ders Kitabı:** MEB ders kitapları satışta değil; piyasada karşılığı "konu anlatımlı / yardımcı ders kitabı". Eşleşme zayıf kalabilir, güven en fazla `orta` önerilir.
 - **Kahve Makinesi, Parfüm, Akıllı Saat:** Fiyat yelpazesi çok geniş (markaya göre); üst segment ürünler otomatik bantta bile elenebilir, bu beklenen bir durum.
-- **Kitap dışı kategoriler:** `docs/oneri.md`'ye göre henüz kaynak yok; tanımlar kaynaktan bağımsız yazıldı.
+- **Kaynaklar:** Elektronik MediaMarkt, Giyim Koton, Kozmetik Gratis, Ev & Yaşam Koçtaş, Kitap D&R (Kitapyurdu robots.txt erişimi reddettiği için elendi). Tanımlar ürün adına dayanır, kaynaktan bağımsız uygulanır.
 
 ## Kararlar (24 Kasım 2026)
 
