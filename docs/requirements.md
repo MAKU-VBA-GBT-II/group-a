@@ -10,7 +10,7 @@ Bir e-ticaret şirketinin sipariş verisini **gerçek kişi verisi kullanmadan**
 ## Ürünün yaptıkları
 
 1. **Veri üretir:** `python src/simulasyon.py` ile `data/siparisler-g2.csv` dosyasını 14 sütunlu şemaya birebir uygun üretir (varsayılanla 8.208 sipariş, 26 hafta).
-2. **Parametre alır:** 8 parametre betiğin başında ve komut satırından değiştirilebilir: `gun_sayisi`, `gunluk_siparis`, `hafta_sonu_katsayisi`, `kampanya_katsayisi`, `kampanya_donemleri`, `baslangic_tarihi`, `musteri_sayisi`, `tohum`.
+2. **Parametre alır:** 9 parametre betiğin başında ve komut satırından değiştirilebilir: `gun_sayisi`, `gunluk_siparis`, `hafta_sonu_katsayisi`, `kampanya_katsayisi`, `kampanya_donemleri`, `baslangic_tarihi`, `musteri_sayisi`, `tohum` ve isteğe bağlı `urun_agirliklari` (Görev 3, PR #95; boşken varsayılan dosya değişmez).
 3. **Satır sayısını öngörülebilir kılar:** satır sayısı parametrelerden formülle hesaplanır (örn. `gun_sayisi=10` → 424); her gün en az bir sipariş vardır (`max(1, …)`, PR #72).
 4. **Tekrarlanabilirdir:** aynı parametre ve tohumla her çalıştırmada birebir aynı dosyayı (aynı MD5) üretir.
 5. **Gerçekçi örüntü kurar:** ürüne özgü liste fiyatı (±%5), hafta sonu ve kampanya etkisi, kampanyada %10–30 indirim, %10 iade/iptal.
