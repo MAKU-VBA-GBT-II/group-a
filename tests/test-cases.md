@@ -12,6 +12,7 @@
 - **Beklenen satır sayıları** sözlükteki formülden hesaplanmıştır (veriden kopyalanmamıştır): `gun_adet = floor(gunluk_siparis × katsayılar + 0.5)`, `N = Σ gun_adet`.
 - Parametre ve hata senaryolarında betik **geçici bir dosyaya** çalıştırılır (`--cikti` ile); geçici dosyalar commit'lenmez.
 - **Görev 3 eki (PR #95):** isteğe bağlı `urun_agirliklari` parametresi için G2-TC-23…25 eklendi; varsayılanı boştur, yukarıdaki varsayılan dosya değişmez. Beklenen ürün payları sözlükteki `w_i / Σw` formülünden hesaplanır.
+- **Görev 3 eki 2 (PR #102):** `urun_listesi` ve `fiyat_sapmasi` parametreleri için G2-TC-26…34 eklendi (varsayılanlar eski davranışı korur). G2-TC-09/10/11 artık fiilen kullanılan ürün listesine (varsayılan 25 ürünlük sözlük tablosu ya da `--urun_listesi` dosyası) ve sapmaya göre koşulur; varsayılan dosyada sonuç değişmez.
 - Para metriklerinin hesabı (M1–M6) bu dosyanın değil, `docs/analiz-g2.md`'nin (#62) konusudur.
 
 ## Senaryolar
@@ -52,6 +53,13 @@
 | G2-TC-20 | Parametreler (tohum) | `tohum` yalnızca içeriği değiştiriyor mu? | `--tohum 7` ile çalıştır; satır sayısı ve MD5'i varsayılanla karşılaştır. | `--tohum 7` | Satır sayısı yine **8.208**; MD5 varsayılandan **farklı**; G2-TC-02…14 bu dosyada da geçer | | |
 | G2-TC-23 | Parametreler (`urun_agirliklari`) · Ağırlıklı alanlar (`urun`) | Ürün ağırlığı dağılımı değiştiriyor, satır sayısını değiştirmiyor mu? | 1) Ağırlıkla geçici dosyaya çalıştır. 2) Satır say, MD5'i varsayılanla karşılaştır. 3) Ürün paylarını `w_i / Σw` ile karşılaştır. 4) G2-TC-02…14'ü bu dosyada koş. | `--urun_agirliklari 1,1,2,0.5,1,4,3,4,1,1,1,3,2,3,1,4,4,1,3,3,2,2,1,3,1` (Σw = 53) | **8.208** satır; MD5 varsayılandan **farklı**; her ürünün payı `w_i / 53`'ün **±1,5 puan** içinde (ör. Akıllı Saat %0,9, Tişört %7,5); G2-TC-02…14 geçer | | |
 | G2-TC-24 | Parametreler (`urun_agirliklari`) · Kural 12 | Boş ağırlık eski davranışı koruyor, ağırlıklar normalize ediliyor mu? | 1) `--urun_agirliklari ""` ile çalıştır, MD5'i repodaki dosyayla karşılaştır. 2) G2-TC-23 ağırlıklarının 2 katıyla çalıştır, MD5'i G2-TC-23 dosyasıyla karşılaştır. | a) `""` · b) G2-TC-23 ağırlıkları × 2 | a) MD5 = `1b7f765e…` (repo) · b) MD5 = G2-TC-23 dosyasının MD5'i | | |
+| G2-TC-26 | Parametreler (`urun_listesi`, `fiyat_sapmasi`) · Kural 12 | Örnek liste ve varsayılan sapma, varsayılan dosyayı aynen üretiyor mu? | `--urun_listesi data/urun-listesi-ornek.csv` ile, sonra `--fiyat_sapmasi 0.05` ile geçici dosyaya çalıştır; MD5'leri repodaki dosyayla karşılaştır. | a) `--urun_listesi data/urun-listesi-ornek.csv` · b) `--fiyat_sapmasi 0.05` | İkisinde de MD5 = `1b7f765e…` (repo); varsayılan veri değişmez | | |
+| G2-TC-27 | Parametreler (`urun_listesi`) · Kural 6/7/8 · Kural 12 | Web fiyat listesiyle üretilen veri kurallara uyuyor ve tekrarlanabilir mi? | 1) Web listesiyle iki kez çalıştır. 2) Satır, ürün, kategori say; `birim_fiyat` aralığına bak. 3) G2-TC-09/10/11'i listedeki ürünlerle koş. 4) MD5'leri repodaki `data/siparisler-web.csv` ile karşılaştır. | `--urun_listesi data/urun-listesi-web.csv` | **8.208** satır; **25** ürün, **5** kategori; Kural 6/7/8 listeye göre geçer; 2 çalıştırma + repo dosyası aynı MD5 (`628b4351…`); `birim_fiyat` 170,12–15.743,03 | | |
+| G2-TC-28 | Parametreler (`urun_listesi`) · Kural 6/7/8 | Küçük özel liste yalnızca kendi ürün ve kategorilerini mi üretiyor? | Geçici 3 ürünlük liste dosyası yaz; çalıştır; satır, ürün, kategori ve fiyat aralığına bak. | Liste: `A,U1,100` · `A,U2,200.50` · `B,U3,300` | **8.208** satır; yalnızca U1/U2/U3 ve A/B; Kural 6/7/8 listeye göre geçer; `birim_fiyat` **95,00–315,00** | | |
+| G2-TC-29 | Parametreler (`fiyat_sapmasi`) · Kural 8 | Genel sapma fiyat aralığını belirliyor mu, uçlar kuruşa göre doğru mu? | Üç değerle çalıştır; her satırın `birim_fiyat / liste` oranını ve aralık dışı satır sayısını hesapla. | a) `--fiyat_sapmasi 0` · b) `0.1` · c) `0.5` | Her biri 8.208 satır, aralık dışı **0**; oran a) 1,000–1,000 · b) 0,900–1,100 · c) 0,500–1,500 içinde; uçlar kuruş hesabıyla içe yuvarlanır (200,50 ±%5 → 190,48–210,52) | | |
+| G2-TC-30 | Parametreler (liste sütunu `fiyat_sapmasi`) | Ürün başına sapma genel sapmayı geçersiz kılıyor, boş hücre genel sapmayı kullanıyor mu? | 3 ürünlük listeye `fiyat_sapmasi` sütunu ekle; genel sapma 0,1 ile çalıştır; ürün başına min/maks fiyata bak. | U1 `100` sapma `0` · U2 `200` sapma `0.5` · U3 `300` sapma boş · `--fiyat_sapmasi 0.1` | U1 **100,00–100,00**; U2 **100,18–299,83** (0,5 aralığında); U3 genel 0,1 → **270,01–330,00** | | |
+| G2-TC-31 | Parametreler (`urun_listesi` × `urun_agirliklari`) | Ağırlıklar listedeki ürün sayısına göre uygulanıyor mu? | Üç ürünlük listeyle: a) 3 ağırlık, b) 25 ağırlık, c) bir ürün dışında hepsi 0. | a) `--urun_agirliklari 1,2,3` · b) 25 değer · c) `--urun_agirliklari 0,0,1` | a) ürün payları `w_i / 6`'nın **±1,5 puan** içinde · b) çıkış **1**, mesajda `urun_agirliklari`, `3`, `25`; dosya yok · c) yalnızca U3; ürünü kalmayan A kategorisi dosyada **yok** | | |
+| G2-TC-32 | Parametreler (`urun_listesi` biçimi) | BOM'lu UTF-8, farklı sütun sırası ve Türkçe karakter doğru okunuyor mu; ürün sırası dosya sırası mı? | BOM'lu UTF-8, sütunları `liste_fiyati,urun,kategori` sırasında, adları Şapka/Çay olan liste yaz; çalıştır; `urun_agirliklari=1,0` ile tekrar çalıştır. | Liste: `Giyim,Şapka,…` · `Gıda,Çay,…` (BOM'lu) | Yalnızca Şapka/Çay ve Giyim/Gıda; Türkçe karakterler bozulmaz; `--urun_agirliklari=1,0` → yalnızca **dosyadaki ilk ürün** (Şapka) | | |
 
 ### D — Hata yönetimi (Hafta 6, `fix/error-handling` sonrası koşulur)
 
@@ -63,6 +71,8 @@ Kaynak: sözlük → "Geçersiz parametre" kuralı ve PR #66 incelemesi (satır 
 | G2-TC-22 | Geçersiz parametre | Bozuk kampanya dönemi ve tarih anlamlı hata veriyor mu? | G2-TC-21 gibi. | a) `--kampanya_donemleri 2026-03-09` (`:` yok) · b) `--kampanya_donemleri 2026-03-15:2026-03-09` (BAŞ > SON) · c) `--baslangic_tarihi 2026-13-01` | Her biri `ValueError` ve Türkçe, parametre adını içeren mesaj; b) **sessizce kampanyasız dosya yazmaz**; çıktı dosyası oluşmaz | | |
 | G2-TC-25 | Geçersiz parametre (`urun_agirliklari`) | Bozuk ürün ağırlığı anlamlı hata veriyor mu? | G2-TC-21 gibi; değer `--urun_agirliklari=<değer>` (eşittir ile) verilir. | a) 3 değer (`1,2,3`) · b) ilk değer `a` · c) ilk değer `-1` · d) ilk değer `nan` · e) ilk değer `inf` · f) 25 değerin hepsi `0` | Her biri çıkış **1**, `Hata (ValueError)` ve mesajda `urun_agirliklari`; Traceback yok; çıktı dosyası oluşmaz | | |
 | G2-TC-25+ | Parametreler (`urun_agirliklari` izinli uç değerler) · Kural 6 istisnası | İzinli uç değerler hatasız çalışıyor mu? | Geçici dosyaya çalıştır. | a) 25 × `1e308` · b) 1. ürün (Kablosuz Kulaklık) `0`, diğerleri `1` | a) çıkış **0**, dosya yazılır (toplam taşmaz — PR #95 incelemesi) · b) çıkış 0; Kablosuz Kulaklık dosyada **hiç** geçmez | | |
+| G2-TC-33 | Geçersiz parametre (`urun_listesi`) | Bozuk ürün listesi anlamlı hata veriyor mu? | G2-TC-21 gibi; her bozuk dosya ayrı ayrı verilir, çıktı dosyası ve hata mesajı kaydedilir. | 14 durum: a) dosya yok · b) UTF-8 değil (cp1254) · c) sütun eksik · d) liste boş · e) `kategori` boş · f) `urun` boş · g) aynı `urun` iki kez · h) fiyat `0` · i) fiyat negatif · j) fiyat 3 ondalık · k) fiyat sayı değil · l) ürün sapması `0.7` · m) `-0.1` · n) sayı değil | Her biri çıkış **1**, `Hata (ValueError)`, mesajda `urun_listesi` (veya `fiyat_sapmasi`) ve satır/sütun bilgisi; Traceback yok; çıktı dosyası **oluşmaz** | | |
+| G2-TC-34 | Geçersiz parametre (`fiyat_sapmasi`) | Aralık dışı veya sayı olmayan genel sapma anlamlı hata veriyor mu? | G2-TC-25 gibi; değer `--fiyat_sapmasi=<değer>` (eşittir ile) verilir. | a) `0.6` · b) `-0.1` · c) `abc` | Her biri çıkış **1**, `Hata (ValueError)`, mesajda `fiyat_sapmasi` ve izinli aralık 0–0,5; Traceback yok; çıktı dosyası oluşmaz | | |
 
 ## Kapsama
 
@@ -70,18 +80,20 @@ Kaynak: sözlük → "Geçersiz parametre" kuralı ve PR #66 incelemesi (satır 
 |---|---|
 | Kural 1 — boş değer yok | G2-TC-06 |
 | Kural 2 — sütunlar | G2-TC-02 |
-| Kural 3 — satır sayısı | G2-TC-03, G2-TC-17…20, G2-TC-23 |
+| Kural 3 — satır sayısı | G2-TC-03, G2-TC-17…20, G2-TC-23, G2-TC-27, G2-TC-28 |
 | Kural 4 — id ve sıralama | G2-TC-07 |
 | Kural 5 — tarih aralığı | G2-TC-08, G2-TC-17 |
-| Kural 6 — kategorik değerler | G2-TC-09; istisna (ağırlığı 0 olan ürün) G2-TC-25+ |
-| Kural 7 — ürün–kategori | G2-TC-10 |
-| Kural 8 — fiyat (#30) | G2-TC-11 |
+| Kural 6 — kategorik değerler | G2-TC-09 (listeye göre: G2-TC-27, 28, 32); istisna (ağırlığı 0 olan ürün) G2-TC-25+ |
+| Kural 7 — ürün–kategori | G2-TC-10 (listeye göre: G2-TC-27, 28) |
+| Kural 8 — fiyat (#30) | G2-TC-11 (listeye göre: G2-TC-27, 28); sapma G2-TC-29, G2-TC-30 |
 | Kural 9 — 2 ondalık | G2-TC-12 |
 | Kural 10 — hesaplanan alan | G2-TC-13 |
 | Kural 11 — kampanya | G2-TC-14 |
-| Kural 12 — tekrarlanabilirlik | G2-TC-16, G2-TC-20, G2-TC-24 |
+| Kural 12 — tekrarlanabilirlik | G2-TC-16, G2-TC-20, G2-TC-24, G2-TC-26, G2-TC-27 |
 | Alan tablosu (tip, aralık, `musteri_id`) | G2-TC-04, G2-TC-05 |
 | Ağırlıklı alanlar | G2-TC-15; `urun` (`w_i / Σw`) G2-TC-23 |
 | Satır sayısı tablosu (8.208 / 424 / 304 / 106) | G2-TC-03, G2-TC-17, G2-TC-18 |
-| Geçersiz parametre (`ValueError`, dosya yazılmaz) | G2-TC-21, G2-TC-22, G2-TC-25 |
+| Geçersiz parametre (`ValueError`, dosya yazılmaz) | G2-TC-21, G2-TC-22, G2-TC-25, G2-TC-33, G2-TC-34 |
 | Parametre `urun_agirliklari` (normalize, boş = varsayılan, izinli uç değerler) | G2-TC-23, G2-TC-24, G2-TC-25+ |
+| Parametre `urun_listesi` (biçim, sıra, ağırlıkla birlikte) | G2-TC-26…28, G2-TC-31, G2-TC-32 |
+| Parametre `fiyat_sapmasi` (genel, ürün başına, uç değerler) | G2-TC-26, G2-TC-29, G2-TC-30 |
