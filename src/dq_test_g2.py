@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Sepetix Analitik (Grup A) — DQ: Görev 2 test koşucusu (tests/test-cases.md → G2-TC-01…25)
+Sepetix Analitik (Grup A) — DQ: Görev 2 test koşucusu (tests/test-cases.md → G2-TC-01…34)
 
 Veri dosyasını docs/veri-sozlugu.md kurallarına göre sınar; parametre ve hata yönetimi
 senaryolarında src/simulasyon.py'yi geçici bir klasöre çalıştırır (geçici dosyalar silinir).
@@ -24,6 +24,7 @@ import subprocess
 import sys
 import tempfile
 from datetime import date, timedelta
+from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 
 import pandas as pd
 
@@ -55,6 +56,29 @@ PARA = re.compile(r"^\d+\.\d{2}$")
 # Görev 3 (PR #95): urun_agirliklari senaryoları. Sıra = sözlükteki "Ürün sırası" (1–25) = LISTE sırası
 URUN_W = [1, 1, 2, 0.5, 1, 4, 3, 4, 1, 1, 1, 3, 2, 3, 1, 4, 4, 1, 3, 3, 2, 2, 1, 3, 1]
 URUN_TOL = 1.5  # puan; ürün payı beklenen w_i/Σw'nin ±1,5 puan içinde olmalı
+# Görev 3 (PR #102): urun_listesi ve fiyat_sapmasi senaryoları (G2-TC-26…34)
+ORNEK_LISTE = "data/urun-listesi-ornek.csv"   # betikteki 25 ürün; varsayılan dosyayı aynen üretir
+WEB_LISTE = "data/urun-listesi-web.csv"       # liste fiyatları Ajan 1'in web taramasına göre
+WEB_VERI = "data/siparisler-web.csv"          # WEB_LISTE ile üretilmiş repodaki dosya
+LISTE_BASLIK = "kategori,urun,liste_fiyati\n"
+LISTE_SAPMALI = "kategori,urun,liste_fiyati,fiyat_sapmasi\n"
+
+
+def liste_yukle(yol):
+    """--urun_listesi CSV'sini okur → ({kategori: {urun: liste_fiyati}}, {urun: fiyat_sapmasi ya da None}). Sıra = dosya sırası."""
+    d = pd.read_csv(yol, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    kat, sap = {}, {}
+    for _, r in d.iterrows():
+        kat.setdefault(r["kategori"], {})[r["urun"]] = float(r["liste_fiyati"])
+        sap[r["urun"]] = float(r["fiyat_sapmasi"]) if "fiyat_sapmasi" in d.columns and r["fiyat_sapmasi"] != "" else None
+    return kat, sap
+
+
+def fiyat_siniri(liste, sapma):
+    """Sözlük kural 8: birim_fiyat ∈ [liste × (1 − sapma), liste × (1 + sapma)], kuruş cinsinden tam ondalıkla; sınır içe yuvarlanır."""
+    l, s = Decimal(str(liste)), Decimal(str(sapma))
+    ince = Decimal("0.01")
+    return float((l * (1 - s)).quantize(ince, ROUND_CEILING)), float((l * (1 + s)).quantize(ince, ROUND_FLOOR))
 
 
 def agirlik_metni(w):
@@ -84,8 +108,14 @@ def sonuc(tc, gecti, metin):
 
 
 # ------------------------------------------------------------------ A + B: veri dosyası
-def veri_testleri(yol, p=None, gruplar=("A", "B")):
+def veri_testleri(yol, p=None, gruplar=("A", "B"), liste=None, sapma=0.05):
+    """liste: {kategori: {urun: fiyat}} — dosyayı üreten ürün listesi (verilmezse sözlükteki 25 ürün);
+    sapma: birim_fiyat'ın liste fiyatından izinli sapması (sayı ya da {urun: sapma}). Sözlük kural 6, 7, 8."""
     p = {**VARSAYILAN, **(p or {})}
+    urunler = liste or URUNLER
+    liste_f = {u: f for d in urunler.values() for u, f in d.items()}
+    urun_kat = {u: k for k, d in urunler.items() for u in d}
+    degerler = {**DEGERLER, "kategori": list(urunler), "urun": list(liste_f)}
     out = []
     if not os.path.exists(yol) or os.path.getsize(yol) == 0:
         return [sonuc("G2-TC-01", False, f"{yol} yok ya da boş")]
@@ -119,14 +149,16 @@ def veri_testleri(yol, p=None, gruplar=("A", "B")):
         ok8 = t.min().date() == bas and t.max().date() == son and t.nunique() == p["gun_sayisi"]
         out.append(sonuc("G2-TC-08", ok8, f"{t.min():%Y-%m-%d} … {t.max():%Y-%m-%d}, {t.nunique()} farklı gün (beklenen {bas} … {son}, {p['gun_sayisi']})"))
     if "B" in gruplar:
-        fazla = {c: sorted(set(df[c]) - set(v)) for c, v in DEGERLER.items() if set(df[c]) - set(v)}
-        eksik = {c: sorted(set(v) - set(df[c])) for c, v in DEGERLER.items() if set(v) - set(df[c])}
+        fazla = {c: sorted(set(df[c]) - set(v)) for c, v in degerler.items() if set(df[c]) - set(v)}
+        eksik = {c: sorted(set(v) - set(df[c])) for c, v in degerler.items() if set(v) - set(df[c])}
         out.append(sonuc("G2-TC-09", not fazla and not eksik, f"liste dışı: {fazla or 'yok'}; hiç geçmeyen: {eksik or 'yok'}"))
-        uy = (df["urun"].map(URUN_KAT) != df["kategori"]).sum()
+        uy = (df["urun"].map(urun_kat) != df["kategori"]).sum()
         out.append(sonuc("G2-TC-10", uy == 0, f"ürün–kategori uyuşmayan: {uy}"))
-        lp = df["urun"].map(LISTE)
-        dis = ((df["birim_fiyat"] < (lp * .95).round(2) - 1e-9) | (df["birim_fiyat"] > (lp * 1.05).round(2) + 1e-9)).sum()
-        out.append(sonuc("G2-TC-11", dis == 0, f"liste ±%5 dışı: {dis}; birim_fiyat {df['birim_fiyat'].min():.2f} – {df['birim_fiyat'].max():.2f}"))
+        lp = df["urun"].map(liste_f)
+        sp = df["urun"].map(sapma) if isinstance(sapma, dict) else sapma
+        dis = ((df["birim_fiyat"] < (lp * (1 - sp)).round(2) - 1e-9) | (df["birim_fiyat"] > (lp * (1 + sp)).round(2) + 1e-9)).sum()
+        etiket = "ürün başı sapma" if isinstance(sapma, dict) else f"liste ±%{sapma * 100:g}"
+        out.append(sonuc("G2-TC-11", dis == 0, f"{etiket} dışı: {dis}; birim_fiyat {df['birim_fiyat'].min():.2f} – {df['birim_fiyat'].max():.2f}"))
         bic = sum((~ham[c].str.fullmatch(PARA)).sum() for c in ["birim_fiyat", "toplam_tutar", "indirim_orani"])
         out.append(sonuc("G2-TC-12", bic == 0, f"2 ondalık dışı: {bic}"))
         fark = ((df["adet"] * df["birim_fiyat"] * (1 - df["indirim_orani"])).round(2) - df["toplam_tutar"]).abs()
@@ -213,6 +245,131 @@ def parametre_testleri(veri_yolu):
             out.append(sonuc("G2-TC-24", ok, f"boş → MD5 {md5(a)[:8]} (repo {md5(veri_yolu)[:8]}); ağırlık×2 → {md5(b)[:8]} (×1 {md5(y)[:8]})"))
         else:
             out.append(sonuc("G2-TC-24", False, f"çalışmadı: {(r1.stderr or r2.stderr).strip()[-120:]}"))
+        out += liste_testleri(veri_yolu, tmp)
+    return out
+
+
+def yaz(klasor, ad, metin, kodlama="utf-8"):
+    os.makedirs(klasor, exist_ok=True)
+    yol = os.path.join(klasor, ad)
+    with open(yol, "wb") as f:
+        f.write(metin.encode(kodlama))
+    return yol
+
+
+def pay_sapmasi(df, adlar, agirliklar):
+    """Ürün paylarının w_i / Σw'den ±URUN_TOL puandan fazla saptığı ürünler."""
+    pay = df["urun"].value_counts(normalize=True)
+    return [f"{u} %{pay.get(u, 0) * 100:.1f}≠%{w / sum(agirliklar) * 100:.1f}" for u, w in zip(adlar, agirliklar)
+            if abs(pay.get(u, 0) - w / sum(agirliklar)) * 100 > URUN_TOL]
+
+
+# ------------------------------------------------------------------ C (Görev 3 eki, PR #102): urun_listesi ve fiyat_sapmasi
+def liste_testleri(veri_yolu, tmp):
+    out = []
+    n = beklenen_n()
+    UC = LISTE_BASLIK + "A,U1,100\nA,U2,200.50\nB,U3,300\n"   # 3 ürün, 2 kategori, ondalıklı fiyat
+    uc = yaz(tmp, "uc.csv", UC)
+    kat_uc, _ = liste_yukle(uc)
+
+    # G2-TC-26: örnek liste ve açık varsayılan sapma, varsayılan dosyanın aynısını üretir
+    r1, a = calistir(["--urun_listesi", ORNEK_LISTE], tmp, "l1.csv")
+    r2, b = calistir(["--fiyat_sapmasi", "0.05"], tmp, "l2.csv")
+    if r1.returncode == 0 and r2.returncode == 0:
+        out.append(sonuc("G2-TC-26", md5(a) == md5(veri_yolu) == md5(b),
+                         f"örnek liste → MD5 {md5(a)[:8]}; --fiyat_sapmasi 0.05 → {md5(b)[:8]} (repo {md5(veri_yolu)[:8]})"))
+    else:
+        out.append(sonuc("G2-TC-26", False, f"çalışmadı: {(r1.stderr or r2.stderr).strip()[-120:]}"))
+
+    # G2-TC-27: web fiyatlı liste — satır sayısı aynı, kural 1–11 listeye göre, tekrarlanabilir, repodaki dosyayla aynı
+    kat_web, _ = liste_yukle(WEB_LISTE)
+    r1, a = calistir(["--urun_listesi", WEB_LISTE], tmp, "l3.csv")
+    r2, b = calistir(["--urun_listesi", WEB_LISTE], tmp, "l4.csv")
+    if r1.returncode == 0 and r2.returncode == 0 and os.path.exists(WEB_VERI):
+        df = pd.read_csv(a)
+        kalan = [x[0] for x in veri_testleri(a, liste=kat_web) if not x[1]]
+        urun_sayisi = sum(len(d) for d in kat_web.values())
+        ok = len(df) == n and df["urun"].nunique() == urun_sayisi and not kalan and md5(a) == md5(b) == md5(WEB_VERI)
+        out.append(sonuc("G2-TC-27", ok, f"{len(df):,} satır (beklenen {n:,}); {df['urun'].nunique()} ürün, {df['kategori'].nunique()} kategori; "
+                                         f"birim_fiyat {df['birim_fiyat'].min():.2f} – {df['birim_fiyat'].max():.2f}; A/B kalan: {kalan or 'yok'}; "
+                                         f"MD5 1/2/repo: {md5(a)[:8]} / {md5(b)[:8]} / {md5(WEB_VERI)[:8]}"))
+    else:
+        out.append(sonuc("G2-TC-27", False, f"çalışmadı ya da {WEB_VERI} yok: {(r1.stderr or r2.stderr).strip()[-120:]}"))
+
+    # G2-TC-28: 3 ürünlük küçük liste — satır sayısı değişmez, yalnız listedeki ürün ve kategoriler
+    r, y = calistir(["--urun_listesi", uc], tmp, "l5.csv")
+    if r.returncode == 0:
+        df = pd.read_csv(y)
+        kalan = [x[0] for x in veri_testleri(y, liste=kat_uc) if not x[1]]
+        ok = len(df) == n and set(df["urun"]) == {"U1", "U2", "U3"} and set(df["kategori"]) == {"A", "B"} and not kalan
+        out.append(sonuc("G2-TC-28", ok, f"{len(df):,} satır (beklenen {n:,}); ürünler {sorted(set(df['urun']))}, kategoriler {sorted(set(df['kategori']))}; "
+                                         f"birim_fiyat {df['birim_fiyat'].min():.2f} – {df['birim_fiyat'].max():.2f}; A/B kalan: {kalan or 'yok'}"))
+    else:
+        out.append(sonuc("G2-TC-28", False, f"çalışmadı: {r.stderr.strip()[-120:]}"))
+
+    # G2-TC-29: fiyat_sapmasi sınırları — 0 → tam liste fiyatı; 0.10 ve 0.5 → sınır içinde ve parametre gerçekten etkili
+    notlar, hepsi = [], True
+    for s in ("0", "0.1", "0.5"):
+        r, y = calistir(["--fiyat_sapmasi", s], tmp, f"s{s}.csv")
+        if r.returncode != 0:
+            hepsi = False
+            notlar.append(f"--fiyat_sapmasi {s} → çalışmadı")
+            continue
+        df = pd.read_csv(y)
+        sinir = df["urun"].map(lambda u: fiyat_siniri(LISTE[u], float(s)))
+        dis = ((df["birim_fiyat"] < sinir.map(lambda t: t[0]) - 1e-9) | (df["birim_fiyat"] > sinir.map(lambda t: t[1]) + 1e-9)).sum()
+        oran = df["birim_fiyat"] / df["urun"].map(LISTE)
+        etkili = (df["birim_fiyat"] == df["urun"].map(LISTE)).all() if s == "0" else ((oran > 1.05) | (oran < .95)).any()
+        ok = len(df) == n and dis == 0 and bool(etkili)
+        hepsi &= ok
+        notlar.append(f"--fiyat_sapmasi {s} → {len(df):,} satır, sınır dışı {dis}, oran {oran.min():.3f} – {oran.max():.3f}")
+    out.append(sonuc("G2-TC-29", hepsi, " · ".join(notlar)))
+
+    # G2-TC-30: ürün başına fiyat_sapmasi genel değere üstün gelir; boş hücre genel değeri kullanır
+    pp = yaz(tmp, "pp.csv", LISTE_SAPMALI + "A,U1,100,0\nA,U2,200,0.5\nB,U3,300,\n")
+    r, y = calistir(["--urun_listesi", pp, "--fiyat_sapmasi", "0.1"], tmp, "l6.csv")
+    if r.returncode == 0:
+        df = pd.read_csv(y)
+        u1, u2, u3 = (df[df["urun"] == u]["birim_fiyat"] for u in ("U1", "U2", "U3"))
+        (l2, h2), (l3, h3) = fiyat_siniri(200, 0.5), fiyat_siniri(300, 0.1)
+        ok1 = bool((u1 == 100).all())
+        ok2 = bool(u2.between(l2, h2).all() and (u2 > 220).any() and (u2 < 180).any())
+        ok3 = bool(u3.between(l3, h3).all() and ((u3 > 315) | (u3 < 285)).any())
+        out.append(sonuc("G2-TC-30", len(df) == n and ok1 and ok2 and ok3,
+                         f"U1 (sapma 0) {u1.min():.2f} – {u1.max():.2f}; U2 (0.5) {u2.min():.2f} – {u2.max():.2f}; U3 (boş → genel 0.1) {u3.min():.2f} – {u3.max():.2f}"))
+    else:
+        out.append(sonuc("G2-TC-30", False, f"çalışmadı: {r.stderr.strip()[-120:]}"))
+
+    # G2-TC-31: urun_listesi × urun_agirliklari — ağırlık sayısı listedeki ürün sayısına bağlı
+    r1, y1 = calistir(["--urun_listesi", uc, "--urun_agirliklari=1,2,3"], tmp, "l7.csv")
+    r2, y2 = calistir(["--urun_listesi", uc, "--urun_agirliklari=" + ",".join(["1"] * 25)], os.path.join(tmp, "G2-TC-31-b"), "x.csv")
+    r3, y3 = calistir(["--urun_listesi", uc, "--urun_agirliklari=0,0,1"], tmp, "l8.csv")
+    if r1.returncode == 0 and r3.returncode == 0:
+        sapma = pay_sapmasi(pd.read_csv(y1), ["U1", "U2", "U3"], [1, 2, 3])
+        mesaj = (r2.stderr.strip().splitlines() or ["(mesaj yok)"])[-1]
+        hata_ok = (r2.returncode == 1 and not os.path.exists(y2) and mesaj.startswith("Hata (ValueError)")
+                   and "urun_agirliklari" in mesaj and "3" in mesaj and "25" in mesaj and "Traceback" not in r2.stderr)
+        d3 = pd.read_csv(y3)
+        sifir_ok = len(d3) == n and set(d3["urun"]) == {"U3"} and "A" not in set(d3["kategori"])
+        out.append(sonuc("G2-TC-31", not sapma and hata_ok and sifir_ok,
+                         f"1,2,3 → ±{URUN_TOL} puan dışı ürün: {', '.join(sapma) or 'yok'}; 25 değer → çıkış {r2.returncode}, dosya {'var' if os.path.exists(y2) else 'yok'}; "
+                         f"0,0,1 → ürünler {sorted(set(d3['urun']))}, kategoriler {sorted(set(d3['kategori']))}"))
+    else:
+        out.append(sonuc("G2-TC-31", False, f"çalışmadı: {(r1.stderr or r3.stderr).strip()[-120:]}"))
+
+    # G2-TC-32: BOM'lu UTF-8, farklı sütun sırası, Türkçe adlar; ürün sırası = dosya sırası (urun_agirliklari bu sırayı izler)
+    bom = yaz(tmp, "bom.csv", "﻿urun,liste_fiyati,kategori\nŞapka,99.9,Giyim\nÇay,59.5,Gıda\n")
+    kat_bom, _ = liste_yukle(bom)
+    r1, y1 = calistir(["--urun_listesi", bom], tmp, "l9.csv")
+    r2, y2 = calistir(["--urun_listesi", bom, "--urun_agirliklari=1,0"], tmp, "l10.csv")
+    if r1.returncode == 0 and r2.returncode == 0:
+        d1, d2 = pd.read_csv(y1), pd.read_csv(y2)
+        kalan = [x[0] for x in veri_testleri(y1, liste=kat_bom) if not x[1]]
+        ok = set(d1["urun"]) == {"Şapka", "Çay"} and set(d2["urun"]) == {"Şapka"} and not kalan
+        out.append(sonuc("G2-TC-32", ok, f"ürünler {sorted(set(d1['urun']))}, kategoriler {sorted(set(d1['kategori']))}; A/B kalan: {kalan or 'yok'}; "
+                                         f"--urun_agirliklari=1,0 → {sorted(set(d2['urun']))} (dosyadaki ilk ürün)"))
+    else:
+        out.append(sonuc("G2-TC-32", False, f"çalışmadı: {(r1.stderr or r2.stderr).strip()[-120:]}"))
     return out
 
 
@@ -261,6 +418,37 @@ def hata_testleri():
                          f"25 × 1e308 → çıkış {r1.returncode}"
                          + (f" \"{(r1.stderr.strip().splitlines() or [''])[-1][:60]}\"" if r1.returncode else "")
                          + f"; 1. ürüne 0 → çıkış {r2.returncode}, Kablosuz Kulaklık dosyada yok: {yok}"))
+
+        # G2-TC-33 ve G2-TC-34 (Görev 3 eki, PR #102): bozuk urun_listesi / fiyat_sapmasi → ValueError, mesajda parametre adı, çıkış 1, dosya yok
+        S = LISTE_SAPMALI
+        bozuk_liste = {
+            "dosya yok": os.path.join(tmp, "yok.csv"),
+            "UTF-8 değil": yaz(tmp, "b1.csv", LISTE_BASLIK + "Giyim,Tişört,249\n", "cp1254"),
+            "eksik sütun": yaz(tmp, "b2.csv", "kategori,urun\nGiyim,Tisort\n"),
+            "boş liste": yaz(tmp, "b3.csv", LISTE_BASLIK),
+            "boş kategori": yaz(tmp, "b4.csv", LISTE_BASLIK + ",Tisort,249\n"),
+            "boş ürün": yaz(tmp, "b5.csv", LISTE_BASLIK + "Giyim,,249\n"),
+            "tekrarlı ürün": yaz(tmp, "b6.csv", LISTE_BASLIK + "Giyim,Tisort,249\nGiyim,Tisort,300\n"),
+            "fiyat 0": yaz(tmp, "b7.csv", LISTE_BASLIK + "Giyim,Tisort,0\n"),
+            "fiyat negatif": yaz(tmp, "b8.csv", LISTE_BASLIK + "Giyim,Tisort,-5\n"),
+            "fiyat 3 ondalık": yaz(tmp, "b9.csv", LISTE_BASLIK + "Giyim,Tisort,249.999\n"),
+            "fiyat sayı değil": yaz(tmp, "b10.csv", LISTE_BASLIK + "Giyim,Tisort,abc\n"),
+            "ürün sapması 0.7": yaz(tmp, "b11.csv", S + "Giyim,Tisort,249,0.7\n"),
+            "ürün sapması -0.1": yaz(tmp, "b12.csv", S + "Giyim,Tisort,249,-0.1\n"),
+            "ürün sapması sayı değil": yaz(tmp, "b13.csv", S + "Giyim,Tisort,249,x\n"),
+        }
+        bozuk_sapma = {"0.6": "0.6", "-0.1": "-0.1", "sayı değil": "abc"}
+        for tc, parametre, durumlar, arg in (("G2-TC-33", "urun_listesi", bozuk_liste, lambda d: ["--urun_listesi", d]),
+                                             ("G2-TC-34", "fiyat_sapmasi", bozuk_sapma, lambda d: [f"--fiyat_sapmasi={d}"])):
+            notlar, hepsi = [], True
+            for i, (ad, deger) in enumerate(durumlar.items()):
+                r, y = calistir(arg(deger), os.path.join(tmp, f"{tc}-{i}"), "x.csv")
+                mesaj = (r.stderr.strip().splitlines() or ["(mesaj yok)"])[-1]
+                ok = (r.returncode == 1 and not os.path.exists(y) and mesaj.startswith("Hata (ValueError)")
+                      and parametre in mesaj and "Traceback" not in r.stderr)
+                hepsi &= ok
+                notlar.append(f"{ad} → çıkış {r.returncode}, dosya {'var' if os.path.exists(y) else 'yok'}")
+            out.append(sonuc(tc, hepsi, " · ".join(notlar)))
     return out
 
 
