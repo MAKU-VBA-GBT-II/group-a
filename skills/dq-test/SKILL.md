@@ -13,7 +13,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 
 | | Görev 2 |
 |---|---|
-| Şema (tek doğru kaynak) | `docs/veri-sozlugu.md` (#60) — 14 alan, 8 parametre, satır sayısı formülü, 12 kalite kuralı |
+| Şema (tek doğru kaynak) | `docs/veri-sozlugu.md` (#60) — 14 alan, 9 parametre (`urun_agirliklari` PR #95 ile), satır sayısı formülü, 12 kalite kuralı |
 | Test edilen veri | `data/siparisler-g2.csv` (BE, `src/simulasyon.py`, #61) |
 | Senaryolar | `tests/test-cases.md` (Görev 1 senaryoları `tests/test-cases-g1.md`'de arşivde) |
 | Sonuçlar | `tests/test-log.md` → "Görev 2" tablosu (tarihli satırlar) |
@@ -36,7 +36,7 @@ description: Grup A'nın veri kalitesi test senaryolarını (tests/test-cases.md
 | Gelen | G2-test'te "Analiz hazır — commit …" (dq-analiz adım 7) | Hafta 6 | Grafik–analiz tutarlılığını sınar (C5) |
 | Giden | `bug` Issue'su → BE (veri) / FE (grafik) | Test kaldığında | Yeniden üretme adımları + senaryo ID |
 | Giden | Bug Issue'suna "Yeniden test — düzeldi" | Düzeltme merge edilince | Yeni test-log satırı + kapanış |
-| Giden | G2-test'e kanıt yorumu → PM | Son ürün 23/23 | Commit'ler + dosyalar + test turu özeti; Issue kapanır, milestone PM'e geçer |
+| Giden | G2-test'e kanıt yorumu → PM | Son ürün 27/27 (PR #95 sonrası; önce 23/23) | Commit'ler + dosyalar + test turu özeti; Issue kapanır, milestone PM'e geçer |
 
 Gelen yorum yoksa o adıma geçilmez; ilgili Issue'da sorulur.
 
@@ -113,7 +113,7 @@ Ajana (Claude):
 Elle (depo kökünde):
 
 ```bash
-python src/dq_test_g2.py                 # A–D tüm senaryolar (son ürün: 23/23)
+python src/dq_test_g2.py                 # A–D tüm senaryolar (son ürün: 27/27, PR #95 sonrası)
 python src/dq_test_g2.py --grup A B      # yalnızca veri senaryoları
 python src/dq_test_g2.py --dosya yol.csv --grup A B
 ```
