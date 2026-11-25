@@ -63,7 +63,7 @@ Varsayılan simülasyon (`data/siparisler-g2.csv`, betikteki 25 ürün) değişm
 - **Deneme:** "deneme" kelimesi sınav deneme kitaplarını yakalar; bu yüzden Kitap kategorisi + sınav kelimeleri hariç.
 - **Ders Kitabı:** MEB ders kitapları satışta değil; piyasada karşılığı "konu anlatımlı / yardımcı ders kitabı". Eşleşme zayıf kalabilir, güven en fazla `orta` önerilir.
 - **Kahve Makinesi, Parfüm, Akıllı Saat:** Fiyat yelpazesi çok geniş (markaya göre); üst segment ürünler otomatik bantta bile elenebilir, bu beklenen bir durum.
-- **Kaynaklar:** Elektronik MediaMarkt, Giyim Koton, Kozmetik Gratis, Ev & Yaşam Koçtaş, Kitap D&R (Kitapyurdu robots.txt erişimi reddettiği için elendi). Tanımlar ürün adına dayanır, kaynaktan bağımsız uygulanır.
+- **Kaynaklar:** Elektronik MediaMarkt, Giyim Koton, Kozmetik Gratis, Ev & Yaşam Koçtaş ve IKEA (Masa Lambası; Battaniye için ikinci kaynak; tarayıcı gerektiren kaynak), Kitap D&R (Kitapyurdu robots.txt erişimi reddettiği için elendi). Tanımlar ürün adına dayanır, kaynaktan bağımsız uygulanır.
 
 ## Kararlar (24 Kasım 2026)
 

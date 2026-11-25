@@ -29,6 +29,7 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 | 3 | Kitap | D&R | https://www.dr.com.tr | Kitap adı, fiyat, indirim, stok | Hayır | Ürün sayfaları serbest, ürün site haritası var; arama yasak | Ayrı kullanım koşulları sayfası yok, ama [üyelik sözleşmesi](https://www.dr.com.tr/uyelik-sozlesmesi) üye olmayan **ziyaretçiler için de bağlayıcı** olduğunu söylüyor ve platform içeriğini izlemek, kopyalamak veya çoğaltmak amacıyla herhangi bir yöntem kullanmayı yasaklıyor. Açık bot yasağı yok | **Seçildi, gri alan** (Koton ile aynı tür madde; aşağıdaki nota bakınız) |
 | 4 | Ev & Yaşam | Koçtaş | https://www.koctas.com.tr | Ürün adı, fiyat, indirim, satıcı (kurumsal) | Hayır | Ürün sayfaları serbest (bazı varyantlar hariç); arama yasak | Site kullanım koşulları sayfası yok; "Tüm Politikalarımız" listesinde otomatik erişimle ilgili metin yok | **Seçildi** |
 | 5 | Giyim | Koton | https://www.koton.com | Ürün adı, fiyat, indirim | Hayır | Ürün sayfaları serbest; `search_text=` yasak | Altbilgide bağlantı yok; üyelik sözleşmesi sunucuları otomatik programlarla yüklemeyi yasaklıyor, site içeriğinin izinsiz kullanımını ve kopyalanmasını sınırlıyor. Açık bot yasağı yok | **Seçildi, gri alan** (aşağıdaki nota bakınız) |
+| 6 | Ev & Yaşam (Masa Lambası; Battaniye için ikinci kaynak) | IKEA | https://www.ikea.com.tr | Ürün adı, fiyat | **Evet.** Kategori sayfasının ham HTML'inde ürün listesi yok (ör. Battaniyeler: tarayıcıda 26 ürün, ham HTML'de yalnız 4 vitrin ürünü kodu); liste sayfa açıldıktan sonra JavaScript ile ayrı bir servisten (`frontendapi.ikea.com.tr`) yükleniyor, kaydırdıkça devamı geliyor (Masa Lambaları: kaydırınca 51 ürün, ham HTML'de 4). 25 Kasım'da tarayıcıda doğrulandı | `/kategori/` ve `/urun/` serbest, kategori ve ürün site haritası var; `/arama/` ve `/_ws/` yasak. `frontendapi.ikea.com.tr` için `robots.txt` yok (404) | Ayrı kullanım koşulları sayfası yok; [üyelik sözleşmesi](https://www.ikea.com.tr/uyelik-sozlesmesi) site materyalinin önceden izin alınmadan ve kaynak gösterilmeden kopyalanmasını ve çoğaltılmasını yasaklıyor; otomatik erişim, robot veya kazıma yasağı yok. Kaynak gösterilerek, düşük hacimli, ticari olmayan fiyat toplama | **Seçildi** (tarayıcı gerektiren kaynak) |
 
 **Elenen adaylar**
 
@@ -58,9 +59,10 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 | Koton | Var: ürün adları ve fiyatlar gömülü veride, kartlar JavaScript ile çiziliyor | Hayır (gömülü veri okunabilir) |
 | Koçtaş | Var: ürün adları ve fiyatlar ham HTML'de | Hayır |
 | D&R | Var: ürün bağlantıları ve fiyatlar ham metinde | Hayır |
+| IKEA | Yok: ham HTML'de yalnız birkaç vitrin ürünü; liste JavaScript ile ayrı servisten yükleniyor, kaydırdıkça devam ediyor | **Evet** |
 | Migros (elendi) | Yok: yalnız uygulama kabuğu; tarayıcıda ürün ve fiyat görünüyor | **Evet** |
 
-Sonuç: seçilen beş kaynağın hiçbiri tarayıcıyı zorunlu kılmıyor; Ajan 1 yine de fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışıyor.
+Sonuç: ilk beş kaynak düz istekle okunabiliyor; **IKEA tarayıcı gerektiriyor** (Migros da gerektiriyor ama kullanım koşulları nedeniyle elendi). Ajan 1 bütün kaynaklarda fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışıyor; IKEA'da sayfayı kaydırarak listenin tamamını yükler. IKEA, Koçtaş'ta ayrı karşılığı bulunmayan Masa Lambası için asıl kaynak, Battaniye için ikinci kaynak olarak eklendi; 24 Kasım fiyat taraması (`docs/fiyat-taramasi.md`) bu ekten önce yapıldığı için Koçtaş verisiyle duruyor.
 
 **İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md) (veri: `data/web-fiyat-taramasi.csv`). 25 ürünün hepsinde web medyanı bugünkü liste fiyatımızın üstünde, 17'sinde 2 katından fazla; simülasyon liste fiyatları bu tabloya göre güncellenecek (bölüm 4).
 
@@ -100,7 +102,7 @@ Program herhangi bir API anahtarı içermeyecek; araç seçimi ayardan yapılaca
 ## 7. Teslim kontrol listesi
 
 - [x] Senaryo ve üç ajanın birer cümlelik tanımı yazılı
-- [ ] Web kaynakları listelenmiş; en az biri tarayıcı gerektiriyor; robots.txt ve kullanım şartları kontrol edilmiş
+- [x] Web kaynakları listelenmiş; en az biri tarayıcı gerektiriyor (IKEA); robots.txt ve kullanım şartları kontrol edilmiş
 - [x] Simülasyon web kaynaklarıyla eşleşen alanlar üretiyor ve dışarıdan liste veya aralık alabiliyor
 - [x] Örnek veri ve güncel veri sözlüğü repoda
 - [ ] Rol listesi ve abonelikler Issue'da, @eofdred etiketli
