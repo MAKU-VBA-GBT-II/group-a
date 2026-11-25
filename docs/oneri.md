@@ -62,7 +62,7 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 | IKEA | Yok: ham HTML'de yalnız birkaç vitrin ürünü; liste JavaScript ile ayrı servisten yükleniyor, kaydırdıkça devam ediyor | **Evet** |
 | Migros (elendi) | Yok: yalnız uygulama kabuğu; tarayıcıda ürün ve fiyat görünüyor | **Evet** |
 
-Sonuç: ilk beş kaynak düz istekle okunabiliyor; **IKEA tarayıcı gerektiriyor** (Migros da gerektiriyor ama kullanım koşulları nedeniyle elendi). Ajan 1 bütün kaynaklarda fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışıyor; IKEA'da sayfayı kaydırarak listenin tamamını yükler. IKEA, Koçtaş'ta ayrı karşılığı bulunmayan Masa Lambası için asıl kaynak, Battaniye için ikinci kaynak olarak eklendi; 24 Kasım fiyat taraması (`docs/fiyat-taramasi.md`) bu ekten önce yapıldığı için Koçtaş verisiyle duruyor.
+Sonuç: ilk beş kaynak düz istekle okunabiliyor; **IKEA tarayıcı gerektiriyor** (Migros da gerektiriyor ama kullanım koşulları nedeniyle elendi). Ajan 1 bütün kaynaklarda fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışıyor; IKEA'da sayfayı kaydırarak listenin tamamını yükler. IKEA, Koçtaş'ta ayrı karşılığı bulunmayan Masa Lambası için asıl kaynak, Battaniye için ikinci kaynak olarak eklendi. Masa Lambası 25 Kasım'da IKEA'dan tarayıcıyla yeniden tarandı (`docs/fiyat-taramasi.md`: n 52, medyan 1.699 TL; Koçtaş'ın çocuk lambalarında medyan 936 TL'ydi).
 
 **İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md) (veri: `data/web-fiyat-taramasi.csv`). 25 ürünün hepsinde web medyanı bugünkü liste fiyatımızın üstünde, 17'sinde 2 katından fazla; simülasyon liste fiyatları bu tabloya göre güncellenecek (bölüm 4).
 
