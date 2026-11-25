@@ -18,7 +18,8 @@ Kaynak: `src/simulasyon.py` içindeki `KATEGORI_URUN` (25 ürün, liste fiyatlar
 
 TL sütunları web fiyat taramasına göre güncellenen liste fiyatlarından (`data/urun-listesi-web.csv`) hesaplandı; kaynak Hilal'in taraması (`data/web-fiyat-taramasi.csv`, 24.11.2026, PR #103). 22 üründe taramadaki `onerilen_liste_tl` kullanıldı. Üç üründe eski liste fiyatı korundu:
 
-- **Spor Ayakkabı (1899) ve Masa Lambası (399):** Web karşılığı zayıf (ilk sayfada spor ayakkabı yok; yalnızca "Çocuk Masa Lambası" kategorisi bulundu).
+- **Spor Ayakkabı (1899):** Web karşılığı zayıf (ilk sayfada spor ayakkabı yok).
+- **Masa Lambası (399):** 24 Kasım taramasında yalnızca Koçtaş "Çocuk Masa Lambası" bulunmuştu (n 37, medyan 936 TL). 25 Kasım'da IKEA "Masa Lambaları" kategorisinden yeniden tarandı: **52 ürün, medyan 1.699 TL** (p25 1.199, p75 2.461; liste fiyatının 4,3 katı; PR #107, `docs/fiyat-taramasi.md`). Liste fiyatı bu teslimde bilerek 399 TL'de bırakıldı; böylece `data/urun-listesi-web.csv`, TL bantları, `data/siparisler-web.csv` ve MD5 değişmedi (karar 5).
 - **Kahve Makinesi (2999):** Tarama espresso ağırlıklı (medyan 14.999). Bu fiyat liste olsaydı otomatik bant 4.500 TL altını eleyecek, "dahil" listesindeki filtre kahve makinelerinin hepsi (taramada okunan tek örnek 1.299 TL) elenecekti.
 
 Uyarı ile kullanılanlar:
@@ -72,6 +73,10 @@ Varsayılan simülasyon (`data/siparisler-g2.csv`, betikteki 25 ürün) değişm
 3. Liste fiyatları web medyanlarına göre güncellendi (`data/urun-listesi-web.csv`); TL bantları bu fiyatlardan yeniden hesaplandı (Hilal'in #100 incelemesi, 1. madde; PR #102).
 4. Kozmetikte ml başı fiyat karşılaştırması sonraki haftaya bırakıldı.
 
+## Kararlar (25 Kasım 2026)
+
+5. **Masa Lambası liste fiyatı 399 TL'de kalır (bilinen sınırlama).** IKEA taramasında medyan 1.699 TL olsa da liste fiyatı bu teslimde güncellenmedi. Sonuç: otomatik bant (kural 2) 1.197 TL'nin üstünü eler; IKEA'da p25 bile 1.199 TL olduğu için IKEA satırlarının **yaklaşık dörtte üçü** "fiyat bandı dışı" gerekçesiyle `elendi` olur. Satırlar silinmez, yalnız işaretlenir. Masa Lambası'nın rakip karşılaştırması bu yüzden az sayıda ucuz ürüne dayanır; analizde bu ürünün sonucu ihtiyatla yorumlanır. Liste fiyatını güncelleme kararı sonraki teslime bırakıldı.
+
 ---
 
-Üretim: Bu tablo Claude ile taslaklandı, Tuğba Tuana Kaygısız gözden geçirip onayladı. Prompt özeti: "src/simulasyon.py'deki 25 ürün için benzer eşleşme tanımı taslakla: dahil/hariç anahtar kelimeler, beklenen birim/miktar, liste fiyatına göre makul rakip fiyat aralığı."
+Üretim: Bu tablo Claude ile taslaklandı, Tuğba Tuana Kaygısız gözden geçirip onayladı. Prompt özeti: "src/simulasyon.py'deki 25 ürün için benzer eşleşme tanımı taslakla: dahil/hariç anahtar kelimeler, beklenen birim/miktar, liste fiyatına göre makul rakip fiyat aralığı." 25 Kasım güncellemesi (Masa Lambası notu, karar 5) Claude ile yazıldı, Tuğba Tuana Kaygısız onayladı.
