@@ -32,7 +32,7 @@ description: Grup A çok ajanlı programında Ajan 2'nin (analiz) işi. Ajan 1'i
 2. **Eşleşme kurallarını uygula:** `docs/eslesme-tanimlari.md` ortak kuralları 1–7. Karşılaştırma fiyatı, varsa `indirimli_fiyat`, yoksa `liste_fiyati`.
    - Fiyat < 0,3x veya > 3x liste fiyatımız → `elendi = fiyat bandı dışı`.
    - Makul aralık dışı (0,4x–2,5x; Kitap 0,5x–2x) → elenmez, `eslesme_guveni = dusuk`.
-   - Çoklu paket → `çoklu paket`, ikinci el → `ikinci el`.
+   - Çoklu paket (2'li, 3'lü, set) → `çoklu paket`; **istisna: Saklama Kabı Seti** zaten set olduğu için set olması elenme sebebi değildir (eşleşme kuralı 5; bu üründe tekli kap elenir). İkinci el → `ikinci el`.
    - **Satır silinmez.** Elenen satırlar analize girmez ama ürün başına sayıları raporlanır.
 3. **Sipariş verisi:** Web fiyatlı veri şu komutla üretilir, MD5 `docs/veri-sozlugu.md` ile karşılaştırılır:
    `python src/simulasyon.py --urun_listesi data/urun-listesi-web.csv --cikti data/siparisler-web.csv`
