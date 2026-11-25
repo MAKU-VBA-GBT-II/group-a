@@ -24,9 +24,9 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 
 | # | Kategori | Kaynak | Adres | Vereceği veri | Tarayıcı gerekir mi? | robots.txt sonucu | Kullanım şartları | Karar |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Elektronik (+ Kahve Makinesi) | MediaMarkt | https://www.mediamarkt.com.tr | Ürün adı, güncel/liste fiyatı, stok | **Evet.** Ürün kartları JavaScript ile çiziliyor (ham HTML'de kart yok, veri gömülü JSON'da); sonraki ürünler "12 ürün daha göster" düğmesiyle yükleniyor, adres `?page=2` oluyor. Tarayıcıda doğrulandı | Ürün sayfaları ve `page=` serbest; `/search.html`, `query=`, `sort=`, `filter=` yasak | Otomatik erişim yasağı yok; site materyali yalnız şahsi kullanım içindir, ticari/genel amaçlı çoğaltma yazılı izne tabidir. Akademik, ticari olmayan, düşük hacimli fiyat toplama | **Seçildi** (tarayıcı gerektiren kaynak) |
+| 1 | Elektronik (+ Kahve Makinesi) | MediaMarkt | https://www.mediamarkt.com.tr | Ürün adı, güncel/liste fiyatı, stok | **Hayır** (25 Kasım düzeltmesi). Düz istekte ham HTML'de 12 ürün kartı, ürün bağlantıları ve fiyatlar var; `?page=2` düz istekle farklı 12 ürün döndürüyor. 24 Kasım'daki "ham HTML'de kart yok" notu yanlıştı (bkz. **Tarayıcı testi**) | Ürün sayfaları ve `page=` serbest; `/search.html`, `query=`, `sort=`, `filter=` yasak | Otomatik erişim yasağı yok; site materyali yalnız şahsi kullanım içindir, ticari/genel amaçlı çoğaltma yazılı izne tabidir. Akademik, ticari olmayan, düşük hacimli fiyat toplama | **Seçildi** |
 | 2 | Kozmetik | Gratis | https://www.gratis.com | Ürün adı, fiyat, indirim, miktar (ml/g) | Hayır (fiyat liste sayfasında) | Ürün sayfaları serbest; `/search` ve `query=` yasak | Otomatik erişimi açıkça yasaklayan madde yok; siteyi başkalarının kullanımını zorlaştıracak biçimde kullanmak yasak | **Seçildi** |
-| 3 | Kitap | D&R | https://www.dr.com.tr | Kitap adı, fiyat, indirim, stok | Hayır | Ürün sayfaları serbest, ürün site haritası var; arama yasak | Genel kullanım koşulları sayfası yok (altbilgide yalnız üyelik ve aydınlatma metinleri) | **Seçildi** |
+| 3 | Kitap | D&R | https://www.dr.com.tr | Kitap adı, fiyat, indirim, stok | Hayır | Ürün sayfaları serbest, ürün site haritası var; arama yasak | Ayrı kullanım koşulları sayfası yok, ama [üyelik sözleşmesi](https://www.dr.com.tr/uyelik-sozlesmesi) üye olmayan **ziyaretçiler için de bağlayıcı** olduğunu söylüyor ve platform içeriğini izlemek, kopyalamak veya çoğaltmak amacıyla herhangi bir yöntem kullanmayı yasaklıyor. Açık bot yasağı yok | **Seçildi, gri alan** (Koton ile aynı tür madde; aşağıdaki nota bakınız) |
 | 4 | Ev & Yaşam | Koçtaş | https://www.koctas.com.tr | Ürün adı, fiyat, indirim, satıcı (kurumsal) | Hayır | Ürün sayfaları serbest (bazı varyantlar hariç); arama yasak | Site kullanım koşulları sayfası yok; "Tüm Politikalarımız" listesinde otomatik erişimle ilgili metin yok | **Seçildi** |
 | 5 | Giyim | Koton | https://www.koton.com | Ürün adı, fiyat, indirim | Hayır | Ürün sayfaları serbest; `search_text=` yasak | Altbilgide bağlantı yok; üyelik sözleşmesi sunucuları otomatik programlarla yüklemeyi yasaklıyor, site içeriğinin izinsiz kullanımını ve kopyalanmasını sınırlıyor. Açık bot yasağı yok | **Seçildi, gri alan** (aşağıdaki nota bakınız) |
 
@@ -39,12 +39,28 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 | defacto.com.tr | `robots.txt` ürün sayfalarını (`/Product/`) yasaklıyor |
 | mavi.com | Koton ile aynı sözleşme şablonu; Koton tercih edildi |
 | kitapyurdu.com | 24 Kasım'da `robots.txt` isteği reddedildi; kitap kaynağı olarak D&R tercih edildi |
+| migros.com.tr | Tarayıcı gerektiren tek aday (ham HTML'de ürün ve fiyat yok), `robots.txt` kategori sayfalarına izin veriyor; ama kullanım koşulları "page-scrape", "robot", "spider" ve diğer otomatik programları açıkça yasaklıyor (25 Kasım kontrolü) |
 | n11.com, teknosa.com, boyner.com.tr, colins.com.tr | `robots.txt` dosyasına erişilemedi |
 | vatanbilgisayar.com, akakce.com | Sayfalama/arama yasak (22 Kasım kontrolü) |
 | englishhome.com | `*.html*` kuralı ürün sayfalarını engelleyebilir; belirsiz |
 | trendyol.com, hepsiburada.com | Ürün sayfaları `robots.txt` ile serbest, ama kullanım şartları okunmadı; yedek |
 
 **Hocaya not (giyim):** Giyim kategorisinde incelenen sitelerin hiçbiri tamamen temiz çıkmadı: LC Waikiki ve Decathlon otomatik erişimi açıkça yasaklıyor, Koton ve Mavi yalnız sunucuyu aşırı yüklemeyi yasaklıyor. Koton'u düşük hacim, istekler arasında bekleme ve yalnız fiyat bilgisiyle kullanmayı öneriyoruz; uygun görmezseniz giyim ürünlerini rakip verisiz bırakıp diğer dört kategoriyle ilerleriz.
+
+**Hocaya not (kitap):** D&R da Koton ile aynı durumda: açık bot yasağı yok, ama ziyaretçiyi de bağlayan üyelik sözleşmesi içeriği izlemek ve kopyalamak için yöntem kullanmayı yasaklıyor. Kitapyurdu'nun `robots.txt` dosyasına erişilemediği için temiz bir yedek yok. Aynı koşulları (düşük hacim, bekleme, yalnız ad ve fiyat) uyguluyoruz; uygun görmezseniz kitap ürünlerini rakip verisiz bırakırız.
+
+**Tarayıcı testi (25 Kasım):** Her sitenin kategori sayfası Chrome'da açıldı, aynı adres JavaScript çalıştırılmadan düz istekle (`fetch`) yeniden çekildi ve ham HTML'de ürün adı, ürün bağlantısı ve fiyat arandı.
+
+| Site | Ham HTML'de ürün ve fiyat | Tarayıcı gerekir mi? |
+|---|---|---|
+| MediaMarkt | Var: 12 ürün kartı, bağlantılar ve fiyatlar; `?page=2` farklı 12 ürün | Hayır |
+| Gratis | Var: fiyatlar ham metinde | Hayır |
+| Koton | Var: ürün adları ve fiyatlar gömülü veride, kartlar JavaScript ile çiziliyor | Hayır (gömülü veri okunabilir) |
+| Koçtaş | Var: ürün adları ve fiyatlar ham HTML'de | Hayır |
+| D&R | Var: ürün bağlantıları ve fiyatlar ham metinde | Hayır |
+| Migros (elendi) | Yok: yalnız uygulama kabuğu; tarayıcıda ürün ve fiyat görünüyor | **Evet** |
+
+Sonuç: seçilen beş kaynağın hiçbiri tarayıcıyı zorunlu kılmıyor; Ajan 1 yine de fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışıyor.
 
 **İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md) (veri: `data/web-fiyat-taramasi.csv`). 25 ürünün hepsinde web medyanı bugünkü liste fiyatımızın üstünde, 17'sinde 2 katından fazla; simülasyon liste fiyatları bu tabloya göre güncellenecek (bölüm 4).
 
