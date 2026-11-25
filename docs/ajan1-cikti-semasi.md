@@ -34,7 +34,7 @@
 | 11 | `kdv_dahil` | `evet` / `hayir` | evet | `evet` | Ajan 2 |
 | 12 | `para_birimi` | `TRY` | evet | `TRY` | TL dışı para birimi elenir (kural 7) |
 | 13 | `stok_durumu` | `var` / `yok` / `bilinmiyor` | evet | `var` | Stokta olmayanın fiyatı güvenilir sayılmayabilir (Ajan 2, Ajan 3) |
-| 14 | `rakip_site` | Sitenin kurumsal adı: `MediaMarkt` / `Gratis` / `D&R` / `Koçtaş` / `Koton` | evet | `MediaMarkt` | Site bazında karşılaştırma; bireysel satıcı adı yazılmaz |
+| 14 | `rakip_site` | Sitenin kurumsal adı: `MediaMarkt` / `Gratis` / `D&R` / `Koçtaş` / `IKEA` / `Koton` | evet | `MediaMarkt` | Site bazında karşılaştırma; bireysel satıcı adı yazılmaz |
 | 15 | `urun_url` | Ürünün **kendi sayfasının** adresi (liste ya da arama sayfası değil), izleme parametreleri temizlenmiş | evet | `https://www.mediamarkt.com.tr/tr/product/...` | Ajan 3 fiyatı bu sayfadan yeniden doğrular |
 | 16 | `bulma_yolu` | Ürünün bulunduğu kategori sayfasının adresi ve sayfa numarası, `<adres> s.<n>` | evet | `https://www.mediamarkt.com.tr/tr/category/...html s.2` | JS'li/sayfalı kaynakta ürünü yeniden bulmak; site içi arama robots.txt ile yasak olduğu için arama ifadesi kullanılmaz |
 | 17 | `cekilme_zamani` | ISO 8601 | evet | `2026-11-25T14:05:00+03:00` | Bayat veri kontrolü; her sayının üretim zamanı (Duyuru-10, teslim skill'i) |

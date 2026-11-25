@@ -2,7 +2,7 @@
 
 Tarih: 24.11.2026. Her ürün için seçilen sitenin ilgili kategori sayfasının **ilk sayfası** (varsayılan sıralama) tarayıcıyla açıldı; kartlarda görünen güncel fiyat okundu. Arama sayfaları kullanılmadı (robots.txt). Bu sayılar yön gösterir, kesin piyasa ortalaması değildir.
 
-**Sonuç:** 25 ürünün hepsinde web medyanı bizim liste fiyatımızın üstünde; 17'sinde 2 katından fazla. Beş üründe (Bluetooth Hoparlör, Powerbank, Akıllı Saat, Tişört, Kahve Makinesi) medyan 3 katın üstünde, yani Tuana'nın 0,3x–3x otomatik eleme bandı bugünkü liste fiyatlarıyla bu ürünlerde rakip fiyatların yarısından fazlasını eler. Öneri: simülasyondaki liste fiyatlarını web medyanına (yuvarlanmış, "Önerilen yeni liste" sütunu) çekmek; bantlar yeni fiyatlardan hesaplanır. Spor Ayakkabı ve Masa Lambası için karşılık zayıf, önerilen fiyatlar ihtiyatla kullanılmalı.
+**Sonuç:** 25 ürünün hepsinde web medyanı bizim liste fiyatımızın üstünde; 17'sinde 2 katından fazla. Altı üründe (Bluetooth Hoparlör, Powerbank, Akıllı Saat, Tişört, Kahve Makinesi, Masa Lambası) medyan 3 katın üstünde, yani Tuana'nın 0,3x–3x otomatik eleme bandı bugünkü liste fiyatlarıyla bu ürünlerde rakip fiyatların yarısından fazlasını eler. Öneri: simülasyondaki liste fiyatlarını web medyanına (yuvarlanmış, "Önerilen yeni liste" sütunu) çekmek; bantlar yeni fiyatlardan hesaplanır. Spor Ayakkabı için karşılık zayıf, önerilen fiyat ihtiyatla kullanılmalı. Masa Lambası 25 Kasım'da IKEA'dan yeniden tarandı (aşağıdaki not).
 
 | Kategori | Ürün | Bizim liste (TL) | Site · kategori | n | p25 | Medyan | p75 | Medyan / liste | Önerilen yeni liste (TL) | Not |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -18,7 +18,7 @@ Tarih: 24.11.2026. Her ürün için seçilen sitenin ilgili kategori sayfasını
 | Giyim | Mont | 2.299 | Koton · Erkek Mont | 15 | 2.700 | 3.500 | 3.700 | 1.5x | 3.499 |  |
 | Ev & Yaşam | Kahve Makinesi | 2.999 | MediaMarkt · Kahve Makinesi | 10 | 8.299 | 14.999 | 23.999 | 5.0x | 14.999 | İlk sayfa espresso ağırlıklı; filtre kahvede 1 ürün okundu (1.299) |
 | Ev & Yaşam | Battaniye | 449 | Koçtaş · Battaniye | 50 | 800 | 1.000 | 1.776 | 2.2x | 999 |  |
-| Ev & Yaşam | Masa Lambası | 399 | Koçtaş · Çocuk Masa Lambası | 37 | 590 | 936 | 1.299 | 2.3x | 939 | Ayrı masa lambası kategorisi bulunamadı |
+| Ev & Yaşam | Masa Lambası | 399 | IKEA · Masa Lambaları | 52 | 1.199 | 1.699 | 2.461 | 4.3x | 1.699 | 25 Kasım, tarayıcıyla (aşağıdaki nota bakınız). İlk tarama Koçtaş · Çocuk Masa Lambası: n 37, medyan 936 (zayıf karşılık) |
 | Ev & Yaşam | Saklama Kabı Seti | 299 | Koçtaş · Saklama ve Karıştırma Kabı | 58 | 350 | 644 | 899 | 2.2x | 639 | Tekli kaplar da dahil |
 | Ev & Yaşam | Halı | 1.799 | Koçtaş · Halı | 78 | 1.174 | 2.245 | 3.600 | 1.2x | 2.239 |  |
 | Kozmetik | Nemlendirici | 189 | Gratis · Yüz Nemlendirici Gece Kremleri | 24 | 419 | 560 | 701 | 3.0x | 559 |  |
@@ -31,3 +31,5 @@ Tarih: 24.11.2026. Her ürün için seçilen sitenin ilgili kategori sayfasını
 | Kitap | Ders Kitabı | 349 | D&R · Eğitim ve Sınav Kitapları | 40 | 330 | 450 | 598 | 1.3x | 449 | Sınav kitapları da dahil |
 | Kitap | Çocuk Kitabı | 99 | D&R · Çocuk ve Gençlik | 40 | 133 | 175 | 272 | 1.8x | 179 |  |
 | Kitap | Şiir Kitabı | 119 | D&R · Şiir | 40 | 120 | 192 | 300 | 1.6x | 189 |  |
+
+**Masa Lambası, IKEA (25 Kasım 2026):** IKEA kategori listesini JavaScript ile ve kaydırdıkça yüklediği için "ilk sayfa" sınırı yok; `Masa Lambaları` kategorisi tarayıcıda sonuna kadar kaydırılarak yüklendi (94 benzersiz ürün). Eşleşme tanımındaki ad kuralı uygulandı: adında "masa lambası" ya da "çalışma lambası" geçenler alındı (52 ürün), "abajur" adlı ürünler alınmadı. Bu, eşleşme tanımından daha sıkı bir kural: tanım yalnız "abajur başlığı"nı hariç tutuyor, ama "abajur" tanımın dahil listesinde de yok; IKEA'da "abajur" adı çoğunlukla gövdesiyle satılan dekoratif lambalar için kullanılıyor. Fiyat, kartta görünen güncel fiyattır (indirim varsa indirimli). Yüzdelikler diğer satırlarla aynı yöntemle (doğrusal ara değer) hesaplandı. Simülasyondaki liste fiyatı (`data/urun-listesi-web.csv`) bu taramadan önce 399'da bırakılmıştı; güncelleme kararı Ajan 2'nindir.
