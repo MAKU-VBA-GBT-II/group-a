@@ -3,8 +3,6 @@
 **Şirket:** Sepetix Analitik · **Sektör:** E-ticaret · **Görev:** Duyuru-10, Çok Ajanlı Şirket Programı
 **Teslim:** 26 Kasım 2026 Perşembe 13:00 · **PM:** Ali Haydar Polat
 
-> TASLAK (24 Kasım 2026). `[TODO]` ile işaretli yerler ekip tarafından doldurulacak; doldurulmadan teslim edilmez.
-
 ## 1. Senaryo
 
 Hocanın e-ticaret örneğini alıyoruz: **rakiplere göre fiyat ve kampanya stratejisi**.
@@ -85,10 +83,10 @@ Program herhangi bir API anahtarı içermeyecek; araç seçimi ayardan yapılaca
 
 ## 7. Teslim kontrol listesi
 
-- [ ] Senaryo ve üç ajanın birer cümlelik tanımı yazılı
+- [x] Senaryo ve üç ajanın birer cümlelik tanımı yazılı
 - [ ] Web kaynakları listelenmiş; en az biri tarayıcı gerektiriyor; robots.txt ve kullanım şartları kontrol edilmiş
-- [ ] Simülasyon web kaynaklarıyla eşleşen alanlar üretiyor ve dışarıdan liste veya aralık alabiliyor
-- [ ] Örnek veri ve güncel veri sözlüğü repoda
+- [x] Simülasyon web kaynaklarıyla eşleşen alanlar üretiyor ve dışarıdan liste veya aralık alabiliyor
+- [x] Örnek veri ve güncel veri sözlüğü repoda
 - [ ] Rol listesi ve abonelikler Issue'da, @eofdred etiketli
 
 ---
