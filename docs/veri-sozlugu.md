@@ -92,9 +92,9 @@ Sütunlar dosyada **tam olarak bu sırada** bulunur:
 | 3 | `musteri_id` | metin | `M` + 4 hane, `M0001` … `M{musteri_sayisi}` | – | `M0427` | Sentetik müşteri kimliği; bir müşteri birden çok sipariş verebilir |
 | 4 | `kanal` | metin | Web, Mobil, Pazaryeri | – | `Mobil` | Siparişin geldiği kanal |
 | 5 | `kategori` | metin | Elektronik, Giyim, Ev & Yaşam, Kozmetik, Kitap | – | `Elektronik` | Ürün kategorisi (Görev 1 ile aynı yazım) |
-| 6 | `urun` | metin | 25 ürünlük liste (aşağıda) | – | `Powerbank` | Daima kendi kategorisine aittir |
+| 6 | `urun` | metin | Ürün listesindeki ürünler: varsayılanda betikteki 25 ürün (aşağıda), `--urun_listesi` verilirse o dosyadaki ürünler | – | `Powerbank` | Daima kendi kategorisine aittir |
 | 7 | `adet` | int | 1 – 5 | adet | `2` | Sipariş miktarı |
-| 8 | `birim_fiyat` | float | ürünün liste fiyatı × [0,95 – 1,05], 2 ondalık | TL | `612.35` | **Ürüne özgü** fiyat (#30) |
+| 8 | `birim_fiyat` | float | ürünün liste fiyatı × [1 − `fiyat_sapmasi`, 1 + `fiyat_sapmasi`] (varsayılan 0.05 → [0,95 – 1,05]; ürün listesi dosyasındaki ürün başı değer üstün gelir), 2 ondalık | TL | `612.35` | **Ürüne özgü** fiyat (#30) |
 | 9 | `indirim_orani` | float | kampanya dışı `0.00`; kampanyada `0.10`, `0.15`, `0.20`, `0.25`, `0.30` | oran | `0.20` | Siparişe uygulanan indirim |
 | 10 | `kampanya` | int | `0` veya `1` | – | `1` | Sipariş günü bir kampanya dönemindeyse `1` |
 | 11 | `toplam_tutar` | float | `round(adet × birim_fiyat × (1 − indirim_orani), 2)`; > 0 | TL | `979.76` | **Hesaplanır**, rastgele üretilmez |
@@ -199,3 +199,4 @@ Hafta tanımı Görev 1 ile aynıdır: Pazartesi başlangıçlı (`W-MON`). Vars
 | 2026-11-01 | Satır sayısı: `gun_adet = max(1, …)`; izinli aralıktaki parametrelerle 0 siparişli gün oluşup kural 5'in düşmesi önlendi (PR #72 incelemesi) | #64 |
 | 2026-11-22 | 9. parametre `urun_agirliklari` (isteğe bağlı ürün popülerlik ağırlığı): parametre tablosu, geçersiz parametre kuralı, normalize ve MD5 notu, satır sayısına etkisizlik, **Ürün sırası**, `urun` olasılığı (Ağırlıklı alanlar), kural 6 istisnası (ağırlığı 0 olan ürün). Alanlar, tipler, aralıklar ve varsayılan dosya değişmedi | PR #95, #86 |
 | 2026-11-24 | Duyuru-10 simülasyon genişletmesi (PR #102): 10. ve 11. parametreler `urun_listesi` ve `fiyat_sapmasi`; **Ürün listesi dosyası** biçimi; `urun_agirliklari` ürün sayısına bağlandı; geçersiz parametre kuralı, satır sayısına etkisizlik, kural 6 ve kural 8 genelleştirildi; web fiyatlı örnek veri `data/siparisler-web.csv`. Varsayılan dosya ve MD5 değişmedi | PR #102, #96 |
+| 2026-11-26 | Alanlar tablosu PR #102 ile uyumlandı: `urun` (6) ürün listesine, `birim_fiyat` (8) `fiyat_sapmasi`'na bağlandı; sabit "25 ürün" ve "±%5" ifadeleri kaldırıldı. Veri ve MD5 değişmedi | #96 |
