@@ -31,7 +31,7 @@ Uydurma sayı yazılmaz. Her sayı bir dosyadan ya da betik hesabından gelir ve
    - Makul aralık (0,4x–2,5x; Kitap 0,5x–2x) ve `eslesme_guveni` Ajan 1'in işaretidir. Ajan 2 değiştirmez; `dusuk` güvenli satırlar da medyana girer.
 3. **Rakip medyanı:** Medyana giren fiyatların medyanı. Çift sayıda gözlemde ortadaki ikisinin ortalaması alınır, gözlem yoksa `null`.
 4. **Fiyat farkı:** `100 × (bizim − medyan) / medyan`. Pozitif değer bizim fiyatın yüksek olduğunu gösterir. Medyan yoksa `null`.
-5. **Satış:** Sipariş dönemindeki `Teslim Edildi` satırlarının `adet` ve `toplam_tutar` toplamı; iade ve iptal hariç. Dönem verilmezse verinin ilk ve son günü kullanılır (`--baslangic`, `--bitis`).
+5. **Satış:** Sipariş dönemindeki `Teslim Edildi` satırlarının `adet` ve `toplam_tutar` toplamı; iade ve iptal hariç. Dönem verilmezse verinin ilk ve son günü kullanılır. `--baslangic` ve `--bitis` birlikte verilir ve başlangıç bitişten sonra olamaz; aksi hâlde betik hata verir.
 6. **İlişki:** Fiyat farkı tanımlı ürünler üzerinden fark–adet ve fark–ciro Pearson katsayıları. İkiden az ürün ya da sıfır varyans varsa `null`. Ara hesap yuvarlanmaz. JSON'da para, medyan ve yüzde iki, korelasyon altı ondalığa yuvarlanır (eşit yarıda çifte).
 7. **Öneri (kural tabanlı):**
    - Medyan yok → `veri_topla`.

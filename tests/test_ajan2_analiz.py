@@ -95,6 +95,42 @@ class Ajan2Test(unittest.TestCase):
         self.assertEqual(zarf["sorunlu_alanlar"], ["satir[2].urun_url", "satir[3].bulma_yolu",
                                                    "satir[4].ham_fiyat_metni", "satir[5].elendi"])
 
+    def test_nan_fiyat_red_ve_eski_cikti_silinir(self):
+        self.assertEqual(self.calistir()[0], 0)  # önce onaylı çıktı ve zarf oluşur
+        satirlar = [dict(s) for s in self.satirlar]
+        satirlar[0]["liste_fiyati"] = "NaN"
+        satirlar[1]["indirimli_fiyat"] = "NaN"
+        kod, zarf, cikti = self.calistir(satirlar)
+        self.assertEqual(kod, 2)
+        self.assertIn("satir[2].liste_fiyati", zarf["sorunlu_alanlar"])
+        self.assertIn("satir[3].indirimli_fiyat", zarf["sorunlu_alanlar"])
+        self.assertIsNone(cikti)
+
+    def test_alan_adi_rakip_site_ile_uyumlu(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        satirlar[0]["urun_url"] = "https://koctas.example/urun/lamba-a"  # rakip_site IKEA
+        kod, zarf, _ = self.calistir(satirlar)
+        self.assertEqual((kod, zarf["sorunlu_alanlar"]), (2, ["satir[2].urun_url"]))
+
+    def test_referans_gercek_veride_kabul_edilmez(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        for s in satirlar:
+            s["arac"] = "playwright"
+        self.calistir()  # eski onaylı dosyalar
+        with self.assertRaises(SystemExit):
+            self.calistir(satirlar)
+        self.assertFalse((self.tmp / "cikti.json").exists())
+        self.assertFalse((self.tmp / "zarf.json").exists())
+
+    def test_siparis_donemi_birlikte_ve_sirali_olmali(self):
+        ortak = ["--girdi", str(ORNEK), "--referans", REFERANS, "--cikti", str(self.tmp / "c.json"),
+                 "--zarf", str(self.tmp / "z.json"), "--iz_klasoru", str(self.tmp / "runs")]
+        for ek in (["--baslangic", "2026-07-01", "--bitis", "2026-01-01"], ["--baslangic", "2026-01-01"],
+                   ["--bitis", "2026-07-01"], ["--baslangic", "dün", "--bitis", "2026-07-01"]):
+            with self.assertRaises(SystemExit):
+                a2.main(ortak + ek)
+        self.assertEqual(a2.main(ortak + ["--baslangic", "2026-01-05", "--bitis", "2026-01-05"]), 0)
+
     def test_stok_yok_ve_kdv_haric_medyana_girmez(self):
         satirlar = [dict(s) for s in self.satirlar]
         satirlar[2]["stok_durumu"] = "yok"      # Saklama set-a

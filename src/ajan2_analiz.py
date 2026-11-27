@@ -57,6 +57,9 @@ DEGER_KUMELERI = {
     "rakip_site": {"MediaMarkt", "Gratis", "D&R", "Koçtaş", "IKEA", "Koton"},
 }
 BAYATLIK = timedelta(hours=72)
+# rakip_site → ürün adresinin alan adında bulunması gereken etiket
+SITE_ALAN_ADI = {"MediaMarkt": "mediamarkt", "Gratis": "gratis", "D&R": "dr", "Koçtaş": "koctas",
+                 "IKEA": "ikea", "Koton": "koton"}
 ELENDI_GEREKCELERI = {"fiyat bandı dışı", "çoklu paket", "ikinci el", "stok yok", "TL dışı"}
 BULMA_YOLU = re.compile(r"^https://\S+ s\.[1-9]\d*$")
 SENTETIK_ARAC = "sentetik-fixture"
@@ -161,7 +164,8 @@ def alma(girdi, katalog_yolu, referans):
                 sorunlar.append(f"{yol}.indirimli_fiyat")
         if satir["elendi"].strip() and satir["elendi"].strip() not in ELENDI_GEREKCELERI:
             sorunlar.append(f"{yol}.elendi")
-        if satir["urun_url"] and not _urun_sayfasi(satir["urun_url"]):
+        if satir["urun_url"] and (not _urun_sayfasi(satir["urun_url"])
+                                  or not _site_uyumlu(satir["urun_url"], satir["rakip_site"])):
             sorunlar.append(f"{yol}.urun_url")
         if satir["bulma_yolu"] and not BULMA_YOLU.match(satir["bulma_yolu"]):
             sorunlar.append(f"{yol}.bulma_yolu")
@@ -198,13 +202,21 @@ def _urun_sayfasi(adres):
             and "q" not in sorgu and "query" not in sorgu)
 
 
+def _site_uyumlu(adres, site):
+    """Ürün adresinin alan adı rakip_site ile uyumlu mu? (ör. IKEA → *.ikea.*)"""
+    etiket = SITE_ALAN_ADI.get(site)
+    host = (urlparse(adres).hostname or "").lower()
+    return etiket is None or etiket in host.split(".")
+
+
 def _ham_fiyat(metin):
     """'₺1.299,90' → Decimal('1299.90'). Ayrıştırılamazsa None."""
     sayi = re.sub(r"[^\d.,]", "", metin).replace(".", "").replace(",", ".")
     try:
-        return Decimal(sayi)
+        deger = Decimal(sayi)
     except InvalidOperation:
         return None
+    return deger if deger.is_finite() else None
 
 
 def _fiyat(metin):
@@ -212,7 +224,7 @@ def _fiyat(metin):
         deger = Decimal(metin)
     except (InvalidOperation, TypeError):
         return None
-    if deger <= 0 or deger.as_tuple().exponent != -2:
+    if not deger.is_finite() or deger <= 0 or deger.as_tuple().exponent != -2:
         return None
     return deger
 
@@ -365,6 +377,13 @@ def calistir(arg, argv=None):
     referans = datetime.fromisoformat(arg.referans) if arg.referans else datetime.now(TR).replace(microsecond=0)
     if referans.utcoffset() is None:
         raise SystemExit("Hata: --referans saat dilimi içermeli (ör. +03:00)")
+    # Her çalıştırma temiz başlar: hata hangi yolda olursa olsun eski çıktı ve
+    # zarf Ajan 3'e onaylıymış gibi kalmaz.
+    for eski in (arg.cikti, arg.zarf):
+        Path(eski).unlink(missing_ok=True)
+    if arg.referans and not _hepsi_sentetik(arg.girdi):
+        raise SystemExit("Hata: --referans yalnız tüm satırları sentetik-fixture olan test girdisinde "
+                         "kullanılır; gerçek veride alma anı kullanılmalı.")
     iz = {
         "arac": "src/ajan2_analiz.py",
         "komut": " ".join(["python", "src/ajan2_analiz.py"] + (sys.argv[1:] if argv is None else list(argv))),
@@ -383,7 +402,7 @@ def calistir(arg, argv=None):
         print(f"RED → ajan1: {red.gerekce} ({', '.join(red.alanlar[:5])})")
         return 2
 
-    sentetik = all(s["arac"] == SENTETIK_ARAC for s in satirlar)
+    sentetik = all(s["arac"] == SENTETIK_ARAC for s in satirlar)  # --referans varsa hep True
     uretim = referans if arg.referans else datetime.now(TR).replace(microsecond=0)
     donem = (date.fromisoformat(arg.baslangic), date.fromisoformat(arg.bitis)) if arg.baslangic and arg.bitis else None
     urunler, iliskiler, (bas, bit) = isleme(satirlar, katalog, arg.siparisler, arg.girdi,
@@ -410,6 +429,14 @@ def calistir(arg, argv=None):
     return 0
 
 
+def _hepsi_sentetik(girdi):
+    try:
+        _, satirlar = csv_oku(girdi)
+    except (OSError, UnicodeDecodeError, csv.Error):
+        return True  # okunamayan girdi alma aşamasında gerekçeli red alır
+    return all(s.get("arac") == SENTETIK_ARAC for s in satirlar)
+
+
 def _iz_yaz(klasor, iz):
     iz["bitis"] = datetime.now(TR).isoformat(timespec="seconds")
     ad = datetime.now(TR).strftime("%Y%m%d-%H%M%S") + f"-{iz['sonuc']['durum']}.json"
@@ -428,7 +455,17 @@ def main(argv=None):
     p.add_argument("--cikti", default=str(KOK / "data/ajan2-cikti.json"))
     p.add_argument("--zarf", default=str(KOK / "data/ajan2-zarf.json"))
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan2"))
-    return calistir(p.parse_args(argv), argv)
+    arg = p.parse_args(argv)
+    if bool(arg.baslangic) != bool(arg.bitis):
+        p.error("--baslangic ve --bitis birlikte verilmeli")
+    if arg.baslangic:
+        try:
+            bas, bit = date.fromisoformat(arg.baslangic), date.fromisoformat(arg.bitis)
+        except ValueError:
+            p.error("--baslangic ve --bitis YYYY-AA-GG biçiminde olmalı")
+        if bas > bit:
+            p.error("--baslangic, --bitis'ten sonra olamaz")
+    return calistir(arg, argv)
 
 
 if __name__ == "__main__":

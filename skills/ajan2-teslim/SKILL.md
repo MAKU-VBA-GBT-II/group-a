@@ -15,12 +15,12 @@ description: Ajan 2'nin (analiz) son aşaması. Analiz sonucunu docs/mesaj-bicim
 | `--zarf` (varsayılan `data/ajan2-zarf.json`) | Onayda `durum = onay`, `hedef_ajan = ajan3`, `sorunlu_alanlar = []`. Redde `hedef_ajan = ajan1` ve hatalı alan yolları. |
 | `runs/ajan2/<zaman>-<onay\|red>.json` | Gerçek araç izi: komut, referans zamanı, girdi ve çıktı MD5'leri, aşama, sonuç ve ürün özeti. |
 
-Çıkış kodları: 0 onay, 2 red, 1 beklenmeyen hata.
+Çıkış kodları: 0 onay, 2 red, 1 kullanım ya da beklenmeyen hata. Her çalıştırma eski çıktı ve zarfı silerek başlar; hangi yolda hata olursa olsun eski bir `onay` zarfı ortada kalmaz.
 
 ## Kurallar
 
 - `veri_turu`: Tüm satırların `arac` değeri `sentetik-fixture` ise `sentetik_test`, değilse `web_ve_sentetik_siparis`.
-- `uretim_zamani`: `--referans` verilirse o (tekrarlanabilir test), verilmezse çalıştırma anı.
+- `uretim_zamani`: `--referans` verilirse o (yalnız sentetik test girdisi), verilmezse çalıştırma anı.
 - Her sayısal alan `kaynaklar` içinde dosya, seçim ve üretim zamanıyla izlenir. Sürümlenmiş ve değişmemiş dosyada üretim zamanı son commit zamanıdır, değilse dosya zamanı.
 - Red durumunda çıktı JSON'u yazılmaz ve eski çıktı silinir; hatalı çıktı Ajan 3'e aktarılmaz.
 - Çıktı, zarf ve `runs/ajan2/` izi aynı PR'da commit edilir. Kod ya da veri PR'ı DQ onayı olmadan main'e girmez.
