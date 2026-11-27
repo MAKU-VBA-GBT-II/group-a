@@ -15,7 +15,7 @@ description: Ajan 3'ün (denetim) ilk aşaması. Ajan 2'nin JSON çıktısını,
 
 1. Ajan 1 tablosu okunur ve denetimde kullanılan sütunlar vardır.
 2. Her satırda `0 ≤ referans − cekilme_zamani ≤ 72 saat`.
-3. Fiyatlar sonlu ve pozitif; indirimli fiyat listeden küçük; `ham_fiyat_metni` karşılaştırma fiyatına eşit.
+3. Fiyatlar sonlu ve pozitif; indirimli fiyat listeden küçük; `ham_fiyat_metni` karşılaştırma fiyatına eşit; `para_birimi = TRY`.
 4. `urun_url` https ve alan adı `rakip_site`'ye ait (sentetik satırda `<ad>.example` kabul).
 5. Ajan 2 zarfı `onay` ve `hedef_ajan = ajan3`.
 6. Ajan 2 JSON'u okunur, `NaN`/`Infinity` içermez, zorunlu alanlar tamdır; `veri_turu` CSV'deki `arac` ile uyumludur.
