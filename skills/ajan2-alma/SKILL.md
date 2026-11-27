@@ -27,7 +27,7 @@ Elenmiş (`elendi` dolu) satırlar da bütün kontrollerden geçer; elenmiş olm
 4. **Ürün:** `bizim_urun` ve `kategori`, ürün listesinde birebir aynı çift olarak var.
 5. **Fiyat:** `liste_fiyati` ve `indirimli_fiyat` sonlu (`NaN`, `Infinity` değil), pozitif, nokta ve tam iki ondalık. `indirimli_fiyat` doluysa listeden küçük ve `fiyat_turu ≠ liste`.
 6. **Fiyat izi:** `ham_fiyat_metni`'nden ayrıştırılan sayı karşılaştırma fiyatına eşit (varsa `indirimli_fiyat`, yoksa `liste_fiyati`). Örnek: `₺1.299,90` → `1299.90`.
-7. **Adresler:** `urun_url` bir `https` ürün sayfası; arama sayfası (`/search`, `q=`, `query=`) değil ve alan adı `rakip_site` ile uyumlu (ör. IKEA → `*.ikea.*`, D&R → `*.dr.*`). `bulma_yolu` `<https adresi> s.<n>` biçiminde.
+7. **Adresler:** `urun_url` bir `https` ürün sayfası; arama sayfası (`/search`, `q=`, `query=`) değil ve alan adı `rakip_site`'nin alan adı ya da alt alanı: MediaMarkt `mediamarkt.com.tr`, Gratis `gratis.com`, D&R `dr.com.tr`, Koçtaş `koctas.com.tr`, IKEA `ikea.com.tr`, Koton `koton.com`. Sentetik satırda `<ad>.example` de kabul edilir. `bulma_yolu` `<https adresi> s.<n>` biçiminde.
 8. **Eleme gerekçesi:** `elendi` boş ya da şu değerlerden biri: `fiyat bandı dışı`, `çoklu paket`, `ikinci el`, `stok yok`, `TL dışı`.
 9. **72 saat kuralı:** Her satırda `0 ≤ referans − cekilme_zamani ≤ 72 saat` ve saat dilimi `+03:00` olmalı. Tam 72 saat geçerli; gelecek tarih, saat dilimsiz ya da bozuk tarih geçersiz.
 

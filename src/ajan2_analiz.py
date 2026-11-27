@@ -57,9 +57,9 @@ DEGER_KUMELERI = {
     "rakip_site": {"MediaMarkt", "Gratis", "D&R", "Koçtaş", "IKEA", "Koton"},
 }
 BAYATLIK = timedelta(hours=72)
-# rakip_site → ürün adresinin alan adında bulunması gereken etiket
-SITE_ALAN_ADI = {"MediaMarkt": "mediamarkt", "Gratis": "gratis", "D&R": "dr", "Koçtaş": "koctas",
-                 "IKEA": "ikea", "Koton": "koton"}
+# rakip_site → izinli alan adı (sonek eşleşmesi). `.example` yalnız sentetik test adresidir.
+SITE_ALAN_ADI = {"MediaMarkt": "mediamarkt.com.tr", "Gratis": "gratis.com", "D&R": "dr.com.tr",
+                 "Koçtaş": "koctas.com.tr", "IKEA": "ikea.com.tr", "Koton": "koton.com"}
 ELENDI_GEREKCELERI = {"fiyat bandı dışı", "çoklu paket", "ikinci el", "stok yok", "TL dışı"}
 BULMA_YOLU = re.compile(r"^https://\S+ s\.[1-9]\d*$")
 SENTETIK_ARAC = "sentetik-fixture"
@@ -165,7 +165,8 @@ def alma(girdi, katalog_yolu, referans):
         if satir["elendi"].strip() and satir["elendi"].strip() not in ELENDI_GEREKCELERI:
             sorunlar.append(f"{yol}.elendi")
         if satir["urun_url"] and (not _urun_sayfasi(satir["urun_url"])
-                                  or not _site_uyumlu(satir["urun_url"], satir["rakip_site"])):
+                                  or not _site_uyumlu(satir["urun_url"], satir["rakip_site"],
+                                                      satir["arac"] == SENTETIK_ARAC)):
             sorunlar.append(f"{yol}.urun_url")
         if satir["bulma_yolu"] and not BULMA_YOLU.match(satir["bulma_yolu"]):
             sorunlar.append(f"{yol}.bulma_yolu")
@@ -202,11 +203,17 @@ def _urun_sayfasi(adres):
             and "q" not in sorgu and "query" not in sorgu)
 
 
-def _site_uyumlu(adres, site):
-    """Ürün adresinin alan adı rakip_site ile uyumlu mu? (ör. IKEA → *.ikea.*)"""
-    etiket = SITE_ALAN_ADI.get(site)
+def _site_uyumlu(adres, site, sentetik=False):
+    """Ürün adresinin alan adı rakip_site'nin alan adı mı (ya da alt alanı mı)?
+
+    Ör. IKEA → ikea.com.tr veya www.ikea.com.tr. Sentetik satırda <ad>.example de kabul edilir.
+    """
+    alan = SITE_ALAN_ADI.get(site)
     host = (urlparse(adres).hostname or "").lower()
-    return etiket is None or etiket in host.split(".")
+    if alan is None:
+        return True  # bilinmeyen site değer kümesi kontrolünde yakalanır
+    izinli = [alan] + ([alan.split(".")[0] + ".example"] if sentetik else [])
+    return any(host == a or host.endswith("." + a) for a in izinli)
 
 
 def _ham_fiyat(metin):
@@ -375,15 +382,6 @@ def yaz_json(yol, veri):
 
 def calistir(arg, argv=None):
     referans = datetime.fromisoformat(arg.referans) if arg.referans else datetime.now(TR).replace(microsecond=0)
-    if referans.utcoffset() is None:
-        raise SystemExit("Hata: --referans saat dilimi içermeli (ör. +03:00)")
-    # Her çalıştırma temiz başlar: hata hangi yolda olursa olsun eski çıktı ve
-    # zarf Ajan 3'e onaylıymış gibi kalmaz.
-    for eski in (arg.cikti, arg.zarf):
-        Path(eski).unlink(missing_ok=True)
-    if arg.referans and not _hepsi_sentetik(arg.girdi):
-        raise SystemExit("Hata: --referans yalnız tüm satırları sentetik-fixture olan test girdisinde "
-                         "kullanılır; gerçek veride alma anı kullanılmalı.")
     iz = {
         "arac": "src/ajan2_analiz.py",
         "komut": " ".join(["python", "src/ajan2_analiz.py"] + (sys.argv[1:] if argv is None else list(argv))),
@@ -443,8 +441,15 @@ def _iz_yaz(klasor, iz):
     yaz_json(Path(klasor) / ad, iz)
 
 
+class _Ayristirici(argparse.ArgumentParser):
+    def error(self, message):
+        """Kullanım hataları 1 ile çıkar; 2 yalnız Ajan 1'e red demektir."""
+        self.print_usage(sys.stderr)
+        self.exit(1, f"Hata: {message}\n")
+
+
 def main(argv=None):
-    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
+    p = _Ayristirici(description=__doc__.split("\n\n")[0],
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--girdi", required=True, help="Ajan 1'in 19 sütunlu rakip CSV'si")
     p.add_argument("--urun_listesi", default=str(KOK / "data/urun-listesi-web.csv"))
@@ -456,6 +461,19 @@ def main(argv=None):
     p.add_argument("--zarf", default=str(KOK / "data/ajan2-zarf.json"))
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan2"))
     arg = p.parse_args(argv)
+    # Her çalıştırma temiz başlar: doğrulamalardan önce eski çıktı ve zarf silinir,
+    # böylece hiçbir hata yolunda eski bir onay zarfı Ajan 3'e kalmaz.
+    for eski in (arg.cikti, arg.zarf):
+        Path(eski).unlink(missing_ok=True)
+    if arg.referans:
+        try:
+            if datetime.fromisoformat(arg.referans).utcoffset() is None:
+                raise ValueError
+        except ValueError:
+            p.error("--referans saat dilimli ISO 8601 olmalı (ör. 2026-11-29T18:00:00+03:00)")
+        if not _hepsi_sentetik(arg.girdi):
+            p.error("--referans yalnız tüm satırları sentetik-fixture olan test girdisinde kullanılır; "
+                    "gerçek veride alma anı kullanılmalı")
     if bool(arg.baslangic) != bool(arg.bitis):
         p.error("--baslangic ve --bitis birlikte verilmeli")
     if arg.baslangic:

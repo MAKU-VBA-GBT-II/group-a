@@ -131,6 +131,30 @@ class Ajan2Test(unittest.TestCase):
                 a2.main(ortak + ek)
         self.assertEqual(a2.main(ortak + ["--baslangic", "2026-01-05", "--bitis", "2026-01-05"]), 0)
 
+    def test_kullanim_hatasi_1_doner_ve_eski_onay_zarfi_kalmaz(self):
+        ortak = ["--girdi", str(ORNEK), "--cikti", str(self.tmp / "cikti.json"),
+                 "--zarf", str(self.tmp / "zarf.json"), "--iz_klasoru", str(self.tmp / "runs")]
+        for ek in (["--referans", REFERANS, "--baslangic", "2026-07-01", "--bitis", "2026-01-01"],
+                   ["--referans", REFERANS, "--baslangic", "2026-01-01"],
+                   ["--referans", REFERANS, "--baslangic", "dün", "--bitis", "2026-07-01"],
+                   ["--referans", "2026-11-29T18:00:00"], ["--referans", "yarın"]):
+            self.assertEqual(self.calistir()[0], 0)  # eski onay zarfı ve çıktı
+            with self.assertRaises(SystemExit) as hata:
+                a2.main(ortak + ek)
+            self.assertEqual(hata.exception.code, 1, ek)
+            self.assertFalse((self.tmp / "zarf.json").exists(), ek)
+            self.assertFalse((self.tmp / "cikti.json").exists(), ek)
+
+    def test_alan_adi_sonek_eslesmesi(self):
+        f = a2._site_uyumlu
+        self.assertTrue(f("https://www.ikea.com.tr/urun/x", "IKEA"))
+        self.assertTrue(f("https://ikea.com.tr/urun/x", "IKEA"))
+        self.assertFalse(f("https://ikea.example.com/urun/x", "IKEA"))
+        self.assertFalse(f("https://kotuikea.com.tr/urun/x", "IKEA"))
+        self.assertFalse(f("https://ikea.example/urun/x", "IKEA"))  # sentetik değilse
+        self.assertTrue(f("https://ikea.example/urun/x", "IKEA", sentetik=True))
+        self.assertTrue(f("https://www.dr.com.tr/urun/x", "D&R"))
+
     def test_stok_yok_ve_kdv_haric_medyana_girmez(self):
         satirlar = [dict(s) for s in self.satirlar]
         satirlar[2]["stok_durumu"] = "yok"      # Saklama set-a
