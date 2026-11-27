@@ -43,7 +43,7 @@ SITE_ALAN_ADI = {"MediaMarkt": "mediamarkt.com.tr", "Gratis": "gratis.com", "D&R
                  "Koçtaş": "koctas.com.tr", "IKEA": "ikea.com.tr", "Koton": "koton.com"}
 SET_ISTISNASI = {"Saklama Kabı Seti"}
 CSV_ALANLARI = ("bizim_urun kategori ham_fiyat_metni liste_fiyati indirimli_fiyat kdv_dahil "
-                "stok_durumu rakip_site urun_url cekilme_zamani arac elendi").split()
+                "stok_durumu rakip_site urun_url cekilme_zamani arac elendi para_birimi").split()
 UST_ALANLAR = ("surum veri_turu para_birimi uretim_zamani siparis_donemi urunler iliskiler").split()
 URUN_ALANLARI = ("urun kategori bizim_liste_fiyati rakip_medyan_fiyati fiyat_farki_yuzde "
                  "kullanilan_rakip_sayisi elenen_rakip_sayisi satis_adedi ciro oneri kaynaklar").split()
@@ -139,6 +139,8 @@ def alma(girdi, zarf_yolu, ajan1_yolu, referans):
         gorunen = indirimli if satir["indirimli_fiyat"] else liste
         if gorunen is not None and ham_fiyat(satir["ham_fiyat_metni"]) != gorunen:
             sorunlar.append((f"satir[{no}].ham_fiyat_metni", "fiyat, sayfadaki ham metinle uyuşmuyor"))
+        if satir["para_birimi"] != "TRY":
+            sorunlar.append((f"satir[{no}].para_birimi", "para birimi TRY değil"))
         if not alan_adi_uyumlu(satir):
             sorunlar.append((f"satir[{no}].urun_url", "ürün adresi https değil ya da alan adı rakip siteye ait değil"))
     if sorunlar:
@@ -194,11 +196,14 @@ def alma(girdi, zarf_yolu, ajan1_yolu, referans):
 
 # ---------------------------------------------------------------- 2. işleme
 
-def medyana_girer(satir):
+def medyana_girer(satir, bizim_fiyat):
     gerekce = satir["elendi"].strip()
     if gerekce == "çoklu paket" and satir["bizim_urun"] in SET_ISTISNASI:
         gerekce = ""
-    return not gerekce and satir["stok_durumu"] != "yok" and satir["kdv_dahil"] == "evet"
+    # eşleşme kuralı 2: işaretlenmemiş olsa da bant dışı fiyat medyana girmez
+    karsilastirma = Decimal(satir["indirimli_fiyat"] or satir["liste_fiyati"])
+    bantta = bizim_fiyat * Decimal("0.3") <= karsilastirma <= bizim_fiyat * 3
+    return not gerekce and bantta and satir["stok_durumu"] != "yok" and satir["kdv_dahil"] == "evet"
 
 
 def ayni(bulunan, beklenen):
@@ -229,8 +234,9 @@ def isleme(satirlar, veri, katalog_yolu, siparis_yolu):
     for i, urun in enumerate(veri["urunler"]):
         ad, yol = urun["urun"], f"urunler[{i}]"
         kendi = [(no, s) for no, s in enumerate(satirlar, 2) if s["bizim_urun"] == ad]
-        gecerli = [Decimal(s["indirimli_fiyat"] or s["liste_fiyati"]) for _, s in kendi if medyana_girer(s)]
         liste = Decimal(katalog[ad]["liste_fiyati"])
+        gecerli = [Decimal(s["indirimli_fiyat"] or s["liste_fiyati"]) for _, s in kendi
+                   if medyana_girer(s, liste)]
         medyan = statistics.median(gecerli) if gecerli else None
         fark = 100 * (liste - medyan) / medyan if medyan else None
         satis = [s for s in siparisler if s["urun"] == ad and s["durum"] == "Teslim Edildi"
