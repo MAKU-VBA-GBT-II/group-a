@@ -37,4 +37,4 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan2_analiz.py'`
 
 ## Üretim kaydı
 
-27 Kasım 2026: Eski `ajan2-analiz` skill'inin 6. adımından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız onayladı.
+27 Kasım 2026: Eski `ajan2-analiz` skill'inin 6. adımından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.

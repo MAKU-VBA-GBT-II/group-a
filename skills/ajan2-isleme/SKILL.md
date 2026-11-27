@@ -46,4 +46,4 @@ Elle: `python src/ajan2_analiz.py --girdi <ajan1.csv>` (`--baslangic/--bitis` il
 
 ## Üretim kaydı
 
-27 Kasım 2026: Eski `ajan2-analiz` skill'inin 2.–5. adımlarından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız onayladı.
+27 Kasım 2026: Eski `ajan2-analiz` skill'inin 2.–5. adımlarından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.

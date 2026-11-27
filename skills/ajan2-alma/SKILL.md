@@ -43,4 +43,4 @@ python src/ajan2_analiz.py --girdi <ajan1.csv>
 
 ## Üretim kaydı
 
-27 Kasım 2026: Eski `ajan2-analiz` skill'inin 1. adımından, #115 için Claude (Claude Code) ile ayrıldı; Tuğba Tuana Kaygısız onayladı.
+27 Kasım 2026: Eski `ajan2-analiz` skill'inin 1. adımından, #115 için Claude (Claude Code) ile ayrıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.
