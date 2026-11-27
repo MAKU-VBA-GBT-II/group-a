@@ -84,6 +84,17 @@ class Ajan2Test(unittest.TestCase):
         with self.assertRaises(a2.Red):
             a2.alma(yanlis, KOK / "data/urun-listesi-web.csv", a2.datetime.fromisoformat(REFERANS))
 
+    def test_arama_sayfasi_bulma_yolu_ham_fiyat_ve_elendi_red(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        satirlar[0]["urun_url"] = "https://ikea.example/search?q=lamba"
+        satirlar[1]["bulma_yolu"] = "https://ikea.example/kategori/masa-lambalari"
+        satirlar[2]["ham_fiyat_metni"] = "₺699,00"   # indirimli 599 olmalı
+        satirlar[3]["elendi"] = "pahalı"
+        kod, zarf, _ = self.calistir(satirlar)
+        self.assertEqual(kod, 2)
+        self.assertEqual(zarf["sorunlu_alanlar"], ["satir[2].urun_url", "satir[3].bulma_yolu",
+                                                   "satir[4].ham_fiyat_metni", "satir[5].elendi"])
+
     def test_stok_yok_ve_kdv_haric_medyana_girmez(self):
         satirlar = [dict(s) for s in self.satirlar]
         satirlar[2]["stok_durumu"] = "yok"      # Saklama set-a

@@ -28,12 +28,14 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import statistics
 import subprocess
 import sys
 from datetime import date, datetime, timedelta, timezone
 from decimal import ROUND_HALF_EVEN, Decimal, InvalidOperation
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 KOK = Path(__file__).resolve().parents[1]
 TR = timezone(timedelta(hours=3))
@@ -55,6 +57,8 @@ DEGER_KUMELERI = {
     "rakip_site": {"MediaMarkt", "Gratis", "D&R", "Koçtaş", "IKEA", "Koton"},
 }
 BAYATLIK = timedelta(hours=72)
+ELENDI_GEREKCELERI = {"fiyat bandı dışı", "çoklu paket", "ikinci el", "stok yok", "TL dışı"}
+BULMA_YOLU = re.compile(r"^https://\S+ s\.[1-9]\d*$")
 SENTETIK_ARAC = "sentetik-fixture"
 
 # Bilinen sınırlamalar ve istisnalar (docs/eslesme-tanimlari.md, karar 5 ve kural 5)
@@ -155,6 +159,16 @@ def alma(girdi, katalog_yolu, referans):
             indirim = _fiyat(satir["indirimli_fiyat"])
             if indirim is None or (liste is not None and indirim >= liste) or satir["fiyat_turu"] == "liste":
                 sorunlar.append(f"{yol}.indirimli_fiyat")
+        if satir["elendi"].strip() and satir["elendi"].strip() not in ELENDI_GEREKCELERI:
+            sorunlar.append(f"{yol}.elendi")
+        if satir["urun_url"] and not _urun_sayfasi(satir["urun_url"]):
+            sorunlar.append(f"{yol}.urun_url")
+        if satir["bulma_yolu"] and not BULMA_YOLU.match(satir["bulma_yolu"]):
+            sorunlar.append(f"{yol}.bulma_yolu")
+        karsilastirma = _fiyat(satir["indirimli_fiyat"]) if satir["indirimli_fiyat"] else liste
+        if satir["ham_fiyat_metni"] and karsilastirma is not None \
+                and _ham_fiyat(satir["ham_fiyat_metni"]) != karsilastirma:
+            sorunlar.append(f"{yol}.ham_fiyat_metni")
         if satir["cekilme_zamani"]:
             try:
                 zaman = datetime.fromisoformat(satir["cekilme_zamani"])
@@ -174,6 +188,23 @@ def alma(girdi, katalog_yolu, referans):
             gerekce = f"{len(sorunlar)} alan sözleşmeye uymuyor (eksik, bozuk ya da izinli değer dışı)."
         raise Red(gerekce, sorunlar)
     return satirlar, katalog
+
+
+def _urun_sayfasi(adres):
+    """Doğrudan ürün sayfası mı? Arama sayfası (/search, q=, query=) kabul edilmez."""
+    parca = urlparse(adres)
+    sorgu = parse_qs(parca.query)
+    return (parca.scheme == "https" and bool(parca.hostname) and "/search" not in parca.path.lower()
+            and "q" not in sorgu and "query" not in sorgu)
+
+
+def _ham_fiyat(metin):
+    """'₺1.299,90' → Decimal('1299.90'). Ayrıştırılamazsa None."""
+    sayi = re.sub(r"[^\d.,]", "", metin).replace(".", "").replace(",", ".")
+    try:
+        return Decimal(sayi)
+    except InvalidOperation:
+        return None
 
 
 def _fiyat(metin):
@@ -330,13 +361,13 @@ def yaz_json(yol, veri):
     Path(yol).write_text(json.dumps(veri, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def calistir(arg):
+def calistir(arg, argv=None):
     referans = datetime.fromisoformat(arg.referans) if arg.referans else datetime.now(TR).replace(microsecond=0)
     if referans.utcoffset() is None:
         raise SystemExit("Hata: --referans saat dilimi içermeli (ör. +03:00)")
     iz = {
         "arac": "src/ajan2_analiz.py",
-        "komut": " ".join(["python"] + [goreli(sys.argv[0])] + sys.argv[1:]),
+        "komut": " ".join(["python", "src/ajan2_analiz.py"] + (sys.argv[1:] if argv is None else list(argv))),
         "baslangic": datetime.now(TR).isoformat(timespec="seconds"),
         "referans_zamani": referans.isoformat(),
         "girdiler": {goreli(p): md5(p) for p in (arg.girdi, arg.urun_listesi, arg.siparisler) if Path(p).exists()},
@@ -397,7 +428,7 @@ def main(argv=None):
     p.add_argument("--cikti", default=str(KOK / "data/ajan2-cikti.json"))
     p.add_argument("--zarf", default=str(KOK / "data/ajan2-zarf.json"))
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan2"))
-    return calistir(p.parse_args(argv))
+    return calistir(p.parse_args(argv), argv)
 
 
 if __name__ == "__main__":
