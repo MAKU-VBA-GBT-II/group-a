@@ -1,0 +1,68 @@
+{
+  "durum": "beklemede",
+  "bekleme_nedeni": "Maliyet girdisi ve kâr eşiği tanımlı değil; kâr denetimi yapılmadı, onay verilmedi.",
+  "veri_turu": "sentetik_test",
+  "denetim_referans_zamani": "2026-11-29T18:00:00+03:00",
+  "gecen_kontroller": [
+    "72 saat",
+    "fiyat izi",
+    "ürün adresi alan adı",
+    "Ajan 2 zarfı",
+    "sayıların bağımsız yeniden hesabı",
+    "kaynak kayıtları",
+    "maliyetsiz kâr iddiası yok"
+  ],
+  "yapilmayan_kontroller": [
+    "kâr eşiği",
+    "sayfadan canlı fiyat doğrulaması"
+  ],
+  "urunler": [
+    {
+      "urun": "Masa Lambası",
+      "eylem": "veri_topla",
+      "sayilar": {
+        "bizim_liste_fiyati": 399.0,
+        "rakip_medyan_fiyati": 699.0,
+        "fiyat_farki_yuzde": -42.92,
+        "kullanilan_rakip_sayisi": 1,
+        "elenen_rakip_sayisi": 1,
+        "satis_adedi": 524,
+        "ciro": 205723.88
+      },
+      "kar": "maliyet_eksik"
+    },
+    {
+      "urun": "Saklama Kabı Seti",
+      "eylem": "fiyati_koru",
+      "sayilar": {
+        "bizim_liste_fiyati": 639.0,
+        "rakip_medyan_fiyati": 674.0,
+        "fiyat_farki_yuzde": -5.19,
+        "kullanilan_rakip_sayisi": 2,
+        "elenen_rakip_sayisi": 0,
+        "satis_adedi": 646,
+        "ciro": 403147.1
+      },
+      "kar": "maliyet_eksik"
+    },
+    {
+      "urun": "Şampuan",
+      "eylem": "kampanya_test_et",
+      "sayilar": {
+        "bizim_liste_fiyati": 269.0,
+        "rakip_medyan_fiyati": 239.0,
+        "fiyat_farki_yuzde": 12.55,
+        "kullanilan_rakip_sayisi": 1,
+        "elenen_rakip_sayisi": 0,
+        "satis_adedi": 516,
+        "ciro": 135773.81
+      },
+      "kar": "maliyet_eksik"
+    }
+  ],
+  "iliskiler": {
+    "urun_sayisi": 3,
+    "pearson_fark_adet": 0.149544,
+    "pearson_fark_ciro": -0.049935
+  }
+}
