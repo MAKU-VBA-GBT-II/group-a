@@ -59,6 +59,18 @@ class Ajan3Test(unittest.TestCase):
         self.assertIsNone(self.oku("zarf.json"))
         self.assertEqual(len(list((self.tmp / "runs").glob("*-beklemede.json"))), 1)
 
+    def test_isaretlenmemis_bant_disi_satir_medyana_girmez(self):
+        self.satirlar[1]["elendi"] = ""  # 1499 TL > 3 x 399 TL
+        self.assertEqual(self.calistir(), 3)
+
+    def test_bant_siniri_medyana_dahildir(self):
+        self.satirlar[1].update(elendi="", liste_fiyati="1197.00", ham_fiyat_metni="₺1.197,00")
+        self.red_bekle("ajan2", "urunler[0].rakip_medyan_fiyati")
+
+    def test_try_disi_para_birimi_ajan1e_doner(self):
+        self.satirlar[0]["para_birimi"] = "USD"
+        self.red_bekle("ajan1", "satir[2].para_birimi")
+
     def test_degistirilmis_medyan_ajan2ye_doner(self):
         self.veri["urunler"][0]["rakip_medyan_fiyati"] += 1
         self.red_bekle("ajan2", "urunler[0].rakip_medyan_fiyati")
