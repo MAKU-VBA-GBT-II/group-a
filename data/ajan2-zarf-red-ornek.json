@@ -1,0 +1,12 @@
+{
+  "durum": "red",
+  "hedef_ajan": "ajan1",
+  "gerekce": "5 satırda çekilme zamanı geçersiz, gelecekte ya da referans zamanından (2026-12-01T12:00:00+03:00) 72 saatten eski.",
+  "sorunlu_alanlar": [
+    "satir[2].cekilme_zamani",
+    "satir[3].cekilme_zamani",
+    "satir[4].cekilme_zamani",
+    "satir[5].cekilme_zamani",
+    "satir[6].cekilme_zamani"
+  ]
+}
