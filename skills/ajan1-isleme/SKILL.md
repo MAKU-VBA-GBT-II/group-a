@@ -36,6 +36,7 @@ Her ürün için rapora yazılır:
   - Etiket var, liste fiyatı aynı → "Kampanyalı fiyat (liste fiyatı X TL); normal fiyat değişmedi."
   - Etiket yok, fiyat düşmüş → "Liste fiyatı düştü; kalıcı olabilir."
   - Etiket yok, fiyat yükselmiş → "Liste fiyatı yükseldi."
+- **Kampanya tarihleri:** Kampanyanın başlangıç ve bitiş tarihi kategori sayfasında görünüyorsa rapora yazılır. Görünmüyorsa ürün sayfası ayrıca açılmaz (düşük hacim sözü); raporda "kampanyalı, bitiş tarihi bilinmiyor" yazar. Bitiş tarihi geçmiş bir kampanya fiyatı, satır taze olsa bile yeniden toplanmalıdır; bunu Ajan 2 ve Ajan 3 rapordan okuyarak bildirir.
 - Medyan önceki taramadan **%50'den fazla** saparsa uyarı verilir (öneri: Claude · onay: Hilal). *(Bu kadar büyük bir fark genellikle fiyatın yanlış okunduğunu gösterir.)*
 
 Bu notlar 19 sütunlu tabloya eklenmez; tablo ortak sözleşmeye (#117) bağlı. Notlar `runs/ajan1/` raporunda durur, Ajan 2 ve 3 oradan okur.
@@ -45,5 +46,6 @@ Bu notlar 19 sütunlu tabloya eklenmez; tablo ortak sözleşmeye (#117) bağlı.
 - **Fiyat değişiminin nedeni (Hilal):** 3 günlük bir indirim ya da zam medyanı bir anda kaydırırsa, değişimin sitenin yaptığı bir işlemden kaynaklandığı bildirilmeli; böylece fiyat karşılaştırması yanlış yorumlanmaz. Kampanya değilse, rakibin artık gerçekten daha düşük fiyattan sattığını da bilmeliyiz.
 - **İndirim etiketi (Hilal):** Nedeni medyan karşılaştırmasıyla tahmin etmek yerine, her ürünün sayfasındaki indirim/kampanya etiketinden doğrudan okumak.
 - **Nemlendirici eşleşmesi (Hilal):** Ürünü adına göre değil işlevine göre eşleştirmek; gece kremi de bir yüz nemlendiricisi. Gratis'in kategorisine güvenmek, çünkü müşteri rakip fiyatını o kategori üzerinden görüyor. Öneri Tuğba'ya #115'te sunuldu.
+- **Kampanya bitişi (Hilal):** Veri Ajan 3'e ulaşana kadar kampanya bitebilir. Kampanya tarihleri belliyse Ajan 2 ve 3'e bildirilmeli; kampanyası bitmiş ürünün verisi, tazelik kontrolünü geçse bile yeniden toplanmalı.
 - **Kontrollerin seçimi (Hilal):** Önceki taramayla karşılaştırma ve tekrar ayıklama, skill'leri zenginleştirme isteğim üzerine önerilen kontroller arasından seçildi.
-- *Claude'un katkısı:* Kampanya süresi çoğu zaman sayfada yazmadığı için "geçici" yerine "kampanyalı" ifadesini önerdi. Notların 19 sütunlu tabloya değil çalışma raporuna yazılmasını önerdi (sözleşme #117). Nemlendirici kategorisindeki eşleşme riskini fark etti.
+- *Claude'un katkısı:* Kampanya süresi çoğu zaman sayfada yazmadığı için "geçici" yerine "kampanyalı" ifadesini önerdi. Notların 19 sütunlu tabloya değil çalışma raporuna yazılmasını önerdi (sözleşme #117). Nemlendirici kategorisindeki eşleşme riskini fark etti. Kampanya tarihlerinin çoğu zaman yalnız ürün sayfasında yazdığını, her ürün sayfasını açmanın düşük hacim sözüyle çeliştiğini belirtip tarihin yalnız kategori sayfasında görünüyorsa alınmasını önerdi.
