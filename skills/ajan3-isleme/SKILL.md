@@ -18,7 +18,7 @@ description: Ajan 3'ün (denetim) ikinci aşaması. Ajan 2 çıktısındaki büt
 - Eylem izinli değerlerden biri (medyan yoksa yalnız `veri_topla`); gerekçe boş değil.
 - Maliyet girdisi olmadığı için `kar_durumu = maliyet_eksik`.
 
-Medyana girmeyen satır: `elendi` dolu (Saklama Kabı Seti'nde `çoklu paket` hariç), `stok_durumu = yok` ya da `kdv_dahil ≠ evet`. Hepsi "elenen" sayılır.
+Medyana girmeyen satır: `elendi` dolu (Saklama Kabı Seti'nde `çoklu paket` hariç), `stok_durumu = yok`, `kdv_dahil ≠ evet` ya da işaretlenmemiş olsa da karşılaştırma fiyatı web liste fiyatının 0,3–3 katı dışında (eşleşme kuralı 2; sınırlar dahil). Hepsi "elenen" sayılır.
 
 ## Henüz yapılmayanlar
 
