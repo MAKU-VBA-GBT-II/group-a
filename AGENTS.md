@@ -30,3 +30,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 2. Gerçek kişi verisi asla depoya girmez; tüm veriler simülasyon ürünüdür.
 3. Veri üretimi sabit tohumla tekrarlanabilir olmalıdır.
 4. Hafta 5'ten itibaren `main`'e yalnızca PR ile girilir; kod/veri PR'ları DQ onayı olmadan merge edilmez.
+
+## İnşa Haftası 1 · ACP Çekirdeği
+
+Ali Haydar Polat / Ebru Türk (#113). Tek ajanla terminalden gerçek ACP denemesi için [kurulum ve test rehberini](docs/acp-cekirdek.md) kullanın. Ajanlar arası mesaj sözleşmesi #112'de, rol skill'leri #114–#116'da takip edilir.
