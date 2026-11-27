@@ -66,7 +66,7 @@ Kontrol tarihi: 24 Kasım 2026 (Hilal, Ajan 1). Her aday için `robots.txt` dosy
 
 Sonuç: ilk beş kaynak düz istekle okunabiliyor; **IKEA tarayıcı gerektiriyor** (Migros da gerektiriyor ama kullanım koşulları nedeniyle elendi). Ajan 1 bütün kaynaklarda fiyatı sayfada görünen haliyle okumak için tarayıcıyla (Playwright) çalışacak; IKEA'da sayfayı kaydırarak listenin tamamını yükleyecek. IKEA, Koçtaş'ta ayrı karşılığı bulunmayan Masa Lambası için kaynak olarak eklendi. Battaniye için kullanılmıyor: IKEA Battaniyeler kategorisindeki 65 ürünün çoğunun adında "battaniye" geçmiyor (örtü vb.), eşleşme kuralı ayrıca gerekirdi; Battaniye Koçtaş'tan. Masa Lambası 25 Kasım'da IKEA'dan tarayıcıyla yeniden tarandı (`docs/fiyat-taramasi.md`: n 52, medyan 1.699 TL; Koçtaş'ın çocuk lambalarında medyan 936 TL'ydi).
 
-**İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md) (veri: `data/web-fiyat-taramasi.csv`). 25 ürünün hepsinde web medyanı bugünkü liste fiyatımızın üstünde, 17'sinde 2 katından fazla; simülasyon liste fiyatları bu tabloya göre güncellendi (`data/urun-listesi-web.csv`, bölüm 4).
+**İlk fiyat taraması:** 25 ürünün bu sitelerdeki kategori sayfalarından alınan fiyat örnekleri [`docs/fiyat-taramasi.md`](fiyat-taramasi.md)'de (veri: `data/web-fiyat-taramasi.csv`). Web medyanı, simülasyonun **varsayılan listesindeki** fiyatın 25 üründe de üstünde, 17'sinde 2 katından fazla. Bu yüzden ayrı bir **web fiyatlı liste** hazırlandı (`data/urun-listesi-web.csv`, bölüm 4): 22 ürünün fiyatı web medyanına göre güncellendi. Bu 22 üründe yuvarlama nedeniyle kalan farklar en fazla 6 TL; analiz sonucunu değiştirecek büyüklükte değil. Spor Ayakkabı, Kahve Makinesi ve Masa Lambası, gerekçeleri `docs/eslesme-tanimlari.md`'de yazılı olarak varsayılan fiyatta bırakıldı. Varsayılan liste değişmedi.
 
 ## 4. Simülasyonun genişletilmesi
 
@@ -76,7 +76,7 @@ Mevcut yapı: `src/simulasyon.py`, `data/siparisler-g2.csv`, `docs/veri-sozlugu.
 - **Yapıldı (Tuğba, PR #102):** Fiyat aralığı: `--fiyat_sapmasi` (0–0.5, vars. 0.05) ve listede ürün başına `fiyat_sapmasi` sütunu.
 - **Yapıldı (Tuğba, PR #102):** Web fiyatlı liste `data/urun-listesi-web.csv` (`onerilen_liste_tl`; Spor Ayakkabı, Masa Lambası ve Kahve Makinesi eski fiyatta, gerekçe `docs/eslesme-tanimlari.md`) ve bununla üretilen örnek veri `data/siparisler-web.csv`.
 - Ürün adları Ajan 1'in eşleştirdiği web ürünleriyle uyuşuyor; eşleşme tanımları `docs/eslesme-tanimlari.md` (PR #100). Liste fiyatları için önerilen yeni değerler `data/web-fiyat-taramasi.csv` → `onerilen_liste_tl` sütununda (Hilal, 24 Kasım).
-- **Yapıldı:** Örnek veri `data/siparisler-web.csv`; yeni parametreler `docs/veri-sozlugu.md` Simülasyon parametreleri tablosunda, Alanlar tablosunda ve değişiklik günlüğünde (PR #102, #96).
+- **Yapıldı:** Örnek veri `data/siparisler-web.csv`; yeni parametreler `docs/veri-sozlugu.md` Simülasyon parametreleri tablosunda, Alanlar tablosunda ve değişiklik günlüğünde (PR #102, PR #111; Issue #96).
 - Yeni parametreler (`--urun_listesi`, `--fiyat_sapmasi`) için test kuralları: `tests/test-cases.md` G2-TC-26…34, koşucu `src/dq_test_g2.py` (36/36), sonuç `tests/test-log.md` (Sema, DQ).
 
 ## 5. Abonelikler
@@ -111,4 +111,6 @@ Program herhangi bir API anahtarı içermeyecek; araç seçimi ayardan yapılaca
 
 ---
 
-Üretim: Bu belge Claude ile hazırlandı. Prompt özeti: "Duyuru-10'a göre docs/oneri.md yaz: senaryo, 3 ajan tanımı, web kaynakları (robots.txt kontrolüyle), simülasyon genişletme planı, abonelikler, roller."
+Üretim: Bu taslak Claude ile hazırlandı. Prompt özeti: "Duyuru-10'a göre docs/oneri.md taslağı yaz: senaryo, 3 ajan tanımı, web kaynakları (robots.txt kontrolüyle), simülasyon genişletme planı, abonelikler, roller."
+
+Güncelleme (26 Kasım, Hilal Elçin Şahin): Taslak ifadeleri yapılan işlere göre düzeltildi; belge artık taslak değil (PR #111).
