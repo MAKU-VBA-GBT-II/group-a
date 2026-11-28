@@ -5,6 +5,7 @@ Kullanım (repo kökünden):  python -m src.ajan1.calistir
 Teslim kontrolleri (ajan1-teslim §1) ayrı adımda: python -m src.ajan1.teslim
 """
 import json
+import re
 import statistics
 import sys
 from collections import Counter
@@ -23,7 +24,7 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
     satirlar, gorulen = [], set()
     rapor = {"okunan_kart": len(kartlar), "haric": Counter(), "kararsiz": [],
              "kosullu_fiyat": Counter(), "kosullu_ornek": [], "bilinmeyen_fiyat_etiketi": [],
-             "rozet": Counter(), "taninmayan_rozet": [], "fiyat_okunamadi": [],
+             "rozet": Counter(), "taninmayan_rozet": [], "fiyat_okunamadi": [], "stokta_yok_fiyatsiz": [],
              "ustu_cizili_dogrulanamadi": [], "tekrar": 0, "elendi": Counter()}
     for k in kartlar:
         if not k.get("url") or not k.get("ad"):
@@ -42,9 +43,12 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
             rapor["kararsiz"].append({"ad": k["ad"], "url": url})
             continue
 
+        stokta_yok = any(re.search(r"tükendi|stokta yok|gelince haber ver", s, re.I) for s in k["satirlar"])
         f = gratis.kart_fiyatlari(k["satirlar"], k["ad"], k.get("ustu_cizili", ()))
         if f is None:
-            rapor["fiyat_okunamadi"].append(url)
+            # Gratis stokta olmayan ürünün fiyatını göstermiyor, yerine "Gelince Haber Ver"
+            # yazıyor (28 Kasım, 4 güneş ürünü). Fiyatsız satır yazılamaz; ayrı sayılır.
+            rapor["stokta_yok_fiyatsiz" if stokta_yok else "fiyat_okunamadi"].append(url)
             continue
         for etiket, metin in f["kosullu"]:
             rapor["kosullu_fiyat"][etiket] += 1
@@ -66,7 +70,7 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
             kampanya = kampanya or bilgi["fiyati_etkiler"] == "evet"
 
         karsilastirma = f["indirimli"] or f["liste"]
-        stok = "yok" if any("tükendi" in s.lower() or "stokta yok" in s.lower() for s in k["satirlar"]) else "var"
+        stok = "yok" if stokta_yok else "var"
         elendi = ortak.eleme_gerekcesi(urun, k["ad"], karsilastirma, liste, stok)
         if elendi:
             rapor["elendi"][elendi] += 1
