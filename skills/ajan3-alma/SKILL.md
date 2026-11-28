@@ -9,21 +9,24 @@ description: Ajan 3'ün (denetim) ilk aşaması. Ajan 2'nin JSON çıktısını,
 
 ## Girdiler
 
-`--girdi` (Ajan 2 JSON), `--zarf` (Ajan 2 onay zarfı), `--ajan1` (Ajan 2'nin kullandığı 19 sütunlu CSV). Biçim: `docs/mesaj-bicimi.md`.
+| Argüman | İçerik |
+|---|---|
+| `--girdi`, `--zarf` | Ajan 2 JSON'u ve onay zarfı |
+| `--ajan1`, `--ajan1_md5` | Ajan 2'nin kullandığı 19 sütunlu CSV'nin yolu ve devirde bildirilen MD5'i (ikisi de zorunlu) |
+| `--fiyat` (isteğe bağlı) | `urun,onerilen_fiyat_tl,kaynak,uretim_zamani` |
+| `--maliyet` (isteğe bağlı) | `urun,birim_maliyet_tl,kaynak,uretim_zamani` |
+
+Biçim: `docs/mesaj-bicimi.md`. Fiyat dosyasının sütunları sözleşmede henüz yazmıyor; bu skill'deki biçim geçerlidir. Fiyat ve maliyet aynı birim ve KDV esasında olmalı (kod bunu denetleyemez, dosyayı hazırlayan kontrol eder). Maliyet uydurulmaz; deneme verisinin kaynağı `sentetik_test:...` diye yazılır.
 
 ## Kontroller (`src/ajan3_denetim.py` → `alma()`)
 
-1. Ajan 1 tablosu okunur ve denetimde kullanılan sütunlar vardır.
+1. Ajan 1 tablosu okunur, MD5'i `--ajan1_md5` ile aynıdır, denetimde kullanılan sütunlar vardır; gerçek veride dosya repo içindedir.
 2. Her satırda `0 ≤ referans − cekilme_zamani ≤ 72 saat`.
 3. Fiyatlar sonlu ve pozitif; indirimli fiyat listeden küçük; `ham_fiyat_metni` karşılaştırma fiyatına eşit; `para_birimi = TRY`.
 4. `urun_url` https ve alan adı `rakip_site`'ye ait (sentetik satırda `<ad>.example` kabul).
 5. Ajan 2 zarfı `onay` ve `hedef_ajan = ajan3`.
 6. Ajan 2 JSON'u okunur, `NaN`/`Infinity` içermez, zorunlu alanlar tamdır; `veri_turu` CSV'deki `arac` ile uyumludur.
 
-1–4 düşerse red `ajan1`'e, 5–6 düşerse `ajan2`'ye gider. İkisi de hatalıysa önce `ajan1`.
-
-## Takıma açık sorular (PR #117 incelemesi)
-
-Bu üç kural sözleşmede henüz yazmıyor; cevap gelene kadar yukarıdaki gibi uygulanır: Ajan 3'ün CSV'yi girdi olarak alması, 72 saatin denetimde de geçerli olması, `ajan1` önceliği.
+1–4 düşerse red `ajan1`'e, 5–6 düşerse `ajan2`'ye gider. İkisi de hatalıysa önce `ajan1`; Ajan 2 kontrolleri kaynak düzeltilince yapılır.
 
 `--referans` yalnız sentetik test girdisinde kullanılır; gerçek veride denetim anı alınır.
