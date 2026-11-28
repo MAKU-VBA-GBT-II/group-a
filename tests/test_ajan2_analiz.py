@@ -97,6 +97,17 @@ class Ajan2Test(unittest.TestCase):
         self.assertEqual((kod, zarf["durum"]), (2, "red"))
         self.assertFalse((self.tmp / "fiyat.csv").exists())
 
+    def test_cikti_yolu_girdiyle_ya_da_baska_ciktiyla_cakisamaz(self):
+        girdi = self.tmp / "girdi.csv"
+        girdi.write_bytes(ORNEK.read_bytes())
+        c, z, f = (str(self.tmp / ad) for ad in ("c.json", "z.json", "f.csv"))
+        for cikti, zarf_, fiyat in ((c, z, str(girdi)), (c, z, c), (c, c, f), (str(girdi), z, f)):
+            with self.assertRaises(SystemExit) as hata:
+                a2.main(["--girdi", str(girdi), "--referans", REFERANS, "--cikti", cikti, "--zarf", zarf_,
+                         "--fiyat", fiyat, "--iz_klasoru", str(self.tmp / "runs")])
+            self.assertEqual(hata.exception.code, 1)
+            self.assertEqual(girdi.read_bytes(), ORNEK.read_bytes())
+
     def test_git_z_zaman_bicimi_normalize_edilir(self):
         from unittest import mock
         gercek = a2.subprocess.run

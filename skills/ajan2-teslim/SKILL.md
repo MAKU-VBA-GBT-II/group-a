@@ -16,7 +16,7 @@ description: Ajan 2'nin (analiz) son aşaması. Analiz sonucunu docs/mesaj-bicim
 | `--zarf` (varsayılan `data/ajan2-zarf.json`) | Onayda `durum = onay`, `hedef_ajan = ajan3`, `sorunlu_alanlar = []`. Redde `hedef_ajan = ajan1` ve hatalı alan yolları. |
 | `runs/ajan2/<zaman>-<onay\|red>.json` | Gerçek araç izi: komut, referans zamanı, girdi ve çıktı MD5'leri, aşama, sonuç ve ürün özeti. |
 
-Çıkış kodları: 0 onay, 2 red (Ajan 1'e), 1 kullanım ya da beklenmeyen hata. Argümanlar okunur okunmaz, doğrulamalardan önce eski çıktı ve zarf silinir; böylece ayrıştırma sonrası hiçbir hata yolunda eski bir `onay` zarfı kalmaz. (Zorunlu `--girdi` eksikse dosya yolları bilinmediği için silme yapılamaz; betik yine 1 ile çıkar.)
+Çıkış kodları: 0 onay, 2 red (Ajan 1'e), 1 kullanım ya da beklenmeyen hata. Argümanlar okunur okunmaz, doğrulamalardan önce eski çıktı ve zarf silinir; böylece ayrıştırma sonrası hiçbir hata yolunda eski bir `onay` zarfı kalmaz. Silmeden önce yollar karşılaştırılır: `--cikti`, `--zarf` ya da `--fiyat` bir girdiyle ya da birbiriyle aynı dosyayı gösteriyorsa hiçbir şey silinmez, betik 1 ile çıkar. (Zorunlu `--girdi` eksikse dosya yolları bilinmediği için silme yapılamaz; betik yine 1 ile çıkar.)
 
 ## Kurallar
 

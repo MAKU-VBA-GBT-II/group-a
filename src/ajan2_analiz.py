@@ -502,6 +502,15 @@ def main(argv=None):
                    help="Ajan 3 için önerilen fiyat CSV'si: urun,onerilen_fiyat_tl,kaynak,uretim_zamani")
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan2"))
     arg = p.parse_args(argv)
+    # Silmeden önce yol çakışması: bir çıktı başka bir çıktıyı ezmemeli, bir girdiyi silmemeli.
+    ciktilar = {"--cikti": arg.cikti, "--zarf": arg.zarf, "--fiyat": arg.fiyat}
+    girdiler = {"--girdi": arg.girdi, "--urun_listesi": arg.urun_listesi, "--siparisler": arg.siparisler}
+    gorulen = {}
+    for ad, yol in list(girdiler.items()) + list(ciktilar.items()):
+        anahtar = Path(yol).resolve()
+        if anahtar in gorulen and ad in ciktilar:
+            p.error(f"{ad} ile {gorulen[anahtar]} aynı dosyayı gösteriyor; çıktı yolları girdilerden ve birbirinden farklı olmalı")
+        gorulen.setdefault(anahtar, ad)
     # Her çalıştırma temiz başlar: doğrulamalardan önce eski çıktı ve zarf silinir,
     # böylece hiçbir hata yolunda eski bir onay zarfı Ajan 3'e kalmaz.
     for eski in (arg.cikti, arg.zarf, arg.fiyat):
