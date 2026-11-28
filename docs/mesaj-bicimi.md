@@ -76,11 +76,15 @@ Başarılı aktarımda çıktı dosyası ve onay zarfı ayrı taşınabilir. Red
 
 Çekirdek, Ajan 2 JSON'u ve zarfıyla birlikte Ajan 1 CSV'sinin repo içindeki göreli yolunu ve ham dosya baytlarının küçük harfli MD5'ini iletir (`ajan1_csv: {yol, md5}`). Sözleşme v1 JSON'u ve 19 CSV sütunu korunur. Denetçi aynı dosyadan satırları yeniden okur. Özet uyuşmazsa aktarım reddedilir. Her satırda denetim saati eksi çekim saati [0, 72 saat] aralığında olmalıdır. Üretimde gerçek saat kullanılır. Birden fazla hata varsa tüm alan yolları raporlanır. Kaynak hatası varsa önce ajan1, yalnız hesap/öneri hatasında ajan2 düzelterek yeniden gönderir.
 
+Hata bildirimi aşamalıdır: (1) Ajan 1 kaynağı, (2) Ajan 2 teslimi ve sayıların yeniden hesabı, (3) önerilen fiyat ve kâr. Bir aşama hata verirse sonrakine geçilmez; sonraki aşamanın hataları ancak düzeltilip yeniden gönderildikten sonra raporlanır. "Tüm alan yolları" kuralı hatanın bulunduğu aşamadaki kontroller için geçerlidir; bir kontrol diğerinin ön koşuluysa (ör. dosyanın okunabilmesi) önce o raporlanır.
+
 Maliyet girdisi UTF-8 CSV'dir: `urun,birim_maliyet_tl,kaynak,uretim_zamani`. Ürün tekil, maliyet sonlu ve negatif olmayan ondalık TRY, kaynak izlenebilir, zaman saat dilimli ISO 8601 olmalıdır. Test maliyetinin kaynağı sentetik_test olarak işaretlenir. Denetlenen ürün ve önerilen fiyat ayrıca açıkça verilmelidir; sözlü kampanya önerisinden bir indirim yüzdesi türetilmez. Satış fiyatı ve maliyet aynı birim ve KDV esasındadır. Birim kâr = önerilen fiyat − birim maliyet; eşik kesin olarak 0 TL üstüdür. Eşitlik veya altı gerekçeli red (ajan2) üretir.
 
 Önce kaynak ve hesap hataları değerlendirilir. Bunlar varsa red zarfı üretilir. Kontroller geçmiş ama gerekli fiyat veya maliyet eksikse yalnız `beklemede` ara raporu (çıkış 3) üretilir. Nihai onay veya önceki başarılı çıktı geçerli sayılmaz. Tüm kontroller geçtiğinde JSON nihai raporu ve standart onay zarfı üretilir. Rapor denetim zamanını, kaynak CSV yolunu/özetini, maliyet dosyasını ve denetlenen her ürün için fiyatı, maliyeti, kârı, eşiği, fiyat kaynağını, kararı ve gerekçeyi içerir. Onay yalnız raporda listelenen ürünler için geçerlidir. Tek kampanyalık sentetik beklenen sonuç: `data/ornek-nihai-rapor.json`; maliyet girdisi: `data/ornek-maliyet.csv`.
 
 Üretim: Codex — prompt özeti: Sema'nın #117 incelemesindeki devir, maliyet, güncellik, hata önceliği ve rapor kararlarını örneklerle tamamla.
+
+Aşamalı hata bildirimi notu: Claude — prompt özeti: #120'deki PM kararına göre Ajan 3'ün aşamalı hata bildirimini sözleşmeye kısa notla ekle.
 
 ## Test ve üretim kaydı
 
