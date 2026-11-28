@@ -7,7 +7,7 @@ import sys
 import unittest
 from unittest.mock import patch
 
-from src.acp_cekirdek import ACPClient, ACPError, DEMO_COMMAND, local_login_environment
+from src.acp_cekirdek import ACPClient, ACPError, DEMO_COMMAND, local_login_environment, trace_command
 
 AGENT = """
 import json
@@ -103,6 +103,19 @@ class ACPPipeTest(unittest.TestCase):
                                             "komut": DEMO_COMMAND}), events)
         self.assertEqual([fields["metot"] for event, fields in events if event == "istek"],
                          ["initialize", "session/new", "session/prompt"])
+
+    def test_relative_script_trace(self):
+        for script in ("src/ajan3_denetim.py", "src/dq_test_g2.py", "tests/test_acp_cekirdek.py"):
+            with self.subTest(script=script):
+                self.assertEqual(trace_command(f"python3 {script} --csv data/private.csv"),
+                                 f"python3 {script} [maskeli] [maskeli]")
+
+    def test_private_paths_stay_masked(self):
+        for path in ("/home/private/test.py", "src/../private.py", "data/private.py",
+                     "src/private.txt", "src//private.py", "src/.private.py"):
+            with self.subTest(path=path):
+                self.assertEqual(trace_command("python " + path), "python [maskeli]")
+        self.assertEqual(trace_command("python3 -c src/private.py"), "python3 -c [maskeli]")
 
     def test_general_tool_trace(self):
         client, events = self.client("eof")

@@ -6,6 +6,7 @@ import math
 import os
 from pathlib import Path
 import queue
+import re
 import select
 import shlex
 import signal
@@ -66,8 +67,11 @@ def trace_command(value):
     programs = {"python", "python3", "git", "curl", "node", "npm", "ls", "cat", "wc", "head", "grep", "playwright"}
     program = words[0] if words[0] in programs else "[maskeli]"
     safe = [program]
-    for word in words[1:]:
-        if word.startswith(("https://", "http://")):
+    for index, word in enumerate(words[1:], 1):
+        if (index == 1 and program in {"python", "python3"}
+                and re.fullmatch(r"(?:src|tests)/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.py", word)):
+            safe.append(word)
+        elif word.startswith(("https://", "http://")):
             safe.append(trace_url(word))
         elif word in {"-m", "-c", "-l", "--version", "status", "diff", "log", "show", "unittest", "discover"}:
             safe.append(word)

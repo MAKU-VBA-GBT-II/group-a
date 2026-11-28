@@ -30,7 +30,7 @@ Etkileşimli terminalde demoyu çalıştırın. İzin isteğinde adaptörün ara
 
 ## Oturum izi
 
-Kayıt UTF-8 JSONL'dir. UTC zaman damgalarıyla protokol aşamalarını, araç sırası/türü/durumunu ve izin kararını kaydeder. Adaptör rawInput.command veya rawInput.url bildirdiğinde izin ve araç olayları maskelenmiş komut/URL içerir. Bilinen komut adı ve güvenli argümanlar görünür; serbest argümanlar maskelenir. Web adresinde şema, sunucu ve port görünür. Ürün adresinin tamamı Ajan 1 CSV'sinde izlenir. Eksik alanlar uydurulmaz; aynı çağrının durum güncellemeleri son bilinen bilgiyi taşır. Sabit salt okunur demo komutu tam yazılır. Canlı terminalde kullanıcının incelemesi için ajan metni ve izin ayrıntıları görünür.
+Kayıt UTF-8 JSONL'dir. UTC zaman damgalarıyla protokol aşamalarını, araç sırası/türü/durumunu ve izin kararını kaydeder. Adaptör rawInput.command veya rawInput.url bildirdiğinde izin ve araç olayları maskelenmiş komut/URL içerir. Python çağrısının ilk argümanı src/ veya tests/ altında basit bir göreli .py yolu ise günlükte betik adı görünür. Mutlak yollar ve .. bileşenleri maskelenir. Bilinen komut adı ve güvenli argümanlar görünür; serbest argümanlar maskelenir. Web adresinde şema, sunucu ve port görünür. Ürün adresinin tamamı Ajan 1 CSV'sinde izlenir. Eksik alanlar uydurulmaz; aynı çağrının durum güncellemeleri son bilinen bilgiyi taşır. Sabit salt okunur demo komutu tam yazılır. Canlı terminalde kullanıcının incelemesi için ajan metni ve izin ayrıntıları görünür.
 
 27 Kasım 2026 tarihli gerçek Claude Code Pro oturumu kayıtları:
 
