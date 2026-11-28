@@ -25,10 +25,11 @@ Uydurma sayı yazılmaz. Her sayı bir dosyadan ya da betik hesabından gelir ve
    - Ajan 1'in `elendi` gerekçesi varsa.
    - **Saklama Kabı Seti istisnası:** Bu üründe `çoklu paket` gerekçesi yok sayılır, çünkü ürün zaten bir set (eşleşme kuralı 5). Tekli kap Ajan 1'de elenir.
    - Karşılaştırma fiyatı (varsa `indirimli_fiyat`, yoksa `liste_fiyati`) liste fiyatımızın 0,3 katından düşük ya da 3 katından yüksekse: `fiyat bandı dışı`. Ajan 1 işaretlemediyse Ajan 2 yakalar.
+   - `eslesme_guveni` `yuksek` değilse (`orta` ya da `dusuk`): `güven yüksek değil`. Böylece beklenen miktar dışındaki satırlar (ör. 200 ml şampuan), makul aralık dışındaki satırlar ve çok işlevli ürünün ikinci kategorisindeki satırı medyanı kaydırmaz (#115, Hilal önerisi, 28 Kasım). Gerçek ml başı karşılaştırma 2. haftaya bırakıldı.
    - `stok_durumu = yok` ise `stok yok`. `bilinmiyor` medyana girer.
    - `kdv_dahil = hayir` ise `KDV temeli karşılaştırılamaz`. Kaynaklı KDV oranı olmadan dönüşüm yapılmaz.
    - Medyandan çıkan her satır `elenen_rakip_sayisi`'na sayılır ve kaynak kaydının `secim` alanında gerekçesiyle görünür. Ajan 1'in işaretlemediği KDV satırlarının hangi sayaca yazılacağı PR #117'de soruldu; cevap farklı gelirse yalnız `SAYILMAYAN_SAYAC` sabiti değişir.
-   - Makul aralık (0,4x–2,5x; Kitap 0,5x–2x) ve `eslesme_guveni` Ajan 1'in işaretidir. Ajan 2 değiştirmez; `dusuk` güvenli satırlar da medyana girer.
+   - Makul aralık (0,4x–2,5x; Kitap 0,5x–2x) ve `eslesme_guveni` Ajan 1'in işaretidir. Ajan 2 bu işareti değiştirmez, yalnız `yuksek` olmayan satırı medyana almaz; satır CSV'de kalır.
 3. **Rakip medyanı:** Medyana giren fiyatların medyanı. Çift sayıda gözlemde ortadaki ikisinin ortalaması alınır, gözlem yoksa `null`.
 4. **Fiyat farkı:** `100 × (bizim − medyan) / medyan`. Pozitif değer bizim fiyatın yüksek olduğunu gösterir. Medyan yoksa `null`.
 5. **Satış:** Sipariş dönemindeki `Teslim Edildi` satırlarının `adet` ve `toplam_tutar` toplamı; iade ve iptal hariç. Dönem verilmezse verinin ilk ve son günü kullanılır. `--baslangic` ve `--bitis` birlikte verilir ve başlangıç bitişten sonra olamaz; aksi hâlde betik hata verir.
@@ -71,4 +72,5 @@ Elle: `python src/ajan2_analiz.py --girdi data/<ajan1-tablosu>.csv`
 ## Üretim kaydı
 
 27 Kasım 2026: Eski `ajan2-analiz` skill'inin 2.–5. adımlarından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.
+28 Kasım 2026: 2. maddedeki `yuksek` güven filtresi #115'teki Hilal önerisinden sonra Claude (Claude Code) ile eklendi; kabul kararı Tuğba Tuana Kaygısız'ındır.
 28 Kasım 2026: 8. madde (önerilen fiyat) #120'deki karardan sonra Claude (Claude Code) ile eklendi. Kampanya fiyatının rakip medyanı olması Tuğba Tuana Kaygısız'ın kararıdır.
