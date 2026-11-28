@@ -1,0 +1,19 @@
+{
+  "arac": "src/ajan3_denetim.py",
+  "komut": "python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --ajan1_md5 7ae26d1c10de56d617b95e241ec6639b --referans 2026-12-01T12:00:00+03:00 --rapor data/ajan3-ara-rapor-red-ornek.json --cikis_zarf data/ajan3-zarf-red-ornek.json",
+  "baslangic": "2026-11-28T15:15:17+03:00",
+  "referans_zamani": "2026-12-01T12:00:00+03:00",
+  "girdiler": {
+    "data/ajan2-cikti-ornek.json": "63d7a822b0fcd92cacd6fcb52cf7eba6",
+    "data/ajan2-zarf-ornek.json": "356415c18fd4c92f6098c9e40f9d101b",
+    "data/ornek-ajan1.csv": "7ae26d1c10de56d617b95e241ec6639b",
+    "data/urun-listesi-web.csv": "9cabd5a99ae9e0597999b7d494791105",
+    "data/siparisler-web.csv": "628b4351250b4065b9669baf233449e7"
+  },
+  "sonuc": "red",
+  "cikis_kodu": 2,
+  "cikti": {
+    "data/ajan3-zarf-red-ornek.json": "6652efcb61afee5355e062d43860b039"
+  },
+  "bitis": "2026-11-28T15:15:17+03:00"
+}
