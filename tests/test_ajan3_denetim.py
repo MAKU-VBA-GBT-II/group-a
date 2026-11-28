@@ -379,6 +379,16 @@ class Ajan3Test(unittest.TestCase):
         self.red_bekle("ajan1", "satir[6].liste_fiyati", referans=None,
                        canli=[self.sampuan_kontrolu(simdi, sayfa_fiyati_tl="249.00")])
 
+    def test_kampanya_satirinda_fiyat_farki_yeniden_toplama_notu_tasir(self):
+        an = datetime.fromisoformat(URETIM)
+        satir = next(s for s in self.satirlar if s["bizim_urun"] == "Şampuan")
+        for tur, beklenen in (("liste", False), ("kampanya", True)):
+            with self.subTest(fiyat_turu=tur):
+                satir["fiyat_turu"] = tur
+                self.red_bekle("ajan1", "satir[6].liste_fiyati",
+                               canli=[self.sampuan_kontrolu(an, sayfa_fiyati_tl="249.00")])
+                self.assertEqual("kampanya bitmiş olabilir" in self.oku("zarf.json")["gerekce"], beklenen)
+
     def test_sentetik_veride_uyusmayan_canli_kayit_da_red(self):
         an = datetime.fromisoformat(URETIM)
         self.red_bekle("ajan1", "satir[6].liste_fiyati",
