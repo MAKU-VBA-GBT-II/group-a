@@ -24,7 +24,7 @@ Biçim: `docs/mesaj-bicimi.md`. Fiyat dosyasının sütunları sözleşmede hen�
 1. Ajan 1 tablosu okunur, MD5'i `--ajan1_md5` ile aynıdır, denetimde kullanılan sütunlar vardır; gerçek veride dosya repo içindedir.
 2. Her satırda `0 ≤ referans − cekilme_zamani ≤ 72 saat`.
 3. Fiyatlar sonlu ve pozitif; indirimli fiyat listeden küçük; `ham_fiyat_metni` karşılaştırma fiyatına eşit; `para_birimi = TRY`.
-4. `urun_url` https ve alan adı `rakip_site`'ye ait (sentetik satırda `<ad>.example` kabul).
+4. `urun_url` https ve alan adı `rakip_site`'ye ait (sentetik satırda `<ad>.example` kabul). Aynı `urun_url` aynı `bizim_urun` ile ikinci kez geçemez (eşleşme tanımları karar 9); farklı `bizim_urun` ile geçmesi çok işlevli üründür ve kabul edilir.
 5. Ajan 2 zarfı `onay` ve `hedef_ajan = ajan3`.
 6. `--canli_kontrol` verilmişse geçerli kayıtlardaki sayfa fiyatı CSV'deki karşılaştırma fiyatına eşittir.
 7. Ajan 2 JSON'u okunur, `NaN`/`Infinity` içermez, zorunlu alanlar tamdır; `veri_turu` CSV'deki `arac` ile uyumludur.
