@@ -113,8 +113,11 @@ def json_oku(yol):
 
 def alan_adi_uyumlu(satir):
     alan = SITE_ALAN_ADI.get(satir["rakip_site"])
-    adres = urlparse(satir["urun_url"])
-    host = (adres.hostname or "").lower()
+    try:
+        adres = urlparse(satir["urun_url"])
+        host = (adres.hostname or "").lower()
+    except ValueError:  # ör. kapanmayan köşeli ayraç
+        return False
     if alan is None or adres.scheme != "https":
         return False
     izinli = [alan]
@@ -226,7 +229,10 @@ def ayni(bulunan, beklenen):
         return bulunan is None
     if isinstance(bulunan, bool) or not isinstance(bulunan, (int, float)):
         return False
-    return math.isclose(bulunan, beklenen, rel_tol=0, abs_tol=1e-9)
+    try:
+        return math.isclose(bulunan, beklenen, rel_tol=0, abs_tol=1e-9)
+    except OverflowError:  # float'a sığmayan tam sayı
+        return False
 
 
 def isleme(satirlar, veri, katalog_yolu, siparis_yolu, maliyetli=frozenset()):
@@ -287,12 +293,13 @@ def isleme(satirlar, veri, katalog_yolu, siparis_yolu, maliyetli=frozenset()):
                 sorunlar.append((f"{yol}.kaynaklar", f"{ad}: {dosya} için zamanlı kaynak kaydı yok"))
 
         oneri = urun["oneri"] if isinstance(urun["oneri"], dict) else {}
-        if oneri.get("eylem") not in EYLEMLER or (medyan is None and oneri.get("eylem") != "veri_topla"):
+        eylem, kar_durumu = oneri.get("eylem"), oneri.get("kar_durumu")
+        if not isinstance(eylem, str) or eylem not in EYLEMLER or (medyan is None and eylem != "veri_topla"):
             sorunlar.append((f"{yol}.oneri.eylem", f"{ad}: eylem sözleşmeye uymuyor"))
         if not str(oneri.get("gerekce", "")).strip():
             sorunlar.append((f"{yol}.oneri.gerekce", f"{ad}: öneri gerekçesi boş"))
         izinli = {"maliyet_eksik", "denetim_bekliyor"} if ad in maliyetli else {"maliyet_eksik"}
-        if oneri.get("kar_durumu") not in izinli:
+        if not isinstance(kar_durumu, str) or kar_durumu not in izinli:
             sorunlar.append((f"{yol}.oneri.kar_durumu",
                              f"{ad}: kar_durumu {' ya da '.join(sorted(izinli))} olmalı"))
         ozet.append({"urun": ad, "eylem": oneri.get("eylem"), "sayilar": beklenen})
@@ -355,8 +362,11 @@ def girdi_tablosu(yol, onek, deger_alani, sifir_olur):
     return kayitlar, sorunlar
 
 
-def kar_denetimi(urun_adlari, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari):
-    """(onaylanan kalemler, eksikler). Geçersiz öneri ya da eşik altı kâr → Red ajan2."""
+def kar_denetimi(urun_adlari, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari, verisi_yetersiz=frozenset()):
+    """(onaylanan kalemler, eksikler). Geçersiz öneri ya da eşik altı kâr → Red ajan2.
+
+    verisi_yetersiz: Ajan 2 eylemi veri_topla olan ürünler; kâr yeterli olsa da onaylanmaz.
+    """
     sorunlar = list(fiyat_sorunlari)
     kalemler, eksikler = [], []
     maliyetler = maliyetler or {}
@@ -372,6 +382,9 @@ def kar_denetimi(urun_adlari, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sor
         if kar <= KAR_ESIGI:
             sorunlar.append((f"fiyat.satir[{f['satir']}].onerilen_fiyat_tl",
                              f"{ad}: {f['deger']} − {m['deger']} = {kar} TL, birim kâr {KAR_ESIGI} TL'nin üstünde değil"))
+            continue
+        if ad in verisi_yetersiz:
+            eksikler.append(f"{ad} için Ajan 2 eylemi veri_topla (veri yetersiz)")
             continue
         kalemler.append({
             "urun": ad, "onerilen_fiyat_tl": float(f["deger"]), "birim_maliyet_tl": float(m["deger"]),
@@ -422,7 +435,8 @@ def calistir(arg, referans, argv):
         maliyetler, maliyet_sorunlari = girdi_tablosu(arg.maliyet, "maliyet", "birim_maliyet_tl", True)
         urunler, iliskiler = isleme(satirlar, veri, arg.urun_listesi, arg.siparisler, set(maliyetler or {}))
         kalemler, eksikler = kar_denetimi({u["urun"] for u in urunler}, fiyatlar, fiyat_sorunlari,
-                                          maliyetler, maliyet_sorunlari)
+                                          maliyetler, maliyet_sorunlari,
+                                          {u["urun"] for u in urunler if u["eylem"] == "veri_topla"})
     except Red as red:
         yaz_json(arg.cikis_zarf, {"durum": "red", "hedef_ajan": red.hedef, "gerekce": red.gerekce,
                                   "sorunlu_alanlar": red.alanlar})
