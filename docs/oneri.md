@@ -91,6 +91,13 @@ Mevcut yapı: `src/simulasyon.py`, `data/siparisler-g2.csv`, `docs/veri-sozlugu.
 
 Program herhangi bir API anahtarı içermeyecek; araç seçimi ayardan yapılacak, böylece hocanın kendi aboneliğiyle çalışabilecek.
 
+### ACP araç erişimi ve bağımsız doğrulama (28 Kasım 2026)
+
+- Ebru'nun deneme ortamı Windows; Python 3.15.0 kurulu. Node.js/`npx` ve Claude CLI yok; WSL komutu var ancak Linux dağıtımı kurulu değil. Bu nedenle `claude auth status` çalıştırılamadı; bu ortamda etkin bir Claude Code oturumu doğrulanmadı.
+- Abonelik tablosuna göre Ebru'nun Claude aboneliği yok. Mevcut Claude Code Pro onay/red kayıtları Ali'nin 27 Kasım oturumlarından; bunlar Ebru'nun hesabı veya bağımsız tekrarı değildir.
+- Windows'ta `python -m unittest discover -s tests -p 'test_acp_cekirdek.py' -v` denemesi 11 testte `FAILED (errors=20)` verdi. `select.select` pipe üzerinde `WinError 10038`, süreç temizliğindeki `os.killpg` eksikliği ise `AttributeError` oluşturdu. Mock izin testleri karar adımına ulaşmadı; gerçek ajan denemesi yapılmadı.
+- Kurulum ve gerçek “Bir kez izin ver / Bir kez reddet” doğrulaması için macOS/Linux, Python 3.10+, Node.js 22+ ve kullanmaya yetkili, Claude Code'da oturum açmış bir hesap gerekiyor. Bu denemede önkoşullar sağlanmadığı için doğrulama engelli; oturum belirteci veya kimlik bilgisi paylaşılmamalı. Windows'ta ayrıca çekirdeğin pipe ve süreç yönetimi uyumluluğu çözülmeden test başarılı sayılmamalı.
+
 ## 6. Roller
 
 | Ad Soyad | Rol | GitHub |
