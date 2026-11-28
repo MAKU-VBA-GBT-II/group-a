@@ -204,5 +204,77 @@ class Teslim(unittest.TestCase):
         self.assertTrue(any(".arac" in x for x in teslim.ajan1_kontrolleri([s], datetime.now(ortak.TR))[0]))
 
 
+class SemaninNotlari(unittest.TestCase):
+    """Sema'nın #126 incelemesi: boş tablo, eksik ürün, robots.txt durum kodu."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.eski = (teslim.CIKTI, teslim.RAPORLAR)
+        teslim.CIKTI, teslim.RAPORLAR = self.tmp / "ajan1-cikti.csv", self.tmp / "runs"
+
+    def tearDown(self):
+        teslim.CIKTI, teslim.RAPORLAR = self.eski
+
+    def test_bos_tablo_cokmez_duser(self):
+        ortak.tablo_yaz([], teslim.CIKTI)
+        self.assertEqual(teslim.main(["--yeniden-toplama-yok"]), 1)
+
+    def test_eksik_urun_duser_ve_gerekcesi_yazilir(self):
+        import json
+        teslim.RAPORLAR.mkdir()
+        (teslim.RAPORLAR / "r.json").write_text(json.dumps(
+            {"basarisiz": [{"urun": "Ruj", "gerekce": "site bırakıldı"}]}), encoding="utf-8")
+        satirlar = [{"bizim_urun": u, "urun_url": f"https://x/{u}", "arac": "playwright",
+                     "cekilme_zamani": datetime.now(ortak.TR).replace(microsecond=0).isoformat()}
+                    for u in sorted(teslim.beklenen_urunler() - {"Ruj"})]
+        sorunlar, _ = teslim.ajan1_kontrolleri(satirlar, datetime.now(ortak.TR))
+        self.assertEqual(sorunlar, [])
+        self.assertEqual(teslim.eksik_urunler(satirlar), ["Ruj"])
+        self.assertEqual(teslim.basarisiz_gerekceleri(teslim.son_rapor()), {"Ruj": "site bırakıldı"})
+
+    def test_robots_hata_sayfasi_serbest_okunmaz(self):
+        import types
+        class Yanit:
+            def __init__(self, durum, metin=""):
+                self.status, self._m = durum, metin
+            def text(self):
+                return self._m
+        class Baglam:
+            def __init__(self, durum):
+                self.request = types.SimpleNamespace(get=lambda u: Yanit(durum, "<html>Forbidden</html>"))
+            def new_page(self):
+                return None
+        class Tarayici:
+            def __init__(self, durum): self.d = durum
+            def new_context(self, **k): return Baglam(self.d)
+            def close(self): pass
+        acilan = []
+        eski_oku, eski_cikti, eski_rapor = gratis.kategori_oku, calistir.CIKTI, calistir.RAPOR_KLASORU
+        gratis.kategori_oku = lambda *a: acilan.append(a[1]) or ("x", [])
+        calistir.CIKTI, calistir.RAPOR_KLASORU = self.tmp / "c.csv", self.tmp / "r"
+        pw = types.ModuleType("playwright.sync_api")
+        for durum, beklenen_acilan in ((403, 0), (503, 0)):
+            pw.sync_playwright = lambda d=durum: types.SimpleNamespace(
+                __enter__=None) and _Ctx(Tarayici(d))
+            sys.modules["playwright.sync_api"] = pw
+            acilan.clear()
+            cikis = calistir.main(["--urun", "Ruj"])
+            self.assertEqual(cikis, 2)
+            self.assertEqual(len(acilan), beklenen_acilan)   # hiçbir sayfa açılmadı
+        gratis.kategori_oku, calistir.CIKTI, calistir.RAPOR_KLASORU = eski_oku, eski_cikti, eski_rapor
+        sys.modules.pop("playwright.sync_api", None)
+
+
+class _Ctx:
+    def __init__(self, tarayici):
+        self.t = tarayici
+    def __enter__(self):
+        return __import__("types").SimpleNamespace(chromium=__import__("types").SimpleNamespace(
+            launch=lambda **k: self.t))
+    def __exit__(self, *a):
+        return False
+
+
 if __name__ == "__main__":
     unittest.main()

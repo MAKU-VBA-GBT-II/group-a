@@ -20,6 +20,8 @@ description: Ajan 1'in (toplama) ilk aşaması. Rakip sitelerin kategori sayfala
 
 Kod bütün siteleri aynı Playwright tarayıcısıyla açar (`arac = playwright`); "Gerekmez", ürünlerin JavaScript olmadan da sayfada olduğu anlamına gelir.
 
+**Kurulum (bir kez):** `pip install -r requirements.txt` ve ardından `python -m playwright install chromium`. Çalıştırma: `python -m src.ajan1.calistir`.
+
 Kaynak seçimi ve robots.txt / kullanım şartları kontrolü: `docs/oneri.md` §3. Diğer siteler sonraki haftalarda `ajan1-kaynak-ekleme` ile eklenir.
 
 ## Erişim kuralları
@@ -33,7 +35,7 @@ Kaynak seçimi ve robots.txt / kullanım şartları kontrolü: `docs/oneri.md` �
    - Site bir şey söylemiyorsa istekler arasında **3–5 saniye rastgele** beklenir.
 3. **Sınır:** Kategori başına en fazla **100 ürün** (öneri: Claude · onay: Hilal). Sınıra ulaşılırsa durulur ve kayda yazılır.
 4. **Kişisel veri yok:** Yalnızca ürün adı, fiyat, miktar, stok ve sayfa adresi alınır. Yorum, kullanıcı adı ve satıcı profili alınmaz.
-5. **robots.txt her çalıştırmada kontrol edilir.** Her sayfa açılmadan önce adresin sitenin robots.txt dosyasında hâlâ serbest olduğuna bakılır; yasaklanmışsa açılmaz ve kayda yazılır. *(24 Kasım'daki elle kontrol o günün durumunu gösterir; siteler kurallarını değiştirebilir.)*
+5. **robots.txt her çalıştırmada kontrol edilir.** Her sayfa açılmadan önce adresin sitenin robots.txt dosyasında hâlâ serbest olduğuna bakılır; yasaklanmışsa açılmaz ve kayda yazılır. robots.txt yalnız 200 (kurallar okunur) ya da 404 (dosya yok) dönerse geçerlidir; 403, 5xx ya da bağlantı hatasında kurallar bilinemediği için o site hiç açılmaz ve ürünleri başarısız olarak kayda yazılır. *(24 Kasım'daki elle kontrol o günün durumunu gösterir; siteler kurallarını değiştirebilir.)*
 
 ## Girdi kontrolü (sayfa gerçekten geldi mi?)
 

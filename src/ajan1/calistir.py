@@ -243,12 +243,24 @@ def main(argv=None):
             for modul in SITELER:
                 if sadece and not sadece & set(modul.KATEGORILER):
                     continue
-                robots_metni = baglam.request.get(f"{modul.ALAN}/robots.txt").text()
-                robots = ortak.Robots(robots_metni)
-                bekleyici = ortak.Bekleyici(robots.crawl_delay)
-                rapor["site"][modul.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
-
                 urunler = [u for u in modul.KATEGORILER if not sadece or u in sadece]
+                # robots.txt yalnız 200 (kurallar okunur) ya da 404 (dosya yok, kural yok) ise
+                # geçerlidir. 403/5xx gibi bir hata sayfası "kural yok, serbest" diye okunmaz;
+                # o site hiç açılmaz (Sema'nın #126 incelemesi).
+                try:
+                    yanit = baglam.request.get(f"{modul.ALAN}/robots.txt")
+                    robots_durum = yanit.status
+                except Exception as e:
+                    yanit, robots_durum = None, f"bağlantı hatası: {str(e).splitlines()[0][:120]}"
+                rapor["site"][modul.SITE] = {"robots_okundu": ortak.simdi(), "robots_durum": robots_durum}
+                if robots_durum not in (200, 404):
+                    for urun in urunler:
+                        rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce":
+                                                   f"robots.txt okunamadı ({robots_durum}); site açılmadı"})
+                    continue
+                robots = ortak.Robots(yanit.text() if robots_durum == 200 else "")
+                bekleyici = ortak.Bekleyici(robots.crawl_delay)
+                rapor["site"][modul.SITE]["crawl_delay"] = robots.crawl_delay
                 for i, urun in enumerate(urunler):
                     iz = []
                     try:

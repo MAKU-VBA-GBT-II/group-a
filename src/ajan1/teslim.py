@@ -50,6 +50,25 @@ def ajan3_kapisi(yol, satirlar):
     return sorunlar
 
 
+def beklenen_urunler():
+    """Ajan 1'in topladığı ürünler (site parçalarının kategori tabloları)."""
+    from . import calistir
+    return {u for modul in calistir.SITELER for u in modul.KATEGORILER}
+
+
+def eksik_urunler(satirlar):
+    """Tabloda hiç satırı olmayan ürünlerimiz (toplanamadı ya da hepsi elendi)."""
+    return sorted(beklenen_urunler() - {s["bizim_urun"] for s in satirlar})
+
+
+def basarisiz_gerekceleri(rapor_yolu):
+    """Çalışma raporundaki başarısız kategoriler: ürün -> gerekçe."""
+    if not rapor_yolu:
+        return {}
+    veri = json.loads(Path(rapor_yolu).read_text(encoding="utf-8"))
+    return {b.get("urun"): b.get("gerekce", "") for b in veri.get("basarisiz", [])}
+
+
 def bayat_urunler(satirlar, referans):
     """24 saati geçen satırı olan ürünlerimiz (yeniden toplanacaklar)."""
     return sorted({s["bizim_urun"] for s in satirlar
@@ -89,6 +108,13 @@ def kontrol_et(referans):
             satirlar = list(csv.DictReader(f))
     sorunlar += ajan3_kapisi(CIKTI, satirlar)
     a1, gorulen = ajan1_kontrolleri(satirlar, referans)
+    if not satirlar:
+        sorunlar.append("tablo boş: hiç satır yok")
+    # Hiç satırı olmayan ürün varsa dosya gönderilmez; sessizce eksik veri üretilmez
+    # (ajan1-alma; Sema'nın #126 incelemesi, Hilal'in kararı: düşsün).
+    gerekce = basarisiz_gerekceleri(son_rapor())
+    for urun in eksik_urunler(satirlar):
+        sorunlar.append(f"eksik ürün: {urun} ({gerekce.get(urun, 'hiç satır yok; hepsi elenmiş ya da kararsız olabilir')})")
     return sorunlar + a1, satirlar, gorulen
 
 
@@ -106,11 +132,11 @@ def main(argv=None):
         return 1
 
     sorunlar, satirlar, gorulen = kontrol_et(referans)
-    yeniden = bayat_urunler(satirlar, referans)
+    yeniden = sorted(set(bayat_urunler(satirlar, referans)) | set(eksik_urunler(satirlar)))
     yeniden_toplama = None
     if yeniden and not arg.yeniden_toplama_yok:
         # Tazelik kapısı: bayat ürünler bir kez yeniden toplanır, sonra kontroller tekrarlanır.
-        print(f"24 saati geçen satırlar var; bir kez yeniden toplanıyor: {', '.join(yeniden)}")
+        print(f"24 saati geçen ya da hiç satırı olmayan ürünler var; bir kez yeniden toplanıyor: {', '.join(yeniden)}")
         from . import calistir
         cikis = calistir.main([x for u in yeniden for x in ("--urun", u)])
         yeniden_toplama = {"urunler": yeniden, "zaman": referans.isoformat(), "calistir_cikis": cikis}
@@ -118,21 +144,23 @@ def main(argv=None):
         sorunlar, satirlar, gorulen = kontrol_et(referans)
 
     md5 = hashlib.md5(CIKTI.read_bytes()).hexdigest()
-    en_eski = min(datetime.fromisoformat(s["cekilme_zamani"]) for s in satirlar)
+    en_eski = min((datetime.fromisoformat(s["cekilme_zamani"]) for s in satirlar), default=None)
+    sure = lambda d: (en_eski + d).isoformat() if en_eski else None
     cok_islevli = {u: sorted({x for _, x in l}) for u, l in gorulen.items() if len({x for _, x in l}) > 1}
     ozet = {
         "zaman": referans.isoformat(),
         "sonuc": "gecti" if not sorunlar else "dustu",
-        "dosya": CIKTI.relative_to(ortak.KOK).as_posix(),
+        "dosya": CIKTI.relative_to(ortak.KOK).as_posix() if CIKTI.is_relative_to(ortak.KOK) else str(CIKTI),
         "md5": md5,
         "satir": len(satirlar),
         "tekil_urun": len(gorulen),           # karar 9: çift sayımı önlemek için
         "cok_islevli": cok_islevli,
         "elenmeyen_satir": sum(1 for s in satirlar if not s["elendi"]),
         "urun_basina": dict(Counter(s["bizim_urun"] for s in satirlar)),
-        "en_eski_cekilme": en_eski.isoformat(),
-        "ajan1_tazelik_sonu": (en_eski + TAZELIK).isoformat(),
-        "ajan2_ajan3_72_saat_sonu": (en_eski + AJAN23_SURESI).isoformat(),
+        "en_eski_cekilme": en_eski.isoformat() if en_eski else None,
+        "ajan1_tazelik_sonu": sure(TAZELIK),
+        "ajan2_ajan3_72_saat_sonu": sure(AJAN23_SURESI),
+        "eksik_urunler": eksik_urunler(satirlar),
         "sorunlar": sorunlar,
     }
     if yeniden_toplama:
@@ -152,6 +180,8 @@ def main(argv=None):
     print(f"  Ajan 2 ve Ajan 3 için 72 saat: {ozet['ajan2_ajan3_72_saat_sonu']}")
     if cok_islevli:
         print(f"  Çok işlevli ürün: {len(cok_islevli)}")
+    if ozet["eksik_urunler"]:
+        print(f"  EKSİK ÜRÜN: {', '.join(ozet['eksik_urunler'])}")
     for s in sorunlar[:30]:
         print("  -", s)
     if rapor:
