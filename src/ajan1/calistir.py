@@ -112,33 +112,45 @@ def main():
     rapor = {"baslangic": baslangic, "site": {}, "kategori": {}, "basarisiz": []}
     tum_satirlar = []
 
-    with sync_playwright() as p:
-        tarayici = p.chromium.launch(headless=True)
-        baglam = tarayici.new_context(locale="tr-TR")
-        sayfa = baglam.new_page()
+    # Ne olursa olsun o ana kadar okunanlar yazılır (28 Kasım: Ruj'daki zaman aşımı
+    # ilk dört kategorinin verisini de kaybettirmişti).
+    try:
+        with sync_playwright() as p:
+            tarayici = p.chromium.launch(headless=True)
+            baglam = tarayici.new_context(locale="tr-TR")
+            sayfa = baglam.new_page()
 
-        robots_metni = baglam.request.get(f"{gratis.ALAN}/robots.txt").text()
-        robots = ortak.Robots(robots_metni)
-        bekleyici = ortak.Bekleyici(robots.crawl_delay)
-        rapor["site"][gratis.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
+            robots_metni = baglam.request.get(f"{gratis.ALAN}/robots.txt").text()
+            robots = ortak.Robots(robots_metni)
+            bekleyici = ortak.Bekleyici(robots.crawl_delay)
+            rapor["site"][gratis.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
 
-        for urun in gratis.KATEGORILER:
-            iz = []
-            try:
-                kat_adi, kartlar = gratis.kategori_oku(sayfa, urun, robots, bekleyici, iz)
-            except ortak.SiteBirakildi as e:
-                rapor["basarisiz"].append({"urun": urun, "gerekce": f"ikinci 429, site bırakıldı: {e}"})
-                rapor["kategori"][urun] = {"iz": iz}
-                break
-            if not kartlar:
-                rapor["basarisiz"].append({"urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
-                rapor["kategori"][urun] = {"iz": iz}
-                continue
-            satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, gratis.SITE)
-            tum_satirlar.extend(satirlar)
-            rapor["kategori"][urun] = {"gratis_kategorisi": kat_adi, "iz": iz, **notlar}
-            print(f"{urun}: {len(kartlar)} kart, {len(satirlar)} satır")
-        tarayici.close()
+            urunler = list(gratis.KATEGORILER)
+            for i, urun in enumerate(urunler):
+                iz = []
+                try:
+                    kat_adi, kartlar = gratis.kategori_oku(sayfa, urun, robots, bekleyici, iz)
+                except ortak.SiteBirakildi as e:
+                    rapor["basarisiz"].append({"urun": urun, "gerekce": f"site bırakıldı ({e})"})
+                    for kalan in urunler[i + 1:]:
+                        rapor["basarisiz"].append({"urun": kalan, "gerekce": "denenmedi: site bırakıldı"})
+                    rapor["kategori"][urun] = {"iz": iz}
+                    break
+                except Exception as e:
+                    rapor["basarisiz"].append({"urun": urun, "gerekce": f"beklenmeyen hata: {str(e).splitlines()[0][:200]}"})
+                    rapor["kategori"][urun] = {"iz": iz}
+                    continue
+                if not kartlar:
+                    rapor["basarisiz"].append({"urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
+                    rapor["kategori"][urun] = {"iz": iz}
+                    continue
+                satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, gratis.SITE)
+                tum_satirlar.extend(satirlar)
+                rapor["kategori"][urun] = {"gratis_kategorisi": kat_adi, "iz": iz, **notlar}
+                print(f"{urun}: {len(kartlar)} kart, {len(satirlar)} satır")
+            tarayici.close()
+    except Exception as e:
+        rapor["basarisiz"].append({"urun": "-", "gerekce": f"çalışma yarıda kaldı: {str(e).splitlines()[0][:200]}"})
 
     rapor["bitis"] = ortak.simdi()
     ortak.tablo_yaz(tum_satirlar, CIKTI)

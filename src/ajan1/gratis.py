@@ -121,23 +121,37 @@ def kategori_oku(sayfa, urun, robots, bekleyici, iz):
 
 
 def _ac(sayfa, adres, bekleyici, kayit):
-    """Sayfayı açar. 429: sitenin istediği kadar bekle, ikincisinde bırak.
-    5xx: bir kez daha dene (28 Kasım'da ilk denemede 502 alındı)."""
-    tekrar = False
+    """Sayfayı açar; sitenin işaretlerine göre bekler.
+
+    - 429: sitenin istediği kadar beklenir, ikinci 429'da site bırakılır.
+    - Zaman aşımı / bağlantı hatası (28 Kasım, Ruj): site "yavaşla" diyor sayılır;
+      30 sn beklenip bir kez daha denenir, ikinci zaman aşımında site bırakılır.
+    - 5xx: bir kez daha denenir (28 Kasım'da ilk denemede 502 alındı).
+    """
+    tekrar_5xx = False
     while True:
-        yanit = sayfa.goto(adres, wait_until="domcontentloaded", timeout=45000)
+        try:
+            yanit = sayfa.goto(adres, wait_until="domcontentloaded", timeout=45000)
+        except Exception as hata:  # Playwright TimeoutError ya da net::ERR_...
+            bekleyici.sayac_zaman_asimi += 1
+            kayit.setdefault("zaman_asimi", []).append(str(hata).splitlines()[0][:200])
+            if bekleyici.sayac_zaman_asimi >= 2:
+                raise ortak.SiteBirakildi(f"ikinci zaman aşımı: {adres}")
+            kayit["zaman_asimi_bekleme_sn"] = ortak.ZAMAN_ASIMI_BEKLEME
+            time.sleep(ortak.ZAMAN_ASIMI_BEKLEME)
+            continue
         durum = yanit.status if yanit else 0
         kayit["durum"] = durum
         if durum == 429:
             bekleyici.sayac_429 += 1
             if bekleyici.sayac_429 >= 2:
-                raise ortak.SiteBirakildi(adres)
+                raise ortak.SiteBirakildi(f"ikinci 429: {adres}")
             sure = int(yanit.headers.get("retry-after", "60") or 60)
             kayit["429_bekleme_sn"] = sure
             time.sleep(sure)
             continue
-        if durum >= 500 and not tekrar:
-            tekrar = True
+        if durum >= 500 and not tekrar_5xx:
+            tekrar_5xx = True
             kayit["tekrar_deneme"] = True
             bekleyici.bekle()
             continue

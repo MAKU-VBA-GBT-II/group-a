@@ -23,6 +23,7 @@ SUTUNLAR = [
 
 URUN_SINIRI = 100          # kategori başına en fazla ürün (ajan1-alma, kural 3)
 BEKLEME_ARALIGI = (3, 5)   # site bir şey söylemiyorsa (ajan1-alma, kural 2)
+ZAMAN_ASIMI_BEKLEME = 30   # sayfa hiç cevap vermezse "yavaşla" işareti sayılır (28 Kasım, Ruj)
 
 
 def simdi():
@@ -83,6 +84,7 @@ class Bekleyici:
     def __init__(self, crawl_delay=None):
         self.crawl_delay = crawl_delay
         self.sayac_429 = 0
+        self.sayac_zaman_asimi = 0
 
     def bekle(self):
         if self.crawl_delay:
@@ -94,7 +96,7 @@ class Bekleyici:
 
 
 class SiteBirakildi(Exception):
-    """İkinci 429'da site bırakılır (ajan1-alma, kural 2)."""
+    """İkinci 429'da ya da ikinci zaman aşımında site bırakılır (ajan1-alma, kural 2)."""
 
 
 # ---------------------------------------------------------------- fiyat
