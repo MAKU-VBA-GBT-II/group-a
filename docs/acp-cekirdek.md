@@ -6,6 +6,8 @@
 
 macOS veya Linux terminalinde Python 3.10+ ve Node.js 22+ gerekir. Örnek ayar Claude Agent ACP adaptörünü `0.113.0` sürümüne sabitler. İlk `npx` çağrısı adaptörü indirebilir. Claude Code'daki yerel hesabınızla oturum açıp `claude auth status` ile kontrol edin. Çekirdek bilinen API anahtarı ve oturum belirteci ortam değişkenlerini alt sürece aktarmaz. Yerel oturumun erişebildiği komut ve dosyalar için adaptörün kendi izin kuralları geçerlidir.
 
+Yerel Windows konsolu bu sürümde desteklenmez. İzin okuma ve alt süreç borusuna yazma POSIX select, süreç kapatma POSIX süreç grubu kullanır. Windows üzerinde Linux ortamı (WSL) bir doğrulama seçeneğidir; bağımsız deneme sonucu #113'e yazılmalıdır. Demo bilgisayarının işletim sistemi henüz doğrulanmadı.
+
 Repo kökünde çalıştırın.
 
 ```sh
@@ -28,7 +30,7 @@ Etkileşimli terminalde demoyu çalıştırın. İzin isteğinde adaptörün ara
 
 ## Oturum izi
 
-Kayıt UTF-8 JSONL'dir. UTC zaman damgalarıyla protokol aşamalarını, araç sırası/türü/durumunu ve izin kararını kaydeder. Açıkça tanımlanmış salt okunur demo komutu ajan tarafından birebir bildirildiğinde metni de kaydedilir. Genel görevlerin serbest komut metni, model yanıtı, ham istek/yanıt, detaylı hata metni, kimlik, ortam değişkenleri ve araç çıktıları kayda yazılmaz. Canlı terminalde kullanıcının incelemesi için ajan metni ve izin ayrıntıları görünür.
+Kayıt UTF-8 JSONL'dir. UTC zaman damgalarıyla protokol aşamalarını, araç sırası/türü/durumunu ve izin kararını kaydeder. Adaptör rawInput.command veya rawInput.url bildirdiğinde izin ve araç olayları maskelenmiş komut/URL içerir. Bilinen komut adı ve güvenli argümanlar görünür; serbest argümanlar maskelenir. Web adresinde şema, sunucu ve port görünür. Ürün adresinin tamamı Ajan 1 CSV'sinde izlenir. Eksik alanlar uydurulmaz; aynı çağrının durum güncellemeleri son bilinen bilgiyi taşır. Sabit salt okunur demo komutu tam yazılır. Canlı terminalde kullanıcının incelemesi için ajan metni ve izin ayrıntıları görünür.
 
 27 Kasım 2026 tarihli gerçek Claude Code Pro oturumu kayıtları:
 
@@ -48,3 +50,5 @@ python3 src/dq_test_g2.py
 İlk komut mock ACP alt süreciyle akışı, canlı çıktı, tek seferlik izin, kalıcı izin reddi, etkileşimsiz çalışma, bozuk yanıt, süreç kapanması ve zaman aşımı durumlarını doğrular. Simülasyon testi ayrı çalışır. Kod ve varsayılan veri dosyaları simülasyon tarafında değiştirilmedi.
 
 Resmî kaynaklar: [Zed ACP v1](https://agentclientprotocol.com/protocol/v1/overview), [araç ve izin istekleri](https://agentclientprotocol.com/protocol/v1/tool-calls), [Claude Agent ACP](https://github.com/agentclientprotocol/claude-agent-acp).
+
+Üretim: Codex — prompt özeti: #118 incelemesine göre demo dışındaki araç çağrılarını hassas değerleri maskeleyerek izle ve Windows kapsamını açıkla.

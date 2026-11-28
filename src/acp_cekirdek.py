@@ -7,11 +7,13 @@ import os
 from pathlib import Path
 import queue
 import select
+import shlex
 import signal
 import subprocess
 import sys
 import threading
 import time
+from urllib.parse import urlsplit
 
 MAX_FRAME = 8 * 1024 * 1024
 DEMO_COMMAND = """python3 -c 'from pathlib import Path; print(len(Path("docs/oneri.md").read_text().splitlines()))'"""
@@ -34,6 +36,59 @@ class ACPError(Exception):
 
 def terminal_text(value):
     return "".join(c for c in value if c in "\n\t" or c.isprintable())
+
+
+def trace_url(value):
+    """Kullanıcı bilgisi, sorgu ve parçayı günlükten çıkar."""
+    try:
+        parsed = urlsplit(value)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return "[maskeli]"
+        host = parsed.hostname
+        if ":" in host:
+            host = f"[{host}]"
+        port = f":{parsed.port}" if parsed.port else ""
+        return f"{parsed.scheme}://{host}{port}" + ("/[yol]" if parsed.path.strip("/") else "/")
+    except ValueError:
+        return "[maskeli]"
+
+
+def trace_command(value):
+    if value == DEMO_COMMAND:
+        return value
+    try:
+        words = shlex.split(value)
+    except ValueError:
+        return "[maskeli]"
+    if not words:
+        return "[maskeli]"
+    # Serbest argümanlar; kod, belirteç veya kişisel dosya yolu içerebilir.
+    programs = {"python", "python3", "git", "curl", "node", "npm", "ls", "cat", "wc", "head", "grep", "playwright"}
+    program = words[0] if words[0] in programs else "[maskeli]"
+    safe = [program]
+    for word in words[1:]:
+        if word.startswith(("https://", "http://")):
+            safe.append(trace_url(word))
+        elif word in {"-m", "-c", "-l", "--version", "status", "diff", "log", "show", "unittest", "discover"}:
+            safe.append(word)
+        else:
+            safe.append("[maskeli]")
+    return " ".join(safe)
+
+
+def trace_input(tool):
+    raw = tool.get("rawInput")
+    raw = raw if isinstance(raw, dict) else {}
+    fields = {}
+    command = raw.get("command")
+    if isinstance(command, str):
+        fields["komut"] = trace_command(command)
+    elif tool.get("title") == DEMO_COMMAND:
+        fields["komut"] = DEMO_COMMAND
+    url = raw.get("url")
+    if isinstance(url, str):
+        fields["url"] = trace_url(url)
+    return fields
 
 
 def choose_permission(tool, options, timeout):
@@ -177,7 +232,7 @@ class ACPClient:
             if isinstance(item, dict) and item.get("kind") in PERMISSION_KINDS
             and isinstance(item.get("optionId"), str)
         ]
-        self.record("izin_istendi")
+        self.record("izin_istendi", **trace_input(tool))
         selected = self.permission(tool, options, deadline - time.monotonic()) if options else None
         decision = next((option for option in options if option["optionId"] == selected), None)
         outcome = {"outcome": "cancelled"}
@@ -205,10 +260,7 @@ class ACPClient:
                 tool["tur"] = kind
             if isinstance(status, str) and status in TOOL_STATUSES:
                 tool["durum"] = status
-            raw = update.get("rawInput")
-            command = raw.get("command") if isinstance(raw, dict) else None
-            if command == DEMO_COMMAND or update.get("title") == DEMO_COMMAND:
-                tool["komut"] = DEMO_COMMAND
+            tool.update(trace_input(update))
             title = update.get("title")
             label = terminal_text(title) if isinstance(title, str) else tool.get("tur", "araç")
             print(f"\n[Araç {tool['sira']}] {label} · {tool.get('durum', 'güncellendi')}", flush=True)

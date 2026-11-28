@@ -104,6 +104,19 @@ class ACPPipeTest(unittest.TestCase):
         self.assertEqual([fields["metot"] for event, fields in events if event == "istek"],
                          ["initialize", "session/new", "session/prompt"])
 
+    def test_general_tool_trace(self):
+        client, events = self.client("eof")
+        url = "https://user:secret@example.org/private?token=private#private"
+        with redirect_stdout(StringIO()):
+            client.show_update({"sessionUpdate": "tool_call", "toolCallId": "x",
+                                "kind": "execute", "rawInput": {"command": "curl " + url, "url": url}})
+            client.show_update({"sessionUpdate": "tool_call_update", "toolCallId": "x",
+                                "status": "completed"})
+        for _, fields in events:
+            self.assertEqual(fields["komut"], "curl https://example.org/[yol]")
+            self.assertEqual(fields["url"], "https://example.org/[yol]")
+        self.assertEqual(len(events), 2)
+
     def test_approval_once(self):
         self.verify_turn("approve", "allow_once", "approve")
 
