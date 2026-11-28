@@ -43,7 +43,8 @@ Fiyat ve maliyet kayıtlarının yaşı kodla denetlenmiyor (bilinen sınırlama
 Gerçek Ajan 1 verisinde onay komutundan **önce**: denetlenen her ürünün medyana giren en az bir rakip satırının `urun_url` adresini tarayıcıda aç ve görünen fiyatı `runs/ajan3/` altında bir CSV'ye yaz: `urun,urun_url,sayfa_fiyati_tl,kaynak,uretim_zamani` (`uretim_zamani` = kontrol anı; `kaynak` = kontrolün nasıl yapıldığı). Dosyayı `--canli_kontrol` ile ver. Sayfayı açmadan kayıt yazılmaz.
 
 - Geçerli kayıt: adres eşleşiyor, kontrol çekimden sonra ve son 72 saat içinde.
-- Sayfa fiyatı CSV'den farklıysa red → `ajan1`.
+- Sayfada iki fiyat varsa koşulsuz (herkesin ödediği) fiyat yazılır; kart ya da üyelik fiyatı yazılmaz.
+- Sayfa fiyatı CSV'den farklıysa red → `ajan1`. Satır `kampanya` ise gerekçe, kampanyanın bitmiş olabileceğini ve Ajan 1'in yeniden toplaması gerektiğini de yazar; bitiş tarihleri Ajan 1 raporundaki `kampanya_bitisleri` listesindedir.
 - Onaylanacak bir ürünün geçerli kaydı yoksa ya da dosyada geçersiz satır varsa beklemede.
 
 Kod sayfaya istek atmaz; kaydın doğruluğu kontrolü yapanın sorumluluğundadır. Sentetik `.example` adreslerine istek atılmaz.
