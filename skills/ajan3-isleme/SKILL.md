@@ -1,6 +1,6 @@
 ---
 name: ajan3-isleme
-description: Ajan 3'ün (denetim) ikinci aşaması. Ajan 2 çıktısındaki bütün sayıları ham dosyalardan bağımsız olarak yeniden hesaplar, kaynak kayıtlarını denetler ve önerilen fiyat ile maliyet verilmişse kâr eşiğini uygular. ajan3-alma geçtikten sonra kullan.
+description: Ajan 3'ün (denetim) ikinci aşaması. Ajan 2 çıktısındaki bütün sayıları ham dosyalardan bağımsız olarak yeniden hesaplar, kaynak kayıtlarını denetler ve önerilen fiyat ile maliyet verilmişse eylem uyumunu ve kâr eşiğini uygular. ajan3-alma geçtikten sonra kullan.
 ---
 
 # ajan3-isleme: bağımsız doğrulama (Ajan 3)
@@ -27,14 +27,25 @@ Kaynak ve hesap kontrolleri geçtikten sonra yalnız `--fiyat` dosyasındaki ür
 | Durum | Sonuç |
 |---|---|
 | Kâr ≤ 0, geçersiz fiyat satırı ya da veride olmayan ürün | Red → `ajan2`, bütün alan yolları |
+| Eylem `fiyati_koru` ve fiyat web liste fiyatına eşit değil | Red → `ajan2` |
+| Eylem `kampanya_test_et` ve fiyat web liste fiyatından düşük değil | Red → `ajan2` |
+| Gerçek veride onaylanacak ürünün geçerli canlı kontrol kaydı yok | Beklemede |
 | Fiyat dosyası yok/boş, ürünün maliyeti yok ya da maliyet dosyasında geçersiz satır | Beklemede |
 | Listedeki bir ürünün Ajan 2 eylemi `veri_topla` (ör. Masa Lambası), kâr eşiğin üstünde olsa da | Beklemede |
 | Listedeki bütün ürünler geçti | Onay (yalnız listelenen ürünler) |
 
-Tutar biçimi: nokta ondalık, en çok iki hane. Ürün her dosyada tek satır. Zaman saat dilimli ISO 8601.
+Tutar biçimi: nokta ondalık, en çok iki hane. Ürün fiyat ve maliyet dosyasında tek satır. Zaman saat dilimli ISO 8601.
 
-## Canlı fiyat doğrulaması (elle, kodda yok)
+Fiyat ve maliyet kayıtlarının yaşı kodla denetlenmiyor (bilinen sınırlama): **gerçek veride elle bakılır**; eski kayıtla onay komutu çalıştırılmaz.
 
-Gerçek Ajan 1 verisinde onay komutundan **önce**: denetlenen her ürünün en az bir rakip satırının `urun_url` adresini tarayıcıda aç, görünen fiyatı CSV ile karşılaştır, adres + saat + iki fiyatı `runs/ajan3/` altına yaz. Uyuşmazsa onay komutunu çalıştırma; Ajan 1'e red yaz. Sentetik `.example` adreslerine istek atılmaz.
+## Canlı fiyat doğrulaması (kontrol elle, kayıt kodda denetlenir)
+
+Gerçek Ajan 1 verisinde onay komutundan **önce**: denetlenen her ürünün medyana giren en az bir rakip satırının `urun_url` adresini tarayıcıda aç ve görünen fiyatı `runs/ajan3/` altında bir CSV'ye yaz: `urun,urun_url,sayfa_fiyati_tl,kaynak,uretim_zamani` (`uretim_zamani` = kontrol anı; `kaynak` = kontrolün nasıl yapıldığı). Dosyayı `--canli_kontrol` ile ver. Sayfayı açmadan kayıt yazılmaz.
+
+- Geçerli kayıt: adres eşleşiyor, kontrol çekimden sonra ve son 72 saat içinde.
+- Sayfa fiyatı CSV'den farklıysa red → `ajan1`.
+- Onaylanacak bir ürünün geçerli kaydı yoksa ya da dosyada geçersiz satır varsa beklemede.
+
+Kod sayfaya istek atmaz; kaydın doğruluğu kontrolü yapanın sorumluluğundadır. Sentetik `.example` adreslerine istek atılmaz.
 
 Kampanya eşiği gibi Ajan 2'nin öneri kuralları yeniden denetlenmiyor.
