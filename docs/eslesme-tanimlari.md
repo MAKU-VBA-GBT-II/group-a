@@ -46,7 +46,7 @@ Varsayılan simülasyon (`data/siparisler-g2.csv`, betikteki 25 ürün) değişm
 | 13 | Ev & Yaşam | Masa Lambası | 399 | masa lambası, çalışma lambası, led masa lambası | ampul, lambader, avize, abajur başlığı | 1 adet | 160–1000 | <119,70 / >1197 |
 | 14 | Ev & Yaşam | Saklama Kabı Seti | 639 | saklama kabı seti, erzak saklama seti, vakumlu saklama kabı seti | tekli, beslenme çantası, yedek kapak | 1 set; 3–12 parça (parça sayısı kaydedilir) | 260–1600 | <191,70 / >1917 |
 | 15 | Ev & Yaşam | Halı | 2239 | halı, salon halısı | paspas, kapı önü, banyo, yolluk, halı yıkama | 1 adet; yaklaşık 160x230 cm (120x180 – 200x290 kabul) | 900–5600 | <671,70 / >6717 |
-| 16 | Kozmetik | Nemlendirici | 559 | nemlendirici krem, yüz nemlendirici | hava nemlendirici, ortam nemlendirici, saç, dudak | 1 adet; 30–100 ml | 220–1400 | <167,70 / >1677 |
+| 16 | Kozmetik | Nemlendirici | 559 | Gratis kategori: Yüz Nemlendirici Gece Kremleri; nemlendirici krem, yüz nemlendirici | hava nemlendirici, ortam nemlendirici, saç, dudak, göz kremi, göz çevresi, serum, maske | 1 adet; 30–100 ml | 220–1400 | <167,70 / >1677 |
 | 17 | Kozmetik | Şampuan | 269 | şampuan | kuru şampuan, köpek, kedi, evcil, halı, oto, saç kremi | 1 adet; 300–600 ml | 110–670 | <80,70 / >807 |
 | 18 | Kozmetik | Parfüm | 1199 | parfüm, edp, edt, eau de parfum, eau de toilette | deodorant, vücut spreyi, body mist, oda parfümü, araç kokusu, tester | 1 adet; 50–100 ml | 480–3000 | <359,70 / >3597 |
 | 19 | Kozmetik | Güneş Kremi | 619 | güneş kremi, güneş koruyucu, spf | bronzlaştırıcı, güneş sonrası, after sun, güneş gözlüğü | 1 adet; 40–100 ml | 250–1550 | <185,70 / >1857 |
@@ -61,6 +61,7 @@ Varsayılan simülasyon (`data/siparisler-g2.csv`, betikteki 25 ürün) değişm
 
 - **Klavye:** "klavye" müzik aletini (elektronik klavye/org) de yakalar; hariç listesinde.
 - **Nemlendirici:** "hava/ortam nemlendirici" cihazları 189 TL'lik kremle karışır; hariç listesinde.
+- **Nemlendirici (28 Kasım, Hilal önerisi #115):** Gratis'in "Yüz Nemlendirici Gece Kremleri" kategorisindeki gece kremlerinin çoğunun adında "nemlendirici" geçmez; ad kuralıyla eşleşmeden düşmesinler diye Kitap'taki "D&R kategori" kuralı gibi kategori kuralı eklendi. Eşleşme işleve göre yapılır: gece kremi de bir yüz nemlendiricisidir. Göz kremi, göz çevresi ürünleri, serum ve maske hariç.
 - **Deneme:** "deneme" kelimesi sınav deneme kitaplarını yakalar; bu yüzden Kitap kategorisi + sınav kelimeleri hariç.
 - **Ders Kitabı:** MEB ders kitapları satışta değil; piyasada karşılığı "konu anlatımlı / yardımcı ders kitabı". Eşleşme zayıf kalabilir, güven en fazla `orta` önerilir.
 - **Kahve Makinesi, Parfüm, Akıllı Saat:** Fiyat yelpazesi çok geniş (markaya göre); üst segment ürünler otomatik bantta bile elenebilir, bu beklenen bir durum.

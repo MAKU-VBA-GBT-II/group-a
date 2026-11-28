@@ -1,6 +1,6 @@
 {
   "durum": "onay",
   "hedef_ajan": "ajan3",
-  "gerekce": "5 rakip satırı alındı, 3 ürün analiz edildi; çıktı data/ajan2-cikti-ornek.json.",
+  "gerekce": "5 rakip satırı alındı, 3 ürün analiz edildi; çıktı data/ajan2-cikti-ornek.json, önerilen fiyat data/ajan2-onerilen-fiyat-ornek.csv (2 ürün).",
   "sorunlu_alanlar": []
 }

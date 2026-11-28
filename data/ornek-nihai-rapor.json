@@ -1,0 +1,27 @@
+{
+  "veri_turu": "sentetik_test",
+  "denetim_zamani": "2026-11-29T18:00:00+03:00",
+  "ajan1_csv": {
+    "yol": "data/ornek-ajan1.csv",
+    "md5": "7ae26d1c10de56d617b95e241ec6639b"
+  },
+  "maliyet_dosyasi": "data/ornek-maliyet.csv",
+  "urunler": [
+    {
+      "urun": "Şampuan",
+      "onerilen_fiyat_tl": 250,
+      "birim_maliyet_tl": 220,
+      "birim_kar_tl": 30,
+      "esik_tl": 0,
+      "kaynak": "sentetik_test:kampanya-1",
+      "karar": "onay",
+      "gerekce": "250 − 220 = 30 TL; birim kâr sıfırın üzerinde."
+    }
+  ],
+  "zarf": {
+    "durum": "onay",
+    "hedef_ajan": null,
+    "gerekce": "Kapsamdaki kampanya kaynak ve kâr kontrollerini geçti.",
+    "sorunlu_alanlar": []
+  }
+}

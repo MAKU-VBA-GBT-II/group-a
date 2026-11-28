@@ -1,0 +1,28 @@
+{
+  "arac": "src/ajan2_analiz.py",
+  "komut": "python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-12-01T12:00:00+03:00 --cikti data/ajan2-cikti-red-ornek.json --zarf data/ajan2-zarf-red-ornek.json --fiyat data/ajan2-onerilen-fiyat-red-ornek.csv",
+  "baslangic": "2026-11-28T19:59:11+03:00",
+  "referans_zamani": "2026-12-01T12:00:00+03:00",
+  "girdiler": {
+    "data/ornek-ajan1.csv": "7ae26d1c10de56d617b95e241ec6639b",
+    "data/urun-listesi-web.csv": "9cabd5a99ae9e0597999b7d494791105",
+    "data/siparisler-web.csv": "628b4351250b4065b9669baf233449e7"
+  },
+  "asama": "alma",
+  "sonuc": {
+    "durum": "red",
+    "hedef_ajan": "ajan1",
+    "gerekce": "5 satırda çekilme zamanı geçersiz, gelecekte ya da referans zamanından (2026-12-01T12:00:00+03:00) 72 saatten eski.",
+    "sorunlu_alanlar": [
+      "satir[2].cekilme_zamani",
+      "satir[3].cekilme_zamani",
+      "satir[4].cekilme_zamani",
+      "satir[5].cekilme_zamani",
+      "satir[6].cekilme_zamani"
+    ]
+  },
+  "cikti": {
+    "data/ajan2-zarf-red-ornek.json": "07453c1dde80b9621b6d39e35609c20c"
+  },
+  "bitis": "2026-11-28T19:59:11+03:00"
+}

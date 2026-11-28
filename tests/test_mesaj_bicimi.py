@@ -1,5 +1,6 @@
 """Duyuru 11 sözleşmesinin sentetik örnekleri için bağımsız uyum kontrolleri."""
 import csv
+import hashlib
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 import json
@@ -45,6 +46,24 @@ def conflicts(rows, reference):
 
 
 class MesajBicimiTest(unittest.TestCase):
+    def test_denetim_ornegi(self):
+        report = json.loads((DATA / "ornek-nihai-rapor.json").read_text(encoding="utf-8"))
+        ref = report["ajan1_csv"]
+        csv_path = DATA.parent / ref["yol"]
+        self.assertEqual(hashlib.md5(csv_path.read_bytes()).hexdigest(), ref["md5"])
+        _, rows = csv_rows(csv_path.name)
+        self.assertEqual(conflicts(rows, datetime.fromisoformat(report["denetim_zamani"])), [])
+        _, costs = csv_rows(Path(report["maliyet_dosyasi"]).name)
+        costs = {r["urun"]: Decimal(r["birim_maliyet_tl"]) for r in costs}
+        self.assertTrue(report["urunler"])
+        for item in report["urunler"]:
+            cost = costs[item["urun"]]
+            self.assertEqual(cost, item["birim_maliyet_tl"])
+            self.assertEqual(Decimal(str(item["onerilen_fiyat_tl"])) - cost, item["birim_kar_tl"])
+            self.assertGreater(item["birim_kar_tl"], item["esik_tl"])
+        self.assertEqual(report["zarf"]["durum"], "onay")
+        self.assertIsNone(report["zarf"]["hedef_ajan"])
+
     def setUp(self):
         self.header, self.rivals = csv_rows("ornek-ajan1.csv")
         self.catalog = {row["urun"]: row for row in csv_rows("urun-listesi-web.csv")[1]}
