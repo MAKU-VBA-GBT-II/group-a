@@ -6,13 +6,16 @@ Sepetix Analitik (Grup A) — Ajan 3 (denetim). Issue: #116. Sözleşme: docs/me
 Ajan 2'nin JSON çıktısını ve onay zarfını, Ajan 1'in rakip CSV'si ve MD5'iyle birlikte alır;
 kaynakları, fiyat izini, 72 saat kuralını ve bütün sayıları ham dosyalardan bağımsız
 olarak yeniden hesaplar (ajan2_analiz modülü kullanılmaz). Önerilen fiyat ve birim
-maliyet verilirse kâr eşiğini (birim kâr 0 TL'nin üstünde) denetler.
+maliyet verilirse fiyatın Ajan 2 eylemiyle uyumunu ve kâr eşiğini (birim kâr 0 TL'nin
+üstünde) denetler.
 
     alma    → skills/ajan3-alma/SKILL.md
     isleme  → skills/ajan3-isleme/SKILL.md
     teslim  → skills/ajan3-teslim/SKILL.md
 
-Sayfadan canlı fiyat doğrulaması bu kodda yoktur; raporda "yapılmayan" olarak yazılır.
+Kod sayfalara istek atmaz. Canlı fiyat kontrolü elle yapılır ve --canli_kontrol dosyasıyla
+verilir; gerçek veride bu kayıt yoksa onay çıkmaz (beklemede). Kaydı olmayan sentetik
+çalıştırmada raporda "yapılmayan" olarak yazılır.
 
 Örnek (depo kökünde, sentetik veri):
     python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json \
@@ -21,8 +24,9 @@ Sayfadan canlı fiyat doğrulaması bu kodda yoktur; raporda "yapılmayan" olara
         --fiyat data/ajan3-fiyat-ornek.csv --maliyet data/ajan3-maliyet-ornek.csv \
         --referans 2026-11-29T18:00:00+03:00
 
-Çıkış kodları: 0 onay, 2 red, 3 kontroller geçti ama fiyat ya da maliyet eksik (beklemede),
-1 kullanım ya da beklenmeyen hata. Yalnız standart kütüphane kullanılır.
+Çıkış kodları: 0 onay, 2 red, 3 kontroller geçti ama fiyat, maliyet ya da canlı kontrol
+kaydı eksik (beklemede), 1 kullanım (verilen dosya bulunamadı dahil) ya da beklenmeyen hata.
+Yalnız standart kütüphane kullanılır.
 """
 
 import argparse
@@ -57,6 +61,8 @@ KAR_ESIGI = Decimal(0)  # birim kâr kesin olarak bu değerin üstünde olmalı
 GECEN_KONTROLLER = ["Ajan 1 CSV özeti (MD5)", "72 saat", "fiyat izi", "ürün adresi alan adı",
                     "Ajan 2 zarfı", "sayıların bağımsız yeniden hesabı", "kaynak kayıtları"]
 CANLI = "sayfadan canlı fiyat doğrulaması"
+CANLI_KAYDI = "elle canlı fiyat kontrol kaydı"
+CANLI_ALANLARI = ["urun", "urun_url", "sayfa_fiyati_tl", "kaynak", "uretim_zamani"]
 
 
 class Red(Exception):
@@ -128,7 +134,46 @@ def alan_adi_uyumlu(satir):
 
 # ---------------------------------------------------------------- 1. alma
 
-def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans):
+def canli_kontrol_oku(yol, satirlar, katalog_yolu, referans):
+    """Elle yapılan canlı fiyat kontrolü: (ürün → geçerli kayıtlar, eksikler, uyuşmazlıklar).
+
+    Geçerli kayıt, ürünün medyana giren bir satırının adresini gösterir; çekimden sonra ve
+    son 72 saat içinde yapılmıştır.
+    """
+    if yol is None:
+        return {}, [], []
+    try:
+        kayit_satirlari = csv_oku(yol)
+    except (OSError, UnicodeDecodeError, csv.Error):
+        return {}, ["canlı kontrol dosyası okunamıyor"], []
+    if any(k.get(a) is None for k in kayit_satirlari for a in CANLI_ALANLARI):
+        return {}, ["canlı kontrol dosyasında zorunlu sütun eksik"], []
+    katalog = {s["urun"]: s for s in csv_oku(katalog_yolu)}
+    kayitlar, eksikler, uyusmazliklar = {}, [], []
+    for no, k in enumerate(kayit_satirlari, 2):
+        ad, adres, metin = k["urun"].strip(), k["urun_url"].strip(), k["sayfa_fiyati_tl"].strip()
+        eslesen = [(n, s) for n, s in enumerate(satirlar, 2)
+                   if ad in katalog and s["bizim_urun"] == ad and s["urun_url"] == adres
+                   and medyana_girer(s, Decimal(katalog[ad]["liste_fiyati"]))]
+        deger = fiyat(metin) if PARA.fullmatch(metin) else None
+        an = zaman(k["uretim_zamani"])
+        if (not eslesen or deger is None or not k["kaynak"].strip() or an is None
+                or not timedelta(0) <= referans - an <= BAYATLIK
+                or any(an < zaman(s["cekilme_zamani"]) for _, s in eslesen)):
+            eksikler.append(f"canlı kontrol dosyasında satır {no} geçersiz")
+            continue
+        for n, s in eslesen:
+            alan = "indirimli_fiyat" if s["indirimli_fiyat"] else "liste_fiyati"
+            if deger != Decimal(s[alan]):
+                uyusmazliklar.append((f"satir[{n}].{alan}",
+                                      f"{ad}: elle canlı kontrolde sayfa {deger} TL, tabloda {s[alan]} TL"))
+        kayitlar.setdefault(ad, []).append({
+            "urun_url": adres, "sayfa_fiyati_tl": float(deger), "kaynak": k["kaynak"].strip(),
+            "uretim_zamani": k["uretim_zamani"]})
+    return kayitlar, eksikler, uyusmazliklar
+
+
+def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans, canli_yolu, katalog_yolu):
     """Ajan 1 tablosu ve Ajan 2 teslimi denetlenebilir mi? Değilse Red."""
     try:
         ham = Path(ajan1_yolu).read_bytes()
@@ -162,6 +207,10 @@ def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans):
             sorunlar.append((f"satir[{no}].urun_url", "ürün adresi https değil ya da alan adı rakip siteye ait değil"))
     if sorunlar:
         raise Red("ajan1", sorunlar)
+    # Sayfayla uyuşmayan fiyat kaynak hatasıdır; Ajan 2 kontrollerinden önce gelir.
+    canli, canli_eksik, uyusmazliklar = canli_kontrol_oku(canli_yolu, satirlar, katalog_yolu, referans)
+    if uyusmazliklar:
+        raise Red("ajan1", uyusmazliklar)
 
     try:
         zarf2 = json_oku(zarf_yolu)
@@ -208,7 +257,7 @@ def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans):
         sorunlar.append(("iliskiler", "ilişki nesnesi yok"))
     if sorunlar:
         raise Red("ajan2", sorunlar)
-    return satirlar, veri
+    return satirlar, veri, canli, canli_eksik
 
 
 # ---------------------------------------------------------------- 2. işleme
@@ -362,28 +411,40 @@ def girdi_tablosu(yol, onek, deger_alani, sifir_olur):
     return kayitlar, sorunlar
 
 
-def kar_denetimi(urun_adlari, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari, verisi_yetersiz=frozenset()):
-    """(onaylanan kalemler, eksikler). Geçersiz öneri ya da eşik altı kâr → Red ajan2.
+def kar_denetimi(oneriler, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari):
+    """(onaylanan kalemler, eksikler). oneriler: ürün → (Ajan 2 eylemi, web liste fiyatı).
 
-    verisi_yetersiz: Ajan 2 eylemi veri_topla olan ürünler; kâr yeterli olsa da onaylanmaz.
+    Geçersiz öneri, eylemle uyumsuz fiyat ya da eşik altı kâr → Red ajan2. fiyati_koru liste
+    fiyatına eşit, kampanya_test_et liste fiyatından düşük olmalı. veri_topla ürünü kâr
+    yeterli olsa da onaylanmaz.
     """
     sorunlar = list(fiyat_sorunlari)
     kalemler, eksikler = [], []
     maliyetler = maliyetler or {}
     for ad, f in (fiyatlar or {}).items():
-        if ad not in urun_adlari:
+        if ad not in oneriler:
             sorunlar.append((f"fiyat.satir[{f['satir']}].urun", f"{ad}: fiyat önerilen ürün denetlenen veride yok"))
             continue
+        eylem, liste = oneriler[ad]
+        alan = f"fiyat.satir[{f['satir']}].onerilen_fiyat_tl"
+        uyumsuz = ((eylem == "fiyati_koru" and f["deger"] != liste)
+                   or (eylem == "kampanya_test_et" and f["deger"] >= liste))
+        if uyumsuz:
+            kosul = "liste fiyatına eşit" if eylem == "fiyati_koru" else "liste fiyatından düşük"
+            sorunlar.append((alan, f"{ad}: Ajan 2 eylemi {eylem}, önerilen fiyat {f['deger']} TL "
+                                   f"{kosul} olmalı (liste {liste:.2f} TL)"))
         if ad not in maliyetler:
             eksikler.append(f"{ad} için geçerli birim maliyet yok")
             continue
         m = maliyetler[ad]
         kar = f["deger"] - m["deger"]
         if kar <= KAR_ESIGI:
-            sorunlar.append((f"fiyat.satir[{f['satir']}].onerilen_fiyat_tl",
+            sorunlar.append((alan,
                              f"{ad}: {f['deger']} − {m['deger']} = {kar} TL, birim kâr {KAR_ESIGI} TL'nin üstünde değil"))
             continue
-        if ad in verisi_yetersiz:
+        if uyumsuz:
+            continue
+        if eylem == "veri_topla":
             eksikler.append(f"{ad} için Ajan 2 eylemi veri_topla (veri yetersiz)")
             continue
         kalemler.append({
@@ -421,7 +482,8 @@ def yaz_json(yol, veri):
 
 
 def calistir(arg, referans, argv):
-    girdiler = (arg.girdi, arg.zarf, arg.ajan1, arg.urun_listesi, arg.siparisler, arg.fiyat, arg.maliyet)
+    girdiler = (arg.girdi, arg.zarf, arg.ajan1, arg.urun_listesi, arg.siparisler, arg.fiyat, arg.maliyet,
+                arg.canli_kontrol)
     iz = {
         "arac": "src/ajan3_denetim.py",
         "komut": " ".join(["python", "src/ajan3_denetim.py"] + list(argv)),
@@ -430,13 +492,16 @@ def calistir(arg, referans, argv):
         "girdiler": {goreli(p): md5(p) for p in girdiler if p and Path(p).is_file()},
     }
     try:
-        satirlar, veri = alma(arg.girdi, arg.zarf, arg.ajan1, arg.ajan1_md5, referans)
+        satirlar, veri, canli, canli_eksik = alma(arg.girdi, arg.zarf, arg.ajan1, arg.ajan1_md5, referans,
+                                                  arg.canli_kontrol, arg.urun_listesi)
         fiyatlar, fiyat_sorunlari = girdi_tablosu(arg.fiyat, "fiyat", "onerilen_fiyat_tl", False)
         maliyetler, maliyet_sorunlari = girdi_tablosu(arg.maliyet, "maliyet", "birim_maliyet_tl", True)
         urunler, iliskiler = isleme(satirlar, veri, arg.urun_listesi, arg.siparisler, set(maliyetler or {}))
-        kalemler, eksikler = kar_denetimi({u["urun"] for u in urunler}, fiyatlar, fiyat_sorunlari,
-                                          maliyetler, maliyet_sorunlari,
-                                          {u["urun"] for u in urunler if u["eylem"] == "veri_topla"})
+        oneriler = {u["urun"]: (u["eylem"], Decimal(str(u["sayilar"]["bizim_liste_fiyati"]))) for u in urunler}
+        kalemler, eksikler = kar_denetimi(oneriler, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari)
+        if veri["veri_turu"] != "sentetik_test":  # gerçek veride elle kontrol kaydı olmadan onay yok
+            eksikler += [f"{k['urun']} için geçerli {CANLI_KAYDI} yok" for k in kalemler if k["urun"] not in canli]
+        eksikler += canli_eksik
     except Red as red:
         yaz_json(arg.cikis_zarf, {"durum": "red", "hedef_ajan": red.hedef, "gerekce": red.gerekce,
                                   "sorunlu_alanlar": red.alanlar})
@@ -458,6 +523,10 @@ def calistir(arg, referans, argv):
             durum, kod, ciktilar = "beklemede", 3, [arg.rapor]
             print(f"BEKLEMEDE: veri kontrolleri geçti, onay yok: {'; '.join(eksikler)}.")
         else:
+            canli_tam = all(k["urun"] in canli for k in kalemler)
+            for k in kalemler:
+                if k["urun"] in canli:
+                    k["canli_kontrol"] = canli[k["urun"]]
             zarf = {"durum": "onay", "hedef_ajan": None,
                     "gerekce": f"Raporda listelenen {len(kalemler)} ürün kaynak, hesap ve kâr kontrollerini geçti.",
                     "sorunlu_alanlar": []}
@@ -466,14 +535,17 @@ def calistir(arg, referans, argv):
                 **ortak,
                 "fiyat_dosyasi": goreli(arg.fiyat),
                 "maliyet_dosyasi": goreli(arg.maliyet),
-                "gecen_kontroller": GECEN_KONTROLLER + ["kâr eşiği"],
-                "yapilmayan_kontroller": [CANLI],
+                **({"canli_kontrol_dosyasi": goreli(arg.canli_kontrol)} if arg.canli_kontrol else {}),
+                "gecen_kontroller": GECEN_KONTROLLER + ["kâr eşiği"] + ([CANLI_KAYDI] if canli_tam else []),
+                "yapilmayan_kontroller": [] if canli_tam else [CANLI],
                 "urunler": kalemler,
                 "zarf": zarf,
             })
             yaz_json(arg.cikis_zarf, zarf)
             durum, kod, ciktilar = "onay", 0, [arg.nihai_rapor, arg.cikis_zarf]
-            print(f"ONAY: {', '.join(k['urun'] for k in kalemler)}. Canlı fiyat doğrulaması bu kodda yapılmadı.")
+            not_canli = ("Elle canlı fiyat kontrol kaydı denetlendi; kod sayfaya istek atmadı." if canli_tam
+                         else "Canlı fiyat doğrulaması bu kodda yapılmadı.")
+            print(f"ONAY: {', '.join(k['urun'] for k in kalemler)}. {not_canli}")
     iz.update(sonuc=durum, cikis_kodu=kod, cikti={goreli(c): md5(c) for c in ciktilar},
               bitis=datetime.now(TR).isoformat(timespec="seconds"))
     yaz_json(Path(arg.iz_klasoru) / f"{datetime.now(TR):%Y%m%d-%H%M%S}-{durum}.json", iz)
@@ -496,6 +568,7 @@ def main(argv=None):
     p.add_argument("--ajan1_md5", required=True, help="Devirde bildirilen Ajan 1 CSV MD5'i (küçük harf)")
     p.add_argument("--fiyat", help="CSV: urun,onerilen_fiyat_tl,kaynak,uretim_zamani")
     p.add_argument("--maliyet", help="CSV: urun,birim_maliyet_tl,kaynak,uretim_zamani")
+    p.add_argument("--canli_kontrol", help="CSV: " + ",".join(CANLI_ALANLARI) + " (gerçek veride onay için)")
     p.add_argument("--urun_listesi", default=str(KOK / "data/urun-listesi-web.csv"))
     p.add_argument("--siparisler", default=str(KOK / "data/siparisler-web.csv"))
     p.add_argument("--referans", help="Yalnız sentetik test girdisi için sabit denetim zamanı")
@@ -505,7 +578,7 @@ def main(argv=None):
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan3"))
     arg = p.parse_args(argv)
     girdiler = {Path(g).resolve() for g in (arg.girdi, arg.zarf, arg.ajan1, arg.urun_listesi,
-                                             arg.siparisler, arg.fiyat, arg.maliyet) if g}
+                                             arg.siparisler, arg.fiyat, arg.maliyet, arg.canli_kontrol) if g}
     ciktilar = (arg.rapor, arg.nihai_rapor, arg.cikis_zarf)
     if girdiler & {Path(c).resolve() for c in ciktilar}:
         p.error("çıktı yolu bir girdi dosyasıyla aynı olamaz")
@@ -514,6 +587,10 @@ def main(argv=None):
     # Önceki sonuç, bu çalıştırma hata verse bile geçerliymiş gibi kalmaz.
     for eski in ciktilar:
         Path(eski).unlink(missing_ok=True)
+    for secenek in ("fiyat", "maliyet", "canli_kontrol"):
+        yol = getattr(arg, secenek)
+        if yol is not None and not Path(yol).is_file():
+            p.error(f"--{secenek} ile verilen dosya bulunamadı: {yol}")
     referans = datetime.now(TR).replace(microsecond=0)
     if arg.referans:
         referans = zaman(arg.referans)
