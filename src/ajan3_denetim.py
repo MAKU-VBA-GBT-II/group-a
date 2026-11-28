@@ -165,8 +165,10 @@ def canli_kontrol_oku(yol, satirlar, katalog_yolu, referans):
         for n, s in eslesen:
             alan = "indirimli_fiyat" if s["indirimli_fiyat"] else "liste_fiyati"
             if deger != Decimal(s[alan]):
-                uyusmazliklar.append((f"satir[{n}].{alan}",
-                                      f"{ad}: elle canlı kontrolde sayfa {deger} TL, tabloda {s[alan]} TL"))
+                neden = f"{ad}: elle canlı kontrolde sayfa {deger} TL, tabloda {s[alan]} TL"
+                if s.get("fiyat_turu") == "kampanya":
+                    neden += "; kampanya bitmiş olabilir, Ajan 1 yeniden toplamalı"
+                uyusmazliklar.append((f"satir[{n}].{alan}", neden))
         kayitlar.setdefault(ad, []).append({
             "urun_url": adres, "sayfa_fiyati_tl": float(deger), "kaynak": k["kaynak"].strip(),
             "uretim_zamani": k["uretim_zamani"]})
