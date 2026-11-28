@@ -1,0 +1,190 @@
+{
+  "surum": "1",
+  "veri_turu": "sentetik_test",
+  "para_birimi": "TRY",
+  "uretim_zamani": "2026-11-29T18:00:00+03:00",
+  "siparis_donemi": {
+    "baslangic": "2026-01-05",
+    "bitis": "2026-07-05"
+  },
+  "urunler": [
+    {
+      "urun": "Masa Lambası",
+      "kategori": "Ev & Yaşam",
+      "bizim_liste_fiyati": 399.0,
+      "rakip_medyan_fiyati": 699.0,
+      "fiyat_farki_yuzde": -42.92,
+      "kullanilan_rakip_sayisi": 1,
+      "elenen_rakip_sayisi": 1,
+      "satis_adedi": 524,
+      "ciro": 205723.88,
+      "oneri": {
+        "eylem": "veri_topla",
+        "gerekce": "Üst bant 1197 TL olduğu için daha pahalı satırlar eleniyor. Örneklem dar, fiyat kararı için daha çok karşılaştırılabilir veri gerekir.",
+        "kar_durumu": "maliyet_eksik"
+      },
+      "kaynaklar": [
+        {
+          "alanlar": [
+            "bizim_liste_fiyati",
+            "fiyat_farki_yuzde"
+          ],
+          "kaynak": "data/urun-listesi-web.csv",
+          "secim": "urun=Masa Lambası; liste_fiyati",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "satis_adedi",
+            "ciro"
+          ],
+          "kaynak": "data/siparisler-web.csv",
+          "secim": "urun=Masa Lambası; durum=Teslim Edildi; siparis_donemi dâhil",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "rakip_medyan_fiyati",
+            "fiyat_farki_yuzde",
+            "kullanilan_rakip_sayisi",
+            "elenen_rakip_sayisi"
+          ],
+          "kaynak": "https://ikea.example/urun/lamba-a",
+          "secim": "data/ornek-ajan1.csv satır 2; liste_fiyati",
+          "uretim_zamani": "2026-11-27T15:00:00+03:00"
+        },
+        {
+          "alanlar": [
+            "kullanilan_rakip_sayisi",
+            "elenen_rakip_sayisi"
+          ],
+          "kaynak": "https://ikea.example/urun/lamba-b",
+          "secim": "data/ornek-ajan1.csv satır 3; elendi: fiyat bandı dışı",
+          "uretim_zamani": "2026-11-27T15:00:00+03:00"
+        }
+      ]
+    },
+    {
+      "urun": "Saklama Kabı Seti",
+      "kategori": "Ev & Yaşam",
+      "bizim_liste_fiyati": 639.0,
+      "rakip_medyan_fiyati": 674.0,
+      "fiyat_farki_yuzde": -5.19,
+      "kullanilan_rakip_sayisi": 2,
+      "elenen_rakip_sayisi": 0,
+      "satis_adedi": 646,
+      "ciro": 403147.1,
+      "oneri": {
+        "eylem": "fiyati_koru",
+        "gerekce": "Benzer setler kullanıldı. Liste fiyatı rakip medyanına yakın, maliyet doğrulanınca yeniden değerlendir.",
+        "kar_durumu": "maliyet_eksik"
+      },
+      "kaynaklar": [
+        {
+          "alanlar": [
+            "bizim_liste_fiyati",
+            "fiyat_farki_yuzde"
+          ],
+          "kaynak": "data/urun-listesi-web.csv",
+          "secim": "urun=Saklama Kabı Seti; liste_fiyati",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "satis_adedi",
+            "ciro"
+          ],
+          "kaynak": "data/siparisler-web.csv",
+          "secim": "urun=Saklama Kabı Seti; durum=Teslim Edildi; siparis_donemi dâhil",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "rakip_medyan_fiyati",
+            "fiyat_farki_yuzde",
+            "kullanilan_rakip_sayisi",
+            "elenen_rakip_sayisi"
+          ],
+          "kaynak": "https://koctas.example/urun/set-a",
+          "secim": "data/ornek-ajan1.csv satır 4; indirimli_fiyat",
+          "uretim_zamani": "2026-11-27T15:15:00+03:00"
+        },
+        {
+          "alanlar": [
+            "rakip_medyan_fiyati",
+            "fiyat_farki_yuzde",
+            "kullanilan_rakip_sayisi",
+            "elenen_rakip_sayisi"
+          ],
+          "kaynak": "https://koctas.example/urun/set-b",
+          "secim": "data/ornek-ajan1.csv satır 5; liste_fiyati",
+          "uretim_zamani": "2026-11-27T15:15:00+03:00"
+        }
+      ]
+    },
+    {
+      "urun": "Şampuan",
+      "kategori": "Kozmetik",
+      "bizim_liste_fiyati": 269.0,
+      "rakip_medyan_fiyati": 239.0,
+      "fiyat_farki_yuzde": 12.55,
+      "kullanilan_rakip_sayisi": 1,
+      "elenen_rakip_sayisi": 0,
+      "satis_adedi": 516,
+      "ciro": 135773.81,
+      "oneri": {
+        "eylem": "kampanya_test_et",
+        "gerekce": "Sentetik rakip fiyatı liste fiyatımızdan düşük. Yalnız maliyet ve kâr eşiği doğrulanırsa kontrollü bir test planla.",
+        "kar_durumu": "maliyet_eksik"
+      },
+      "kaynaklar": [
+        {
+          "alanlar": [
+            "bizim_liste_fiyati",
+            "fiyat_farki_yuzde"
+          ],
+          "kaynak": "data/urun-listesi-web.csv",
+          "secim": "urun=Şampuan; liste_fiyati",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "satis_adedi",
+            "ciro"
+          ],
+          "kaynak": "data/siparisler-web.csv",
+          "secim": "urun=Şampuan; durum=Teslim Edildi; siparis_donemi dâhil",
+          "uretim_zamani": "2026-11-24T12:25:43+00:00"
+        },
+        {
+          "alanlar": [
+            "rakip_medyan_fiyati",
+            "fiyat_farki_yuzde",
+            "kullanilan_rakip_sayisi",
+            "elenen_rakip_sayisi"
+          ],
+          "kaynak": "https://gratis.example/urun/sampuan-a",
+          "secim": "data/ornek-ajan1.csv satır 6; liste_fiyati",
+          "uretim_zamani": "2026-11-27T15:30:00+03:00"
+        }
+      ]
+    }
+  ],
+  "iliskiler": {
+    "urun_sayisi": 3,
+    "pearson_fark_adet": 0.149544,
+    "pearson_fark_ciro": -0.049935,
+    "kaynaklar": [
+      {
+        "alanlar": [
+          "urun_sayisi",
+          "pearson_fark_adet",
+          "pearson_fark_ciro"
+        ],
+        "kaynak": "$.urunler",
+        "secim": "Fiyat farkı tanımlı ürünler; yuvarlama öncesi değerler ve ürünlerin kaynak kayıtları",
+        "uretim_zamani": "2026-11-29T18:00:00+03:00"
+      }
+    ]
+  }
+}
