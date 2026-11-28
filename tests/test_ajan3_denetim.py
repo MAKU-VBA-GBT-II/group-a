@@ -132,6 +132,21 @@ class Ajan3Test(unittest.TestCase):
         self.assertIsNone(self.oku("rapor.json"))
         self.assertEqual(len(list((self.tmp / "runs").glob("*-onay.json"))), 1)
 
+    def test_ayni_urunde_tekrar_eden_adres_ajan1e_doner(self):
+        self.satirlar.append(dict(self.satirlar[0]))
+        self.red_bekle("ajan1", f"satir[{len(self.satirlar) + 1}].urun_url")
+        self.assertEqual(self.oku("zarf.json")["sorunlu_alanlar"], [f"satir[{len(self.satirlar) + 1}].urun_url"])
+
+    def test_farkli_urunde_ayni_adres_kabul_edilir(self):
+        a = self.satirlar[0]
+        no, b = next((n, s) for n, s in enumerate(self.satirlar, 2) if s["bizim_urun"] != a["bizim_urun"])
+        for urun in self.veri["urunler"]:
+            for kayit in urun["kaynaklar"]:
+                if kayit["kaynak"] == b["urun_url"] and f"satır {no};" in kayit["secim"]:
+                    kayit["kaynak"] = a["urun_url"]
+        b["urun_url"], b["rakip_site"] = a["urun_url"], a["rakip_site"]
+        self.assertEqual(self.calistir(), 3)  # red yok; fiyat ve maliyet verilmediği için beklemede
+
     def test_sifir_ve_negatif_kar_ajan2ye_doner_ve_tum_alanlar_listelenir(self):
         fiyat = [("Şampuan", "220.00"), ("Masa Lambası", "100.00")]
         maliyet = [("Şampuan", "220.00"), ("Masa Lambası", "150.00")]
