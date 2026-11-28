@@ -35,4 +35,4 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 
 ## Üretim kaydı
 
-27 Kasım 2026: Claude ile yazıldı ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: "Benim yapmam gerekenleri yap" (#116, maliyetten bağımsız ilk sürüm). Sema Nur Doğan'ın incelemesi bekliyor.
+27 Kasım 2026: Claude ile yazıldı ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: Ajan 3'ün maliyetten bağımsız ilk sürümünü hazırla (#116): üç skill, denetim kodu ve testleri, sentetik red ve ara rapor örnekleri; onay sonucu üretme. Sema Nur Doğan'ın incelemesi bekliyor.
