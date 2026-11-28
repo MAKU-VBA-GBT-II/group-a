@@ -32,7 +32,7 @@ class Ajan2Test(unittest.TestCase):
                 w.writeheader()
                 w.writerows(satirlar)
         kod = a2.main(["--girdi", str(girdi), "--referans", referans,
-                       "--cikti", str(self.tmp / "cikti.json"), "--zarf", str(self.tmp / "zarf.json"),
+                       "--cikti", str(self.tmp / "cikti.json"), "--zarf", str(self.tmp / "zarf.json"), "--fiyat", str(self.tmp / "fiyat.csv"),
                        "--iz_klasoru", str(self.tmp / "runs")])
         zarf = json.loads((self.tmp / "zarf.json").read_text(encoding="utf-8"))
         cikti_yolu = self.tmp / "cikti.json"
@@ -49,6 +49,83 @@ class Ajan2Test(unittest.TestCase):
                 u["oneri"].pop("gerekce")
         self.assertEqual(cikti, beklenen)
         self.assertEqual(len(list((self.tmp / "runs").glob("*-onay.json"))), 1)
+
+    def fiyat_oku(self):
+        with (self.tmp / "fiyat.csv").open(encoding="utf-8", newline="") as f:
+            okuyucu = csv.DictReader(f)
+            return okuyucu.fieldnames, list(okuyucu)
+
+    def test_onerilen_fiyat_eylemle_uyumlu(self):
+        kod, zarf, cikti = self.calistir()
+        self.assertEqual(kod, 0)
+        alanlar, satirlar = self.fiyat_oku()
+        self.assertEqual(alanlar, ["urun", "onerilen_fiyat_tl", "kaynak", "uretim_zamani"])
+        fiyatlar = {s["urun"]: s for s in satirlar}
+        for u in cikti["urunler"]:
+            eylem = u["oneri"]["eylem"]
+            if eylem == "veri_topla":
+                self.assertNotIn(u["urun"], fiyatlar)
+                continue
+            s = fiyatlar[u["urun"]]
+            self.assertRegex(s["onerilen_fiyat_tl"], r"^[0-9]+\.[0-9]{2}$")
+            self.assertEqual(s["uretim_zamani"], cikti["uretim_zamani"])
+            fiyat = float(s["onerilen_fiyat_tl"])
+            if eylem == "fiyati_koru":
+                self.assertEqual(fiyat, u["bizim_liste_fiyati"])
+                self.assertIn("liste_fiyati", s["kaynak"])
+            else:
+                self.assertEqual(fiyat, u["rakip_medyan_fiyati"])
+                self.assertLess(fiyat, u["bizim_liste_fiyati"])
+                self.assertIn("rakip_medyan_fiyati", s["kaynak"])
+        self.assertEqual(len(satirlar), sum(u["oneri"]["eylem"] != "veri_topla" for u in cikti["urunler"]))
+
+    def test_kampanya_fiyati_rakip_medyani(self):
+        u = {"urun": "X", "bizim_liste_fiyati": 1000.0, "rakip_medyan_fiyati": 849.5,
+             "oneri": {"eylem": "kampanya_test_et"}}
+        k = {"urun": "Y", "bizim_liste_fiyati": 250.0, "rakip_medyan_fiyati": 245.0,
+             "oneri": {"eylem": "fiyati_koru"}}
+        v = {"urun": "Z", "bizim_liste_fiyati": 399.0, "rakip_medyan_fiyati": None,
+             "oneri": {"eylem": "veri_topla"}}
+        satirlar = a2.onerilen_fiyatlar([u, k, v], "c.json", "l.csv", REFERANS)
+        self.assertEqual([(s["urun"], s["onerilen_fiyat_tl"]) for s in satirlar],
+                         [("X", "849.50"), ("Y", "250.00")])
+
+    def test_redde_eski_fiyat_dosyasi_silinir(self):
+        self.assertEqual(self.calistir()[0], 0)
+        self.assertTrue((self.tmp / "fiyat.csv").exists())
+        kod, zarf, _ = self.calistir(referans="2026-12-05T12:00:00+03:00")
+        self.assertEqual((kod, zarf["durum"]), (2, "red"))
+        self.assertFalse((self.tmp / "fiyat.csv").exists())
+
+    def test_cikti_yolu_girdiyle_ya_da_baska_ciktiyla_cakisamaz(self):
+        girdi = self.tmp / "girdi.csv"
+        girdi.write_bytes(ORNEK.read_bytes())
+        c, z, f = (str(self.tmp / ad) for ad in ("c.json", "z.json", "f.csv"))
+        for cikti, zarf_, fiyat in ((c, z, str(girdi)), (c, z, c), (c, c, f), (str(girdi), z, f)):
+            with self.assertRaises(SystemExit) as hata:
+                a2.main(["--girdi", str(girdi), "--referans", REFERANS, "--cikti", cikti, "--zarf", zarf_,
+                         "--fiyat", fiyat, "--iz_klasoru", str(self.tmp / "runs")])
+            self.assertEqual(hata.exception.code, 1)
+            self.assertEqual(girdi.read_bytes(), ORNEK.read_bytes())
+
+    def test_ayni_urunde_tekrarlanan_adres_reddedilir(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        kopya = dict(satirlar[0])
+        satirlar.append(kopya)
+        kod, zarf, cikti = self.calistir(satirlar)
+        self.assertEqual((kod, zarf["durum"], zarf["hedef_ajan"]), (2, "red", "ajan1"))
+        self.assertEqual(zarf["sorunlu_alanlar"], [f"satir[{len(satirlar) + 1}].urun_url"])
+        self.assertIsNone(cikti)
+        bozuk = dict(kopya, urun_url="https://gratis.example/search?q=sampuan")
+        kod, zarf, _ = self.calistir(satirlar + [bozuk, dict(bozuk)])
+        self.assertEqual(len(zarf["sorunlu_alanlar"]), len(set(zarf["sorunlu_alanlar"])))
+
+    def test_farkli_urunde_ayni_adres_kabul_edilir(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        a, b = satirlar[0], next(s for s in satirlar if s["bizim_urun"] != satirlar[0]["bizim_urun"])
+        b["urun_url"], b["rakip_site"] = a["urun_url"], a["rakip_site"]
+        kod, zarf, _ = self.calistir(satirlar)
+        self.assertEqual((kod, zarf["durum"]), (0, "onay"), zarf)
 
     def test_git_z_zaman_bicimi_normalize_edilir(self):
         from unittest import mock
@@ -138,7 +215,7 @@ class Ajan2Test(unittest.TestCase):
 
     def test_siparis_donemi_birlikte_ve_sirali_olmali(self):
         ortak = ["--girdi", str(ORNEK), "--referans", REFERANS, "--cikti", str(self.tmp / "c.json"),
-                 "--zarf", str(self.tmp / "z.json"), "--iz_klasoru", str(self.tmp / "runs")]
+                 "--zarf", str(self.tmp / "z.json"), "--fiyat", str(self.tmp / "fiyat.csv"), "--iz_klasoru", str(self.tmp / "runs")]
         for ek in (["--baslangic", "2026-07-01", "--bitis", "2026-01-01"], ["--baslangic", "2026-01-01"],
                    ["--bitis", "2026-07-01"], ["--baslangic", "dün", "--bitis", "2026-07-01"]):
             with self.assertRaises(SystemExit):
@@ -147,7 +224,7 @@ class Ajan2Test(unittest.TestCase):
 
     def test_kullanim_hatasi_1_doner_ve_eski_onay_zarfi_kalmaz(self):
         ortak = ["--girdi", str(ORNEK), "--cikti", str(self.tmp / "cikti.json"),
-                 "--zarf", str(self.tmp / "zarf.json"), "--iz_klasoru", str(self.tmp / "runs")]
+                 "--zarf", str(self.tmp / "zarf.json"), "--fiyat", str(self.tmp / "fiyat.csv"), "--iz_klasoru", str(self.tmp / "runs")]
         for ek in (["--referans", REFERANS, "--baslangic", "2026-07-01", "--bitis", "2026-01-01"],
                    ["--referans", REFERANS, "--baslangic", "2026-01-01"],
                    ["--referans", REFERANS, "--baslangic", "dün", "--bitis", "2026-07-01"],
@@ -158,6 +235,7 @@ class Ajan2Test(unittest.TestCase):
             self.assertEqual(hata.exception.code, 1, ek)
             self.assertFalse((self.tmp / "zarf.json").exists(), ek)
             self.assertFalse((self.tmp / "cikti.json").exists(), ek)
+            self.assertFalse((self.tmp / "fiyat.csv").exists(), ek)
 
     def test_alan_adi_sonek_eslesmesi(self):
         f = a2._site_uyumlu
