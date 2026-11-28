@@ -14,11 +14,11 @@ description: Ajan 3'ün (denetim) son aşaması. Denetim sonucunu nihai rapor ve
 | Onay | 0 | `--nihai_rapor` (ürün başına fiyat, maliyet, kâr, eşik, kaynak, karar, gerekçe) ve `--cikis_zarf`: `durum = onay`, `hedef_ajan = null` |
 | Red | 2 | `--cikis_zarf`: `durum = red`, `hedef_ajan = ajan1` veya `ajan2`, gerekçe, alan yolları |
 | Beklemede | 3 | `--rapor`: bekleme nedeni ve yapılmayan kontroller. **Zarf yazılmaz.** |
-| Kullanım hatası | 1 | Hiçbir sonuç; eski rapor ve zarf silinmiş olur (argümanlar ayrıştırılabildiyse) |
+| Kullanım hatası (verilen dosya bulunamadı dahil) | 1 | Hiçbir sonuç; eski rapor ve zarf silinmiş olur (argümanlar ayrıştırılabildiyse) |
 
 Her onay, red ve beklemede çalıştırması `runs/ajan3/` altına komut, referans zamanı ve MD5'li iz bırakır.
 
-Rapor `yapilmayan_kontroller` altında canlı fiyat doğrulamasını yazar; gerçek veride teslimden önce `ajan3-isleme`'deki elle karşılaştırmanın kaydı eklenir.
+Gerçek veride onay için `--canli_kontrol <dosya>` gerekir (`ajan3-isleme`); rapor kaydı ürün altında taşır. Kayıt yoksa (sentetik örnekler) rapor `yapilmayan_kontroller` altında canlı fiyat doğrulamasını yazar.
 
 ## Çalıştırma (sentetik örnekler)
 
@@ -53,3 +53,5 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 28 Kasım 2026: Claude ile onay yolu eklendi ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: PR #117 sözleşmesine göre Ajan 3'e CSV MD5 kontrolü, önerilen fiyat ve maliyet girdisi, kâr eşiği, nihai rapor ve onay zarfı ekle; testleri ve örnek çıktıları güncelle. Sema Nur Doğan'ın incelemesi bekliyor.
 
 28 Kasım 2026: Sema Nur Doğan cb37495'i kendi oturumunda çalıştırdı. Ardından kodu Claude okudu; bozuk girdide çökme ve `veri_topla` ürününe onay düzeltildi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: Ajan 3 kodunu ve skill'lerini incele, bulunan hataları düzelt ve testlerini ekle. Sema Nur Doğan ayrıca kod incelemesi yapmadı; düzeltilmiş sürümü henüz çalıştırmadı.
+
+28 Kasım 2026: #120'deki inceleme ve PM kararı Claude ile uygulandı, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: bulunamayan fiyat/maliyet yolunu kullanım hatası yap; önerilen fiyatı Ajan 2 eylemiyle karşılaştır; gerçek veride elle canlı fiyat kontrol kaydı yoksa beklemede bırak; testlerini ve skill metinlerini güncelle. Sema Nur Doğan ayrıca kod incelemesi yapmadı; bu sürümü henüz çalıştırmadı.
