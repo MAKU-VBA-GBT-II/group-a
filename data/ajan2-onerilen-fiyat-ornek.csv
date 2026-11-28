@@ -1,0 +1,3 @@
+urun,onerilen_fiyat_tl,kaynak,uretim_zamani
+Saklama Kabı Seti,639.00,data/urun-listesi-web.csv: urun=Saklama Kabı Seti; liste_fiyati,2026-11-29T18:00:00+03:00
+Şampuan,239.00,data/ajan2-cikti-ornek.json: urun=Şampuan; rakip_medyan_fiyati,2026-11-29T18:00:00+03:00

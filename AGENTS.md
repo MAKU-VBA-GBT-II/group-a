@@ -26,7 +26,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 | ajan1-kaynak-ekleme | [`skills/ajan1-kaynak-ekleme/SKILL.md`](skills/ajan1-kaynak-ekleme/SKILL.md) | Hilal Elçin Şahin (Ajan 1, toplama; İnşa Haftası 1) | Yeni bir rakip siteyi (Koçtaş, MediaMarkt, Koton, D&R) ortak iskelete küçük bir site parçasıyla ekleme kılavuzu: izin kontrolü, kategori sayfası, tarayıcı testi, eşleşme kontrolü, deneme, kayıt (#114). | Ajana: "ajan1-kaynak-ekleme skill'ini kullanarak Koçtaş'ı Ajan 1'e ekle" |
 | ajan2-alma | [`skills/ajan2-alma/SKILL.md`](skills/ajan2-alma/SKILL.md) | Tuğba Tuana Kaygısız (Ajan 2, analiz; İnşa Haftası 1) | Ajan 1'in 19 sütunlu rakip CSV'sini `docs/mesaj-bicimi.md` sözleşmesine göre kontrol eder; eksik, bozuk, gelecek tarihli ya da 72 saatten eski girdiyi gerekçeli red zarfıyla Ajan 1'e geri gönderir (#115). | Ajana: "ajan2-alma skill'ini kullanarak Ajan 1'in tablosunu kontrol et" · Elle: `python src/ajan2_analiz.py --girdi <ajan1.csv>` |
 | ajan2-isleme | [`skills/ajan2-isleme/SKILL.md`](skills/ajan2-isleme/SKILL.md) | Tuğba Tuana Kaygısız (Ajan 2, analiz; İnşa Haftası 1) | Rakip satırlarını `data/siparisler-web.csv` ile birleştirir; rakip medyanı, fiyat farkı, satış adedi, ciro, Pearson ilişkisi ve kampanya önerisi üretir. Masa Lambası sınırlaması ve Saklama Kabı Seti istisnası korunur (#115). | Ajana: "ajan2-isleme skill'ini kullanarak alınan tabloyu siparişlerle birleştir ve öneri üret" · Elle: `python src/ajan2_analiz.py --girdi <ajan1.csv>` |
-| ajan2-teslim | [`skills/ajan2-teslim/SKILL.md`](skills/ajan2-teslim/SKILL.md) | Tuğba Tuana Kaygısız (Ajan 2, analiz; İnşa Haftası 1) | Sonucu Ajan 3 için JSON (`data/ajan2-cikti.json`) ve onay/red zarfı olarak yazar, `runs/ajan2/` altına çalışma izi bırakır, Issue kanıt yorumunu hazırlar (#115). | Ajana: "ajan2-teslim skill'ini kullanarak sonucu Ajan 3'e teslim et" · Test: `python3 -m unittest discover -s tests -p 'test_ajan2_analiz.py'` |
+| ajan2-teslim | [`skills/ajan2-teslim/SKILL.md`](skills/ajan2-teslim/SKILL.md) | Tuğba Tuana Kaygısız (Ajan 2, analiz; İnşa Haftası 1) | Sonucu Ajan 3 için JSON (`data/ajan2-cikti.json`), önerilen fiyat CSV'si (`data/ajan2-onerilen-fiyat.csv`) ve onay/red zarfı olarak yazar, `runs/ajan2/` altına çalışma izi bırakır, Issue kanıt yorumunu hazırlar (#115). | Ajana: "ajan2-teslim skill'ini kullanarak sonucu Ajan 3'e teslim et" · Test: `python3 -m unittest discover -s tests -p 'test_ajan2_analiz.py'` |
 
 > Kural: Roller görevden göreve döner (plan §1.3); skill'ler rolle birlikte el değiştirir. Yeni sahibi skill'i günceller ve bu tablodaki "Sahibi" sütununu değiştirir.
 
@@ -36,3 +36,7 @@ Bu dosya, depodaki yapay zekâ ajanı skill'lerinin envanteridir. Ajan araçlar�
 2. Gerçek kişi verisi asla depoya girmez; tüm veriler simülasyon ürünüdür.
 3. Veri üretimi sabit tohumla tekrarlanabilir olmalıdır.
 4. Hafta 5'ten itibaren `main`'e yalnızca PR ile girilir; kod/veri PR'ları DQ onayı olmadan merge edilmez.
+
+## İnşa Haftası 1 · ACP Çekirdeği
+
+Ali Haydar Polat / Ebru Türk (#113). Tek ajanla terminalden gerçek ACP denemesi için [kurulum ve test rehberini](docs/acp-cekirdek.md) kullanın. Ajanlar arası mesaj sözleşmesi #112'de, rol skill'leri #114–#116'da takip edilir.
