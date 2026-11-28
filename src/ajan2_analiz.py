@@ -110,7 +110,8 @@ def dosya_zamani(yol):
         zaman = subprocess.run(["git", "log", "-1", "--format=%cI", "--", str(yol)], cwd=KOK,
                                capture_output=True, text=True, check=True).stdout.strip()
         if zaman and not degisik:
-            return zaman
+            # Git 2.45+ UTC'yi "Z" ile yazar; sözleşmedeki biçim "+00:00".
+            return datetime.fromisoformat(zaman.replace("Z", "+00:00")).isoformat()
     except (OSError, subprocess.CalledProcessError):
         pass
     return datetime.fromtimestamp(yol.stat().st_mtime, TR).isoformat(timespec="seconds")
