@@ -373,6 +373,33 @@ class Ajan3Test(unittest.TestCase):
                              maliyet=[("Şampuan", "220.00"), ("Saklama Kabı Seti", "300.00")],
                              canli=[self.sampuan_kontrolu(simdi)])
 
+    def test_onay_raporu_karara_baglanmayan_urunleri_listeler(self):
+        self.assertEqual(self.calistir(fiyat=[("Şampuan", "250.00")], maliyet=[("Şampuan", "220.00")]), 0)
+        rapor = self.oku("nihai.json")
+        kararsiz = {k["urun"]: k["eylem"] for k in rapor["karara_baglanmayan_urunler"]}
+        self.assertEqual(kararsiz, {"Masa Lambası": "veri_topla", "Saklama Kabı Seti": "fiyati_koru"})
+        self.assertIn("Masa Lambası (veri_topla)", rapor["zarf"]["gerekce"])
+        self.assertIn("Saklama Kabı Seti (önerilen fiyat yok)", self.oku("zarf.json")["gerekce"])
+
+    def test_gercek_veride_iki_sayfali_urunde_ikisine_de_bakilmali(self):
+        simdi = self.gercek_veri()
+        kontroller = [(s["bizim_urun"], s["urun_url"], s["indirimli_fiyat"] or s["liste_fiyati"],
+                       "sentetik_test:elle-kontrol", simdi.isoformat()) for s in self.satirlar if s["bizim_urun"] == "Saklama Kabı Seti"]
+        girdi = dict(referans=None, fiyat=[("Saklama Kabı Seti", "639.00")],
+                     maliyet=[("Saklama Kabı Seti", "300.00")])
+        for canli in (kontroller[:1], kontroller[:1] * 2):  # aynı sayfa iki kez sayılmaz
+            self.beklemede_bekle("Saklama Kabı Seti için elle canlı fiyat kontrol kaydı yetersiz: 1/2",
+                                 canli=canli, **girdi)
+        self.assertEqual(self.calistir(canli=kontroller, **girdi), 0)
+        self.assertEqual(self.oku("nihai.json")["yapilmayan_kontroller"], [])
+
+    def test_canli_kontrolde_en_cok_uc_sayfa_istenir(self):
+        ornek = next(s for s in self.satirlar if s["bizim_urun"] == "Şampuan")
+        satirlar = [dict(ornek, urun_url=f"https://gratis.example/urun/{n}") for n in range(5)]
+        canli = {"Şampuan": [{"urun_url": s["urun_url"]} for s in satirlar[:3]]}
+        self.assertEqual(a3.canli_sayisi("Şampuan", a3.Decimal("269"), satirlar, canli), (3, 3))
+        self.assertEqual(a3.canli_sayisi("Şampuan", a3.Decimal("269"), satirlar, {}), (3, 0))
+
     def test_sayfa_fiyati_uyusmazsa_ajan2_hatasindan_once_ajan1e_doner(self):
         simdi = self.gercek_veri()
         self.veri["urunler"][0]["ciro"] += 1
