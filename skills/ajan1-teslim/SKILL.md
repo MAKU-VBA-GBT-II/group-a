@@ -38,7 +38,9 @@ Kod olarak: Ajan 2'nin `src/ajan2_analiz.py` içindeki `alma()` fonksiyonu main'
 
 Her fiyatın kaynağı `urun_url`, üretim zamanı `cekilme_zamani` alanında taşınır (sözleşme gereği).
 
-Çalışma raporu, açılan her sayfanın adresini ve zamanını tuttuğu için Çekirdeğin oturum kaydını Ajan 1 tarafında tamamlar (Çekirdek kaydı genel görevlerde açılan sayfaları yazmıyor, #118).
+**CSV repoya commit edilir ve sonra sessizce değiştirilmez.** Ajan 3, dosyanın repo içindeki yolunu ve ham baytlarının küçük harfli MD5'ini ister; dosyaya dokunulursa MD5 değişir ve denetim reddedilir. Her düzeltme yeni bir commit olur, yeni MD5 hesaplanır ve devir yeniden yapılır.
+
+Çekirdek, komutları ve açılan adresleri (gizli bilgileri maskeleyerek) kendi oturum kaydına yazar (#118). Ajan 1'in çalışma raporu bunu kategori başına okunan ürün sayısı, robots.txt sonucu, başarısız kategoriler, fiyat nedenleri ve tazelik kapısı sonucuyla tamamlar.
 
 ## 4. Devir
 - Tablo ve çalışma raporu **hem Ajan 2'ye hem Ajan 3'e** gider. Ajan 3, fiyatları sayfadan yeniden doğrularken raporu okuyarak kampanyanın bitmesinden kaynaklanan farkı hata sanmaz.
@@ -51,4 +53,5 @@ Her fiyatın kaynağı `urun_url`, üretim zamanı `cekilme_zamani` alanında ta
 - **Ajan 3'e ham tablo (Hilal):** Denetçi yalnızca Ajan 2'nin özetine değil, Ajan 1'in ham verisine de bakabilmeli (PR #117 incelemesi).
 - **Ajan 2 ve 3'ün kapılarıyla eşleşme (Hilal):** Ajan 2'nin ya da Ajan 3'ün reddedeceği bir sorun Ajan 1'de yakalanmazsa zincir başa döner; bu yüzden teslim kontrolleri, Tuğba'nın ve (isteğim üzerine) Sema'nın skill'leri incelenerek onların alma kontrolleriyle birebir eşlendi. TL dışı satırın bütün dosyayı reddettirmesi, iş büyüdüğünde Ajan 2 ile yeniden konuşulacak.
 - **Tazelik eşiği 24 saat (Hilal):** Tuğba ve Sema'ya kalan 24 saatin yeterli olup olmadığını sorguladım ve her ajana ayrı 24 saat (24-24-24) verilmesini önerdim. 48 saatlik eşikte ikisi toplam 24 saati paylaşıyordu. İlk adım olarak kendi eşiğimiz 24 saate indirildi; böylece ikisine toplam 48 saat kalıyor ve başka kimsenin kodu değişmiyor. Tam kademeli düzen (Ajan 2 için 48, Ajan 3 için 72 saat), denemelerde ihtiyaç doğarsa gruba önerilecek.
-- *Claude'un katkısı:* Dur noktasının veri Ajan 1'den çıkmadan önce kurulmasını önerdi. Kapının kilitlenmesini önlemek için yeniden toplamanın bir kez denenmesini ekledi. Kuralların Ajan 2'nin kontrol fonksiyonuyla ortak tutulmasını; Ajan 3'ün de 72 saat kontrolü yaptığı için devirde iki ajanın süresinin yazılmasını; raporun ve dosya MD5'inin Ajan 3'e de iletilmesini önerdi. Kademeli düzenle sadece kendi eşiğimizi düşürmek arasındaki farkı çıkardı.
+- **Değişmez veri (Hilal):** Commit edilen gerçek veri sessizce değiştirilmemeli; Ajan 3'ün MD5 kontrolüne katıldım.
+- *Claude'un katkısı:* Dur noktasının veri Ajan 1'den çıkmadan önce kurulmasını önerdi. Kapının kilitlenmesini önlemek için yeniden toplamanın bir kez denenmesini ekledi. Kuralların Ajan 2'nin kontrol fonksiyonuyla ortak tutulmasını; Ajan 3'ün de 72 saat kontrolü yaptığı için devirde iki ajanın süresinin yazılmasını; raporun ve dosya MD5'inin Ajan 3'e de iletilmesini önerdi. Kademeli düzenle sadece kendi eşiğimizi düşürmek arasındaki farkı çıkardı. Sema'nın 28 Kasım değişikliklerinden CSV'nin repoda bulunması ve MD5 şartını, Ali'nin Çekirdeğinin artık adresleri kaydettiğini fark edip notu güncelledi.
