@@ -49,6 +49,12 @@ python3 src/dq_test_g2.py
 
 İlk komut mock ACP alt süreciyle akışı, canlı çıktı, tek seferlik izin, kalıcı izin reddi, etkileşimsiz çalışma, bozuk yanıt, süreç kapanması ve zaman aşımı durumlarını doğrular. Simülasyon testi ayrı çalışır. Kod ve varsayılan veri dosyaları simülasyon tarafında değiştirilmedi.
 
+## Bağımsız doğrulama — 28 Kasım 2026
+
+Ebru'nun Windows ortamında `python -m unittest discover -s tests -p 'test_acp_cekirdek.py' -v` komutu çalıştırıldı (Python 3.15.0). 11 test başladı; sonuç `FAILED (errors=20)` oldu. Windows'ta `select.select` anonim pipe üzerinde `WinError 10038` veriyor; hata temizliği sırasında `os.killpg` bulunmadığı için ayrıca `AttributeError` oluşuyor. Bu nedenle mock onay ve ret testleri izin kararına ulaşmadı; bu koşu başarılı izin testi kanıtı değildir.
+
+Kurulum ve gerçek ret/onay tekrarı da tamamlanamadı: ortamda Node.js/`npx` ve Claude CLI yok; WSL komutu mevcut olsa da Linux dağıtımı kurulu değil. `claude auth status` çalıştırılamadı ve bu ortamda Claude oturumu doğrulanamadı. Mevcut başarılı Claude oturum kayıtları [Ali'nin 27 Kasım kayıtlarıdır](../runs/insa1-claude-demo-onay.jsonl); bunlar Ebru'nun bağımsız tekrarı değildir. Windows doğrulaması için ayrıca Windows pipe/süreç desteği gerekir; gerçek tekrar bu belgedeki macOS/Linux, Python 3.10+, Node.js 22+ ve yetkili, oturum açmış Claude Code hesabı önkoşullarıyla yapılmalıdır.
+
 Resmî kaynaklar: [Zed ACP v1](https://agentclientprotocol.com/protocol/v1/overview), [araç ve izin istekleri](https://agentclientprotocol.com/protocol/v1/tool-calls), [Claude Agent ACP](https://github.com/agentclientprotocol/claude-agent-acp).
 
 Üretim: Codex — prompt özeti: #118 incelemesine göre demo dışındaki araç çağrılarını hassas değerleri maskeleyerek izle ve Windows kapsamını açıkla.
