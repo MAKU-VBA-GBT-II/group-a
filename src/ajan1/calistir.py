@@ -1,6 +1,7 @@
 """Ajan 1'i çalıştırır: kartları alır, işler, tabloyu ve çalışma raporunu yazar.
 
 Kullanım (repo kökünden):  python -m src.ajan1.calistir
+Yalnız bazı ürünleri yeniden toplamak için:  python -m src.ajan1.calistir --urun Ruj --urun Şampuan
 Çıktılar: data/ajan1-cikti.csv ve runs/ajan1/<zaman>.json
 Teslim kontrolleri (ajan1-teslim §1) ayrı adımda: python -m src.ajan1.teslim
 """
@@ -19,7 +20,7 @@ CIKTI = ortak.KOK / "data" / "ajan1-cikti.csv"
 RAPOR_KLASORU = ortak.KOK / "runs" / "ajan1"
 
 
-def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=gratis):
+def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=gratis, onceki=None):
     """ajan1-isleme: fiyat okuma, eşleştirme, eleme, tekrar ayıklama, rapor notları."""
     kategori, liste = liste_fiyatlari[urun]
     t = tanim[urun]
@@ -109,19 +110,83 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=g
     gecerli = [karsi(s) for s in satirlar if not s["elendi"]]
     if gecerli and abs(statistics.median(gecerli) - liste) / liste > 0.5:
         rapor["uyari"] = "medyan liste fiyatımızdan %50'den fazla sapıyor"
+    rapor["fiyat_degisimi"] = fiyat_degisimi(urun, site, satirlar, onceki or {})
     return satirlar, {k: (dict(v) if isinstance(v, Counter) else v) for k, v in rapor.items()}
 
 
-def main():
+DEGISIM_ESIGI = 0.05   # liste fiyatı medyanında %5'ten küçük fark "aynı" sayılır
+
+
+def onceki_tarama(yol=ortak.KOK / "data" / "web-fiyat-taramasi.csv"):
+    """Önceki web fiyat taraması (24–25 Kasım, PR #103/#107): (ürün, site) -> satır."""
+    import csv
+    try:
+        with open(yol, encoding="utf-8") as f:
+            return {(r["urun"], r["site"]): r for r in csv.DictReader(f)}
+    except OSError:
+        return {}
+
+
+def fiyat_degisimi(urun, site, satirlar, onceki):
+    """ajan1-isleme §5: fiyat değişiminin nedeni, sayfadaki etikete ve önceki taramaya göre.
+
+    Karşılaştırma ürün düzeyindedir: bugünkü satırların liste fiyatı medyanı, önceki
+    taramanın medyanıyla. Önceki tarama kategori sayfasının ilk ürünleriyle yapıldığı için
+    (n sütunu) bugünkü örneklemle birebir aynı değildir; bu not rapora da yazılır.
+    """
+    if not satirlar:
+        return None
+    eski = onceki.get((urun, site))
+    kampanyali = sum(1 for s in satirlar if s["indirimli_fiyat"])
+    liste_medyan = statistics.median(float(s["liste_fiyati"]) for s in satirlar)
+    not_ = {"kampanyali_ya_da_indirimli": kampanyali, "normal": len(satirlar) - kampanyali,
+            "liste_fiyati_medyani": liste_medyan}
+    if not eski or not eski.get("medyan"):
+        not_["neden"] = "Önceki taramada bu ürün ve site yok; karşılaştırılamadı."
+        return not_
+    eski_medyan = float(eski["medyan"])
+    oran = (liste_medyan - eski_medyan) / eski_medyan
+    not_.update({"onceki_medyan": eski_medyan, "onceki_n": int(float(eski["n"])),
+                 "degisim_yuzde": round(oran * 100, 1),
+                 "kaynak": "data/web-fiyat-taramasi.csv (önceki tarama ilk sayfa ürünleriyle yapıldı)"})
+    if abs(oran) < DEGISIM_ESIGI:
+        not_["neden"] = (f"Kampanyalı fiyat (liste fiyatı medyanı {liste_medyan:.2f} TL); normal fiyat değişmedi."
+                         if kampanyali else "Liste fiyatı önceki taramayla aynı düzeyde.")
+    elif oran < 0:
+        not_["neden"] = f"Liste fiyatı düştü ({eski_medyan:.2f} → {liste_medyan:.2f} TL); kalıcı olabilir."
+    else:
+        not_["neden"] = f"Liste fiyatı yükseldi ({eski_medyan:.2f} → {liste_medyan:.2f} TL)."
+    return not_
+
+
+def secenekler(argv=None):
+    import argparse
+    p = argparse.ArgumentParser(description="Ajan 1: rakip fiyatlarını toplar (skills/ajan1-*)")
+    p.add_argument("--urun", action="append", metavar="ÜRÜN",
+                   help="Yalnız bu ürünü yeniden topla (birden çok kez verilebilir). Tablodaki diğer "
+                        "ürünlerin satırları olduğu gibi kalır. Tazelik kapısı ve red zarfı için (ajan1-teslim).")
+    return p.parse_args(argv)
+
+
+def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")  # Windows konsolunda Türkçe harfler
+    arg = secenekler(argv)
     from playwright.sync_api import sync_playwright
 
     tanim = ortak.eslesme_tanimlari()
     liste_fiyatlari = ortak.web_liste_fiyatlari()
     rozetler = ortak.rozet_sozlugu()
+    onceki = onceki_tarama()
+    sadece = set(arg.urun or [])
+    bilinen = {u for m in SITELER for u in m.KATEGORILER}
+    if sadece - bilinen:
+        print(f"Bilinmeyen ürün: {', '.join(sorted(sadece - bilinen))}. Bilinenler: {', '.join(sorted(bilinen))}")
+        return 1
     baslangic = ortak.simdi()
     rapor = {"baslangic": baslangic, "site": {}, "kategori": {}, "basarisiz": []}
+    if sadece:
+        rapor["kismi_toplama"] = sorted(sadece)
     tum_satirlar = []
 
     # Ne olursa olsun o ana kadar okunanlar yazılır (28 Kasım: Ruj'daki zaman aşımı
@@ -133,12 +198,14 @@ def main():
             sayfa = baglam.new_page()
 
             for modul in SITELER:
+                if sadece and not sadece & set(modul.KATEGORILER):
+                    continue
                 robots_metni = baglam.request.get(f"{modul.ALAN}/robots.txt").text()
                 robots = ortak.Robots(robots_metni)
                 bekleyici = ortak.Bekleyici(robots.crawl_delay)
                 rapor["site"][modul.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
 
-                urunler = list(modul.KATEGORILER)
+                urunler = [u for u in modul.KATEGORILER if not sadece or u in sadece]
                 for i, urun in enumerate(urunler):
                     iz = []
                     try:
@@ -157,7 +224,7 @@ def main():
                         rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
                         rapor["kategori"][f"{modul.SITE}/{urun}"] = {"iz": iz}
                         continue
-                    satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, modul.SITE, modul)
+                    satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, modul.SITE, modul, onceki)
                     tum_satirlar.extend(satirlar)
                     rapor["kategori"][f"{modul.SITE}/{urun}"] = {"site_kategorisi": kat_adi, "iz": iz, **notlar}
                     print(f"{modul.SITE} / {urun}: {len(kartlar)} kart, {len(satirlar)} satır")
@@ -166,6 +233,18 @@ def main():
         rapor["basarisiz"].append({"urun": "-", "gerekce": f"çalışma yarıda kaldı: {str(e).splitlines()[0][:200]}"})
 
     rapor["bitis"] = ortak.simdi()
+    if sadece:
+        # Kısmi toplama: diğer ürünlerin satırları tablodan olduğu gibi alınır.
+        import csv
+        eski = []
+        if CIKTI.exists():
+            with open(CIKTI, encoding="utf-8", newline="") as f:
+                # Toplanamayan ürünün eski satırları silinmez: veri sessizce kaybolmasın,
+                # bayatsa tazelik kapısı yakalar.
+                toplanan = {k.split("/", 1)[1] for k, v in rapor["kategori"].items() if "site_kategorisi" in v}
+                eski = [r for r in csv.DictReader(f) if r["bizim_urun"] not in toplanan]
+        rapor["korunan_satir"] = len(eski)
+        tum_satirlar = eski + tum_satirlar
     ortak.tablo_yaz(tum_satirlar, CIKTI)
     RAPOR_KLASORU.mkdir(parents=True, exist_ok=True)
     rapor_yolu = RAPOR_KLASORU / (baslangic.replace(":", "-") + ".json")

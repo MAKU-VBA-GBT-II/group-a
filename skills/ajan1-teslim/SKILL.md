@@ -22,12 +22,12 @@ Ajan 2'nin `ajan2-alma` ve Ajan 3'ün `ajan3-alma` skill'lerinde dosyayı reddet
 
 Bir kontrol düşerse dosya gönderilmez; hangi satırın, hangi kontrolden düştüğü rapora yazılır.
 
-Kod olarak: Ajan 2'nin `src/ajan2_analiz.py` içindeki `alma()` fonksiyonu main'e girince, Ajan 1 göndermeden önce kendi dosyasını o fonksiyondan geçirir. Böylece iki kapının kuralları hiçbir zaman ayrışmaz.
+Kod olarak (`src/ajan1/teslim.py`): Ajan 1 göndermeden önce kendi dosyasını Ajan 2'nin `src/ajan2_analiz.py` içindeki `alma()` fonksiyonundan doğrudan geçirir; kurallar kopyalanmadığı için iki kapı hiçbir zaman ayrışmaz. Ajan 3'ün Ajan 2'de olmayan kuralı (gerçek veride CSV repo içinde olmalı) ayrıca kontrol edilir.
 
 ## 2. Tazelik kapısı
 - Her satırın `cekilme_zamani` değerine bakılır.
-- **24 saati geçen satır varsa teslim durur** (ilk karar 48 saatti; 28 Kasım'da 24 saate indirildi, bkz. karar kaydı). O ürünler `ajan1-alma` ile yeniden toplanır.
-- Yeniden toplama **bir kez** denenir. Yine başarısız olursa dosya gönderilmez ve kullanıcıya bildirilir. *(Neden bir kez: site kapalıyken ya da sayfa değişmişken kapı sürekli yeniden toplamayı tetikler; kod sonsuz döngüye girer ve siteye durmadan istek atar.)*
+- **24 saati geçen satır varsa teslim durur** (ilk karar 48 saatti; 28 Kasım'da 24 saate indirildi, bkz. karar kaydı). Yalnızca o ürünler `ajan1-alma` ile yeniden toplanır (`python -m src.ajan1.calistir --urun <ürün>`); tablodaki diğer ürünlerin satırları olduğu gibi kalır. `teslim.py` bunu kendisi yapar ve kontrolleri tekrarlar.
+- Yeniden toplama **bir kez** denenir. Yine başarısız olursa dosya gönderilmez ve kullanıcıya bildirilir. Toplanamayan ürünün eski satırları silinmez; sessizce veri kaybolmaz, bayatlığı raporda görünür. *(Neden bir kez: site kapalıyken ya da sayfa değişmişken kapı sürekli yeniden toplamayı tetikler; kod sonsuz döngüye girer ve siteye durmadan istek atar.)*
 - Ajan 2 ve Ajan 3 de 72 saat kontrolü yapar (Ajan 3 kendi denetim anına göre). Aradaki 48 saat, Ajan 2 ve Ajan 3'ün birlikte kullandığı işleme payıdır.
 
 ## 3. Çıktılar
@@ -45,7 +45,7 @@ Her fiyatın kaynağı `urun_url`, üretim zamanı `cekilme_zamani` alanında ta
 ## 4. Devir
 - Tablo ve çalışma raporu **hem Ajan 2'ye hem Ajan 3'e** gider. Ajan 3, fiyatları sayfadan yeniden doğrularken raporu okuyarak kampanyanın bitmesinden kaynaklanan farkı hata sanmaz.
 - #115 ve #116'ya yorum yazılır: dosya yolları, dosyanın MD5'i, commit, çekilme zamanı ve 72 saatlik sürenin ne zaman dolacağı (Ajan 2 ve Ajan 3 için).
-- Ajan 2'den **ya da Ajan 3'ten** red zarfı gelirse, zarftaki satır listesine göre yalnızca o ürünler yeniden toplanır.
+- Ajan 2'den **ya da Ajan 3'ten** red zarfı gelirse, zarftaki satır listesine göre yalnızca o ürünler yeniden toplanır (`--urun`).
 
 ## Karar kaydı (28 Kasım 2026)
 
@@ -54,4 +54,5 @@ Her fiyatın kaynağı `urun_url`, üretim zamanı `cekilme_zamani` alanında ta
 - **Ajan 2 ve 3'ün kapılarıyla eşleşme (Hilal):** Ajan 2'nin ya da Ajan 3'ün reddedeceği bir sorun Ajan 1'de yakalanmazsa zincir başa döner; bu yüzden teslim kontrolleri, Tuğba'nın ve (isteğim üzerine) Sema'nın skill'leri incelenerek onların alma kontrolleriyle birebir eşlendi. TL dışı satırın bütün dosyayı reddettirmesi, iş büyüdüğünde Ajan 2 ile yeniden konuşulacak.
 - **Tazelik eşiği 24 saat (Hilal):** Tuğba ve Sema'ya kalan 24 saatin yeterli olup olmadığını sorguladım ve her ajana ayrı 24 saat (24-24-24) verilmesini önerdim. 48 saatlik eşikte ikisi toplam 24 saati paylaşıyordu. İlk adım olarak kendi eşiğimiz 24 saate indirildi; böylece ikisine toplam 48 saat kalıyor ve başka kimsenin kodu değişmiyor. Tam kademeli düzen (Ajan 2 için 48, Ajan 3 için 72 saat), denemelerde ihtiyaç doğarsa gruba önerilecek.
 - **Değişmez veri (Hilal):** Commit edilen gerçek veri sessizce değiştirilmemeli; Ajan 3'ün MD5 kontrolüne katıldım.
-- *Claude'un katkısı:* Dur noktasının veri Ajan 1'den çıkmadan önce kurulmasını önerdi. Kapının kilitlenmesini önlemek için yeniden toplamanın bir kez denenmesini ekledi. Kuralların Ajan 2'nin kontrol fonksiyonuyla ortak tutulmasını; Ajan 3'ün de 72 saat kontrolü yaptığı için devirde iki ajanın süresinin yazılmasını; raporun ve dosya MD5'inin Ajan 3'e de iletilmesini önerdi. Kademeli düzenle sadece kendi eşiğimizi düşürmek arasındaki farkı çıkardı. Sema'nın 28 Kasım değişikliklerinden CSV'nin repoda bulunması ve MD5 şartını, Ali'nin Çekirdeğinin artık adresleri kaydettiğini fark edip notu güncelledi.
+- **Skill ile kod uyumu (Hilal, 28 Kasım akşamı):** Skill'de yazan "bir kez yeniden toplama" kodda yoktu. Skill işleyişi tanımladığı için kod skill'e uyduruldu: `teslim.py` bayat ürünleri bir kez yeniden toplar.
+- *Claude'un katkısı:* Dur noktasının veri Ajan 1'den çıkmadan önce kurulmasını önerdi. Kapının kilitlenmesini önlemek için yeniden toplamanın bir kez denenmesini ekledi. Kuralların Ajan 2'nin kontrol fonksiyonuyla ortak tutulmasını; Ajan 3'ün de 72 saat kontrolü yaptığı için devirde iki ajanın süresinin yazılmasını; raporun ve dosya MD5'inin Ajan 3'e de iletilmesini önerdi. Kademeli düzenle sadece kendi eşiğimizi düşürmek arasındaki farkı çıkardı. Yeniden toplamanın yalnız bayat ürünlerde yapılmasını ve toplanamayan ürünün eski satırlarının silinmemesini önerdi. Sema'nın 28 Kasım değişikliklerinden CSV'nin repoda bulunması ve MD5 şartını, Ali'nin Çekirdeğinin artık adresleri kaydettiğini fark edip notu güncelledi.

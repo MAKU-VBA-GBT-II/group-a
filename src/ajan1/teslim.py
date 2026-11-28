@@ -4,6 +4,11 @@ Kullanım (repo kökünden):  python -m src.ajan1.teslim
 Girdi: data/ajan1-cikti.csv ve runs/ajan1/ altındaki en son çalışma raporu.
 Çıktı: ekrana özet; rapora "teslim" bölümü (MD5, sonuç, 72 saatin dolacağı zaman).
 Kontrollerden biri düşerse dosya devredilmez ve çıkış kodu 1 olur.
+
+Tazelik kapısı (ajan1-teslim §2): 24 saati geçen satırı olan ürünler bir kez yeniden
+toplanır (python -m src.ajan1.calistir --urun ...) ve kontroller tekrarlanır. İkinci kez
+de düşerse durulur; yeniden toplama ikinci kez denenmez (site kapalıysa sonsuz döngü olmasın).
+Yeniden toplamayı kapatmak için: python -m src.ajan1.teslim --yeniden-toplama-yok
 """
 import hashlib
 import json
@@ -45,6 +50,12 @@ def ajan3_kapisi(yol, satirlar):
     return sorunlar
 
 
+def bayat_urunler(satirlar, referans):
+    """24 saati geçen satırı olan ürünlerimiz (yeniden toplanacaklar)."""
+    return sorted({s["bizim_urun"] for s in satirlar
+                   if referans - datetime.fromisoformat(s["cekilme_zamani"]) > TAZELIK})
+
+
 def ajan1_kontrolleri(satirlar, referans):
     """Ajan 1'in kendi kuralları: gerçek araç ve 24 saatlik tazelik kapısı."""
     sorunlar = []
@@ -69,14 +80,8 @@ def son_rapor():
     return raporlar[-1] if raporlar else None
 
 
-def main():
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
-    referans = datetime.now(ortak.TR).replace(microsecond=0)
-    if not CIKTI.exists():
-        print(f"Tablo yok: {CIKTI}")
-        return 1
-
+def kontrol_et(referans):
+    """Üç kapının kontrolleri: (sorunlar, satırlar, url -> ürünler)."""
     sorunlar, satirlar = ajan2_kapisi(CIKTI, referans)
     if satirlar is None:  # Ajan 2 kapısı dosyayı okuyamadıysa diğer kontroller için yine oku
         import csv
@@ -84,7 +89,33 @@ def main():
             satirlar = list(csv.DictReader(f))
     sorunlar += ajan3_kapisi(CIKTI, satirlar)
     a1, gorulen = ajan1_kontrolleri(satirlar, referans)
-    sorunlar += a1
+    return sorunlar + a1, satirlar, gorulen
+
+
+def main(argv=None):
+    import argparse
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    p = argparse.ArgumentParser(description="Ajan 1 teslim kontrolü (skills/ajan1-teslim)")
+    p.add_argument("--yeniden-toplama-yok", action="store_true",
+                   help="Bayat satır varsa yeniden toplamadan dur (çevrimdışı deneme için)")
+    arg = p.parse_args(argv)
+    referans = datetime.now(ortak.TR).replace(microsecond=0)
+    if not CIKTI.exists():
+        print(f"Tablo yok: {CIKTI}")
+        return 1
+
+    sorunlar, satirlar, gorulen = kontrol_et(referans)
+    yeniden = bayat_urunler(satirlar, referans)
+    yeniden_toplama = None
+    if yeniden and not arg.yeniden_toplama_yok:
+        # Tazelik kapısı: bayat ürünler bir kez yeniden toplanır, sonra kontroller tekrarlanır.
+        print(f"24 saati geçen satırlar var; bir kez yeniden toplanıyor: {', '.join(yeniden)}")
+        from . import calistir
+        cikis = calistir.main([x for u in yeniden for x in ("--urun", u)])
+        yeniden_toplama = {"urunler": yeniden, "zaman": referans.isoformat(), "calistir_cikis": cikis}
+        referans = datetime.now(ortak.TR).replace(microsecond=0)
+        sorunlar, satirlar, gorulen = kontrol_et(referans)
 
     md5 = hashlib.md5(CIKTI.read_bytes()).hexdigest()
     en_eski = min(datetime.fromisoformat(s["cekilme_zamani"]) for s in satirlar)
@@ -104,6 +135,8 @@ def main():
         "ajan2_ajan3_72_saat_sonu": (en_eski + AJAN23_SURESI).isoformat(),
         "sorunlar": sorunlar,
     }
+    if yeniden_toplama:
+        ozet["yeniden_toplama"] = yeniden_toplama
 
     rapor = son_rapor()
     if rapor:
