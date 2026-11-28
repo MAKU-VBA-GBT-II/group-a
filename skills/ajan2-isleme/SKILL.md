@@ -38,6 +38,11 @@ Uydurma sayı yazılmaz. Her sayı bir dosyadan ya da betik hesabından gelir ve
    - **Masa Lambası** → her durumda `veri_topla`. Gerekçeye karar 5 sınırlaması yazılır: liste fiyatı 399 TL, 1.197 TL üst bant, yanlı örneklem.
    - Fark %10'dan büyük → `kampanya_test_et`. Diğer durumlarda → `fiyati_koru`. %10 eşiği Ajan 2'nin kararıdır (`KAMPANYA_ESIGI`); değişirse bu skill ve testler birlikte güncellenir.
    - Maliyet verisi olmadığından `kar_durumu = maliyet_eksik`. Kâr iddiası ya da otomatik onay verilmez; kâr kararı Ajan 3'ündür.
+8. **Önerilen fiyat (Ajan 3'ün kâr denetimi için, #120 kararı, 28 Kasım):**
+   - `fiyati_koru` → web liste fiyatı (kaynak: `data/urun-listesi-web.csv`).
+   - `kampanya_test_et` → rakip medyanı, iki ondalık (kaynak: Ajan 2 JSON'undaki `rakip_medyan_fiyati`). Fark %10'dan büyük olduğu için bu fiyat her zaman liste fiyatının altındadır.
+   - `veri_topla` → fiyat yazılmaz; Ajan 3 bu ürüne onay vermez.
+   - İndirim yüzdesi uydurulmaz: önerilen fiyat, kaynağı izlenen bir sayıdır. Maliyetin altında kalıyorsa Ajan 3 gerekçeli red (`ajan2`) döner.
 
 ## Sipariş verisi ve liste fiyatı değişikliği
 
@@ -66,3 +71,4 @@ Elle: `python src/ajan2_analiz.py --girdi data/<ajan1-tablosu>.csv`
 ## Üretim kaydı
 
 27 Kasım 2026: Eski `ajan2-analiz` skill'inin 2.–5. adımlarından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.
+28 Kasım 2026: 8. madde (önerilen fiyat) #120'deki karardan sonra Claude (Claude Code) ile eklendi. Kampanya fiyatının rakip medyanı olması Tuğba Tuana Kaygısız'ın kararıdır.

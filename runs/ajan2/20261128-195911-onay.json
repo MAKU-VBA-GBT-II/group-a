@@ -1,0 +1,38 @@
+{
+  "arac": "src/ajan2_analiz.py",
+  "komut": "python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-11-29T18:00:00+03:00 --cikti data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --fiyat data/ajan2-onerilen-fiyat-ornek.csv",
+  "baslangic": "2026-11-28T19:59:11+03:00",
+  "referans_zamani": "2026-11-29T18:00:00+03:00",
+  "girdiler": {
+    "data/ornek-ajan1.csv": "7ae26d1c10de56d617b95e241ec6639b",
+    "data/urun-listesi-web.csv": "9cabd5a99ae9e0597999b7d494791105",
+    "data/siparisler-web.csv": "628b4351250b4065b9669baf233449e7"
+  },
+  "asama": "teslim",
+  "sonuc": {
+    "durum": "onay",
+    "hedef_ajan": "ajan3",
+    "gerekce": "5 rakip satırı alındı, 3 ürün analiz edildi; çıktı data/ajan2-cikti-ornek.json, önerilen fiyat data/ajan2-onerilen-fiyat-ornek.csv (2 ürün).",
+    "sorunlu_alanlar": []
+  },
+  "ozet": {
+    "Masa Lambası": {
+      "fark": -42.92,
+      "eylem": "veri_topla"
+    },
+    "Saklama Kabı Seti": {
+      "fark": -5.19,
+      "eylem": "fiyati_koru"
+    },
+    "Şampuan": {
+      "fark": 12.55,
+      "eylem": "kampanya_test_et"
+    }
+  },
+  "cikti": {
+    "data/ajan2-cikti-ornek.json": "63d7a822b0fcd92cacd6fcb52cf7eba6",
+    "data/ajan2-onerilen-fiyat-ornek.csv": "687857f187a1ba3f488e7f40743d171c",
+    "data/ajan2-zarf-ornek.json": "4d7056f5c57c127c4f4c5e383a2ac43b"
+  },
+  "bitis": "2026-11-28T19:59:11+03:00"
+}

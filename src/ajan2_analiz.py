@@ -6,7 +6,8 @@ Sepetix Analitik (Grup A) — Ajan 2 (analiz): rakip fiyatı × sentetik sipari�
 Ajan 1'in 19 sütunlu rakip fiyat CSV'sini alır, `docs/mesaj-bicimi.md` sözleşmesine
 göre kontrol eder, web fiyatlı sentetik siparişlerle birleştirir, ürün başına rakip
 medyanı, fiyat farkı, satış adedi ve ciroyu, ürünler arası Pearson ilişkisini
-hesaplar, kampanya önerisi üretir ve Ajan 3'e JSON + onay zarfı olarak teslim eder.
+hesaplar, kampanya önerisi ve önerilen fiyat üretir, Ajan 3'e JSON + önerilen fiyat
+CSV'si + onay zarfı olarak teslim eder.
 
 Üç aşama, üç skill:
     alma    → skills/ajan2-alma/SKILL.md     (kontrol, 72 saat, gerekçeli red)
@@ -16,7 +17,8 @@ hesaplar, kampanya önerisi üretir ve Ajan 3'e JSON + onay zarfı olarak teslim
 Kullanım (depo kökünde):
     python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv \
         --referans 2026-11-29T18:00:00+03:00 \
-        --cikti data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json
+        --cikti data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json \
+        --fiyat data/ajan2-onerilen-fiyat-ornek.csv
     python src/ajan2_analiz.py --help
 
 `--referans` verilmezse alma anı (şimdiki Türkiye saati) kullanılır.
@@ -370,6 +372,38 @@ def oneri(ad, fark, kullanilan, elenen):
     return {"eylem": eylem, "gerekce": gerekce, "kar_durumu": "maliyet_eksik"}
 
 
+FIYAT_ALANLARI = ["urun", "onerilen_fiyat_tl", "kaynak", "uretim_zamani"]
+
+
+def onerilen_fiyatlar(urunler, cikti_adi, katalog_adi, uretim_zamani):
+    """Ajan 3'ün kâr denetimi için önerilen fiyat satırları (#120 kararı, 28 Kasım).
+
+    fiyati_koru → web liste fiyatı; kampanya_test_et → rakip medyanı (fark %10'dan
+    büyük olduğu için her zaman liste fiyatının altındadır); veri_topla → satır yok.
+    İndirim yüzdesi türetilmez: fiyat, kaynağı izlenen bir sayıdır.
+    """
+    satirlar = []
+    for u in urunler:
+        eylem = u["oneri"]["eylem"]
+        if eylem == "fiyati_koru":
+            fiyat, kaynak = u["bizim_liste_fiyati"], f"{katalog_adi}: urun={u['urun']}; liste_fiyati"
+        elif eylem == "kampanya_test_et":
+            fiyat, kaynak = u["rakip_medyan_fiyati"], f"{cikti_adi}: urun={u['urun']}; rakip_medyan_fiyati"
+        else:
+            continue
+        satirlar.append({"urun": u["urun"], "onerilen_fiyat_tl": f"{Decimal(str(fiyat)):.2f}",
+                         "kaynak": kaynak, "uretim_zamani": uretim_zamani})
+    return satirlar
+
+
+def yaz_fiyat(yol, satirlar):
+    Path(yol).parent.mkdir(parents=True, exist_ok=True)
+    with open(yol, "w", encoding="utf-8", newline="") as f:
+        yazici = csv.DictWriter(f, fieldnames=FIYAT_ALANLARI, lineterminator="\n")
+        yazici.writeheader()
+        yazici.writerows(satirlar)
+
+
 # ---------------------------------------------------------------- 3. teslim
 
 def zarf(durum, hedef, gerekce, alanlar):
@@ -395,7 +429,8 @@ def calistir(arg, argv=None):
     except Red as red:
         sonuc = zarf("red", "ajan1", red.gerekce, red.alanlar)
         yaz_json(arg.zarf, sonuc)
-        Path(arg.cikti).unlink(missing_ok=True)  # eski çıktı Ajan 3'e aktarılmasın
+        for eski in (arg.cikti, arg.fiyat):
+            Path(eski).unlink(missing_ok=True)  # eski çıktı Ajan 3'e aktarılmasın
         iz.update(asama="alma", sonuc=sonuc, cikti={goreli(arg.zarf): md5(arg.zarf)})
         _iz_yaz(arg.iz_klasoru, iz)
         print(f"RED → ajan1: {red.gerekce} ({', '.join(red.alanlar[:5])})")
@@ -416,13 +451,16 @@ def calistir(arg, argv=None):
         "iliskiler": iliskiler,
     }
     yaz_json(arg.cikti, cikti)
+    fiyatlar = onerilen_fiyatlar(urunler, goreli(arg.cikti), goreli(arg.urun_listesi), uretim.isoformat())
+    yaz_fiyat(arg.fiyat, fiyatlar)
     sonuc = zarf("onay", "ajan3",
-                 f"{len(satirlar)} rakip satırı alındı, {len(urunler)} ürün analiz edildi; çıktı {goreli(arg.cikti)}.",
+                 f"{len(satirlar)} rakip satırı alındı, {len(urunler)} ürün analiz edildi; çıktı {goreli(arg.cikti)}, "
+                 f"önerilen fiyat {goreli(arg.fiyat)} ({len(fiyatlar)} ürün).",
                  [])
     yaz_json(arg.zarf, sonuc)
     iz.update(asama="teslim", sonuc=sonuc,
               ozet={u["urun"]: {"fark": u["fiyat_farki_yuzde"], "eylem": u["oneri"]["eylem"]} for u in urunler},
-              cikti={goreli(p): md5(p) for p in (arg.cikti, arg.zarf)})
+              cikti={goreli(p): md5(p) for p in (arg.cikti, arg.fiyat, arg.zarf)})
     _iz_yaz(arg.iz_klasoru, iz)
     print(f"ONAY → ajan3: {len(urunler)} ürün, çıktı {goreli(arg.cikti)}")
     return 0
@@ -460,11 +498,13 @@ def main(argv=None):
     p.add_argument("--bitis", help="Sipariş dönemi bitişi (YYYY-AA-GG); verilmezse verinin son günü")
     p.add_argument("--cikti", default=str(KOK / "data/ajan2-cikti.json"))
     p.add_argument("--zarf", default=str(KOK / "data/ajan2-zarf.json"))
+    p.add_argument("--fiyat", default=str(KOK / "data/ajan2-onerilen-fiyat.csv"),
+                   help="Ajan 3 için önerilen fiyat CSV'si: urun,onerilen_fiyat_tl,kaynak,uretim_zamani")
     p.add_argument("--iz_klasoru", default=str(KOK / "runs/ajan2"))
     arg = p.parse_args(argv)
     # Her çalıştırma temiz başlar: doğrulamalardan önce eski çıktı ve zarf silinir,
     # böylece hiçbir hata yolunda eski bir onay zarfı Ajan 3'e kalmaz.
-    for eski in (arg.cikti, arg.zarf):
+    for eski in (arg.cikti, arg.zarf, arg.fiyat):
         Path(eski).unlink(missing_ok=True)
     if arg.referans:
         try:

@@ -12,6 +12,7 @@ description: Ajan 2'nin (analiz) son aşaması. Analiz sonucunu docs/mesaj-bicim
 | Dosya | İçerik |
 |---|---|
 | `--cikti` (varsayılan `data/ajan2-cikti.json`) | `surum`, `veri_turu`, `para_birimi`, `uretim_zamani`, `siparis_donemi`, `urunler`, `iliskiler`. Yalnız onayda yazılır. |
+| `--fiyat` (varsayılan `data/ajan2-onerilen-fiyat.csv`) | Ajan 3'ün `--fiyat` girdisi: `urun,onerilen_fiyat_tl,kaynak,uretim_zamani`. Kural `ajan2-isleme` 8. maddede; `veri_topla` ürünleri yazılmaz. Yalnız onayda yazılır. |
 | `--zarf` (varsayılan `data/ajan2-zarf.json`) | Onayda `durum = onay`, `hedef_ajan = ajan3`, `sorunlu_alanlar = []`. Redde `hedef_ajan = ajan1` ve hatalı alan yolları. |
 | `runs/ajan2/<zaman>-<onay\|red>.json` | Gerçek araç izi: komut, referans zamanı, girdi ve çıktı MD5'leri, aşama, sonuç ve ürün özeti. |
 
@@ -22,20 +23,20 @@ description: Ajan 2'nin (analiz) son aşaması. Analiz sonucunu docs/mesaj-bicim
 - `veri_turu`: Tüm satırların `arac` değeri `sentetik-fixture` ise `sentetik_test`, değilse `web_ve_sentetik_siparis`.
 - `uretim_zamani`: `--referans` verilirse o (yalnız sentetik test girdisi), verilmezse çalıştırma anı.
 - Her sayısal alan `kaynaklar` içinde dosya, seçim ve üretim zamanıyla izlenir. Sürümlenmiş ve değişmemiş dosyada üretim zamanı son commit zamanıdır, değilse dosya zamanı.
-- Red durumunda çıktı JSON'u yazılmaz ve eski çıktı silinir; hatalı çıktı Ajan 3'e aktarılmaz.
+- Red durumunda çıktı JSON'u ve önerilen fiyat dosyası yazılmaz, eskileri silinir; hatalı çıktı Ajan 3'e aktarılmaz.
 - Çıktı, zarf ve `runs/ajan2/` izi aynı PR'da commit edilir. Kod ya da veri PR'ı DQ onayı olmadan main'e girmez.
 
 ## Devir
 
-- **Onay:** #116'ya Ajan 3 için şunlarla yorum yazılır: çıktı ve zarf yolları, commit hash'i, iz dosyası. Ajan 3 kâr ve doğruluk denetimini yapar, gerekirse `ajan1` ya da `ajan2` hedefli red döner.
+- **Onay:** #116'ya Ajan 3 için şunlarla yorum yazılır: çıktı, önerilen fiyat ve zarf yolları, commit hash'i, iz dosyası. Ajan 3 kâr ve doğruluk denetimini yapar, gerekirse `ajan1` ya da `ajan2` hedefli red döner.
 - **Red:** Zarf #114'e Ajan 1 için yazılır (bkz. `ajan2-alma`).
 
 ## Örnek dosyalar (sentetik)
 
 | Durum | Komut | Dosyalar |
 |---|---|---|
-| Onay | `python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-11-29T18:00:00+03:00 --cikti data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json` | `data/ajan2-cikti-ornek.json`, `data/ajan2-zarf-ornek.json` |
-| Red (72 saat aşıldı) | `python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-12-01T12:00:00+03:00 --cikti data/ajan2-cikti-red-ornek.json --zarf data/ajan2-zarf-red-ornek.json` | `data/ajan2-zarf-red-ornek.json` |
+| Onay | `python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-11-29T18:00:00+03:00 --cikti data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --fiyat data/ajan2-onerilen-fiyat-ornek.csv` | `data/ajan2-cikti-ornek.json`, `data/ajan2-zarf-ornek.json`, `data/ajan2-onerilen-fiyat-ornek.csv` |
+| Red (72 saat aşıldı) | `python src/ajan2_analiz.py --girdi data/ornek-ajan1.csv --referans 2026-12-01T12:00:00+03:00 --cikti data/ajan2-cikti-red-ornek.json --zarf data/ajan2-zarf-red-ornek.json --fiyat data/ajan2-onerilen-fiyat-red-ornek.csv` | `data/ajan2-zarf-red-ornek.json` |
 
 Onay örneğindeki sayılar ve kaynaklar `data/ornek-ajan2.json` ile birebir aynıdır; yalnız `oneri.gerekce` metni farklıdır (`tests/test_ajan2_analiz.py`).
 
@@ -53,3 +54,4 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan2_analiz.py'`
 ## Üretim kaydı
 
 27 Kasım 2026: Eski `ajan2-analiz` skill'inin 6. adımından, #115 için Claude (Claude Code) ile yazıldı; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.
+28 Kasım 2026: Önerilen fiyat dosyası (`--fiyat`) #120'deki karardan sonra Claude (Claude Code) ile eklendi; Tuğba Tuana Kaygısız'ın incelemesine sunuldu.
