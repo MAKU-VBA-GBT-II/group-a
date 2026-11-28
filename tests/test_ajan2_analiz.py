@@ -108,6 +108,22 @@ class Ajan2Test(unittest.TestCase):
             self.assertEqual(hata.exception.code, 1)
             self.assertEqual(girdi.read_bytes(), ORNEK.read_bytes())
 
+    def test_ayni_urunde_tekrarlanan_adres_reddedilir(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        kopya = dict(satirlar[0])
+        satirlar.append(kopya)
+        kod, zarf, cikti = self.calistir(satirlar)
+        self.assertEqual((kod, zarf["durum"], zarf["hedef_ajan"]), (2, "red", "ajan1"))
+        self.assertEqual(zarf["sorunlu_alanlar"], [f"satir[{len(satirlar) + 1}].urun_url"])
+        self.assertIsNone(cikti)
+
+    def test_farkli_urunde_ayni_adres_kabul_edilir(self):
+        satirlar = [dict(s) for s in self.satirlar]
+        a, b = satirlar[0], next(s for s in satirlar if s["bizim_urun"] != satirlar[0]["bizim_urun"])
+        b["urun_url"], b["rakip_site"] = a["urun_url"], a["rakip_site"]
+        kod, zarf, _ = self.calistir(satirlar)
+        self.assertEqual((kod, zarf["durum"]), (0, "onay"), zarf)
+
     def test_git_z_zaman_bicimi_normalize_edilir(self):
         from unittest import mock
         gercek = a2.subprocess.run

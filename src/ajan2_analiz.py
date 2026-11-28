@@ -144,6 +144,7 @@ def alma(girdi, katalog_yolu, referans):
     katalog = {s["urun"]: s for s in csv_oku(katalog_yolu)[1]}
 
     sorunlar = []
+    gorulen = {}  # (bizim_urun, urun_url) → ilk satır; eşleşme tanımları karar 9
     for no, satir in enumerate(satirlar, 2):
         yol = f"satir[{no}]"
         if None in satir or any(v is None for v in satir.values()):
@@ -171,6 +172,13 @@ def alma(girdi, katalog_yolu, referans):
                                   or not _site_uyumlu(satir["urun_url"], satir["rakip_site"],
                                                       satir["arac"] == SENTETIK_ARAC)):
             sorunlar.append(f"{yol}.urun_url")
+        if satir["urun_url"]:
+            # Aynı adres farklı ürünümüzle geçebilir (çok işlevli); aynı ürünümüzle tekrarı
+            # medyana iki kez girer, hatadır.
+            anahtar = (satir["bizim_urun"], satir["urun_url"].strip())
+            if anahtar in gorulen:
+                sorunlar.append(f"{yol}.urun_url")
+            gorulen.setdefault(anahtar, no)
         if satir["bulma_yolu"] and not BULMA_YOLU.match(satir["bulma_yolu"]):
             sorunlar.append(f"{yol}.bulma_yolu")
         karsilastirma = _fiyat(satir["indirimli_fiyat"]) if satir["indirimli_fiyat"] else liste
