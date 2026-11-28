@@ -167,9 +167,10 @@ def birim_uyumlu(beklenen, ad):
 def eslestir(ad, tanim, site_kategorisi=None):
     """Döner: ('dahil', dahil_ifadesi_var_mi) / ('haric', kelime) / ('kararsiz', None)."""
     k = _kucuk(ad)
-    # Kelime başından aranır: "Pahalı" içindeki "halı" sayılmaz; ek almış hali
-    # ("şampuanı") sayılır.
-    var = lambda ifade: re.search(r"(?<!\w)" + re.escape(ifade), k) is not None
+    # Önünde harf varsa sayılmaz ("Pahalı" içindeki "halı"); önünde rakam varsa
+    # sayılır ("50SPF" içindeki "spf": nitelikler sayı + birim olarak yazılır).
+    # Ek almış hali ("şampuanı") sayılır.
+    var = lambda ifade: re.search(r"(?<![^\W\d_])" + re.escape(ifade), k) is not None
     for h in tanim["haric"]:
         if var(h):
             return "haric", h
