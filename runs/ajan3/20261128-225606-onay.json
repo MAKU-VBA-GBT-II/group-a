@@ -1,0 +1,22 @@
+{
+  "arac": "src/ajan3_denetim.py",
+  "komut": "python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --ajan1_md5 7ae26d1c10de56d617b95e241ec6639b --fiyat data/ajan3-fiyat-ornek.csv --maliyet data/ajan3-maliyet-ornek.csv --referans 2026-11-29T18:00:00+03:00 --nihai_rapor data/ajan3-nihai-rapor-ornek.json --cikis_zarf data/ajan3-zarf-onay-ornek.json",
+  "baslangic": "2026-11-28T22:56:06+03:00",
+  "referans_zamani": "2026-11-29T18:00:00+03:00",
+  "girdiler": {
+    "data/ajan2-cikti-ornek.json": "63d7a822b0fcd92cacd6fcb52cf7eba6",
+    "data/ajan2-zarf-ornek.json": "4d7056f5c57c127c4f4c5e383a2ac43b",
+    "data/ornek-ajan1.csv": "7ae26d1c10de56d617b95e241ec6639b",
+    "data/urun-listesi-web.csv": "9cabd5a99ae9e0597999b7d494791105",
+    "data/siparisler-web.csv": "628b4351250b4065b9669baf233449e7",
+    "data/ajan3-fiyat-ornek.csv": "cafdce1739c4070523a303c21f2cd239",
+    "data/ajan3-maliyet-ornek.csv": "f4dd09ff1ab3db5bbe989672c2aaa9ad"
+  },
+  "sonuc": "onay",
+  "cikis_kodu": 0,
+  "cikti": {
+    "data/ajan3-nihai-rapor-ornek.json": "4e0546138e2a23ff36ec66891e98f744",
+    "data/ajan3-zarf-onay-ornek.json": "c6e476003ca30b982dd738f552908b55"
+  },
+  "bitis": "2026-11-28T22:56:06+03:00"
+}
