@@ -36,10 +36,22 @@
       "gerekce": "250.00 − 220.00 = 30.00 TL; birim kâr eşiğin üstünde."
     }
   ],
+  "karara_baglanmayan_urunler": [
+    {
+      "urun": "Masa Lambası",
+      "eylem": "veri_topla",
+      "neden": "Ajan 2 eylemi veri_topla (veri yetersiz)"
+    },
+    {
+      "urun": "Saklama Kabı Seti",
+      "eylem": "fiyati_koru",
+      "neden": "önerilen fiyat verilmedi"
+    }
+  ],
   "zarf": {
     "durum": "onay",
     "hedef_ajan": null,
-    "gerekce": "Raporda listelenen 1 ürün kaynak, hesap ve kâr kontrollerini geçti.",
+    "gerekce": "Raporda listelenen 1 ürün kaynak, hesap ve kâr kontrollerini geçti. Karara bağlanmadı: Masa Lambası (veri_topla), Saklama Kabı Seti (önerilen fiyat yok).",
     "sorunlu_alanlar": []
   }
 }
