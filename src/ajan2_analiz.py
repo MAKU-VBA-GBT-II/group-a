@@ -176,7 +176,7 @@ def alma(girdi, katalog_yolu, referans):
             # Aynı adres farklı ürünümüzle geçebilir (çok işlevli); aynı ürünümüzle tekrarı
             # medyana iki kez girer, hatadır.
             anahtar = (satir["bizim_urun"], satir["urun_url"].strip())
-            if anahtar in gorulen:
+            if anahtar in gorulen and f"{yol}.urun_url" not in sorunlar:
                 sorunlar.append(f"{yol}.urun_url")
             gorulen.setdefault(anahtar, no)
         if satir["bulma_yolu"] and not BULMA_YOLU.match(satir["bulma_yolu"]):

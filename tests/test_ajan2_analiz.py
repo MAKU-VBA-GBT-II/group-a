@@ -116,6 +116,9 @@ class Ajan2Test(unittest.TestCase):
         self.assertEqual((kod, zarf["durum"], zarf["hedef_ajan"]), (2, "red", "ajan1"))
         self.assertEqual(zarf["sorunlu_alanlar"], [f"satir[{len(satirlar) + 1}].urun_url"])
         self.assertIsNone(cikti)
+        bozuk = dict(kopya, urun_url="https://gratis.example/search?q=sampuan")
+        kod, zarf, _ = self.calistir(satirlar + [bozuk, dict(bozuk)])
+        self.assertEqual(len(zarf["sorunlu_alanlar"]), len(set(zarf["sorunlu_alanlar"])))
 
     def test_farkli_urunde_ayni_adres_kabul_edilir(self):
         satirlar = [dict(s) for s in self.satirlar]
