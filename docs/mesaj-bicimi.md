@@ -72,6 +72,16 @@ Başarılı aktarımda çıktı dosyası ve onay zarfı ayrı taşınabilir. Red
 {"durum":"red","hedef_ajan":"ajan1","gerekce":"İkinci satırdaki fiyat verisi 72 saatten eski.","sorunlu_alanlar":["satir[2].cekilme_zamani"]}
 ```
 
+## Ajan 3 denetimi ve nihai rapor
+
+Çekirdek, Ajan 2 JSON'u ve zarfıyla birlikte Ajan 1 CSV'sinin repo içindeki göreli yolunu ve ham dosya baytlarının küçük harfli MD5'ini iletir (`ajan1_csv: {yol, md5}`). Sözleşme v1 JSON'u ve 19 CSV sütunu korunur. Denetçi aynı dosyadan satırları yeniden okur. Özet uyuşmazsa aktarım reddedilir. Her satırda denetim saati eksi çekim saati [0, 72 saat] aralığında olmalıdır. Üretimde gerçek saat kullanılır. Birden fazla hata varsa tüm alan yolları raporlanır. Kaynak hatası varsa önce ajan1, yalnız hesap/öneri hatasında ajan2 düzelterek yeniden gönderir.
+
+Maliyet girdisi UTF-8 CSV'dir: `urun,birim_maliyet_tl,kaynak,uretim_zamani`. Ürün tekil, maliyet sonlu ve negatif olmayan ondalık TRY, kaynak izlenebilir, zaman saat dilimli ISO 8601 olmalıdır. Test maliyetinin kaynağı sentetik_test olarak işaretlenir. Denetlenen ürün ve önerilen fiyat ayrıca açıkça verilmelidir; sözlü kampanya önerisinden bir indirim yüzdesi türetilmez. Satış fiyatı ve maliyet aynı birim ve KDV esasındadır. Birim kâr = önerilen fiyat − birim maliyet; eşik kesin olarak 0 TL üstüdür. Eşitlik veya altı gerekçeli red (ajan2) üretir.
+
+Önce kaynak ve hesap hataları değerlendirilir. Bunlar varsa red zarfı üretilir. Kontroller geçmiş ama gerekli fiyat veya maliyet eksikse yalnız `beklemede` ara raporu (çıkış 3) üretilir. Nihai onay veya önceki başarılı çıktı geçerli sayılmaz. Tüm kontroller geçtiğinde JSON nihai raporu ve standart onay zarfı üretilir. Rapor denetim zamanını, kaynak CSV yolunu/özetini, maliyet dosyasını ve denetlenen her ürün için fiyatı, maliyeti, kârı, eşiği, fiyat kaynağını, kararı ve gerekçeyi içerir. Onay yalnız raporda listelenen ürünler için geçerlidir. Tek kampanyalık sentetik beklenen sonuç: `data/ornek-nihai-rapor.json`; maliyet girdisi: `data/ornek-maliyet.csv`.
+
+Üretim: Codex — prompt özeti: Sema'nın #117 incelemesindeki devir, maliyet, güncellik, hata önceliği ve rapor kararlarını örneklerle tamamla.
+
 ## Test ve üretim kaydı
 
 `python3 -m unittest discover -s tests -p 'test_mesaj_bicimi.py'`
