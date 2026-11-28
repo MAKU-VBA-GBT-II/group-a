@@ -63,6 +63,7 @@ GECEN_KONTROLLER = ["Ajan 1 CSV özeti (MD5)", "72 saat", "fiyat izi", "ürün a
 CANLI = "sayfadan canlı fiyat doğrulaması"
 CANLI_KAYDI = "elle canlı fiyat kontrol kaydı"
 CANLI_ALANLARI = ["urun", "urun_url", "sayfa_fiyati_tl", "kaynak", "uretim_zamani"]
+CANLI_ASGARI = 3  # ürün başına bakılacak farklı rakip sayfası; medyana giren sayfa azsa hepsi
 
 
 class Red(Exception):
@@ -278,6 +279,13 @@ def medyana_girer(satir, bizim_fiyat):
     karsilastirma = Decimal(satir["indirimli_fiyat"] or satir["liste_fiyati"])
     bantta = bizim_fiyat * Decimal("0.3") <= karsilastirma <= bizim_fiyat * 3
     return not gerekce and bantta and satir["stok_durumu"] != "yok" and satir["kdv_dahil"] == "evet"
+
+
+def canli_sayisi(ad, liste, satirlar, canli):
+    """(gereken, geçerli kaydı olan) farklı rakip sayfası sayısı."""
+    sayfalar = {s["urun_url"] for s in satirlar if s["bizim_urun"] == ad and medyana_girer(s, liste)}
+    bakilan = {k["urun_url"] for k in canli.get(ad, [])}
+    return min(CANLI_ASGARI, len(sayfalar)) or 1, len(bakilan)
 
 
 def ayni(bulunan, beklenen):
@@ -507,8 +515,13 @@ def calistir(arg, referans, argv):
         urunler, iliskiler = isleme(satirlar, veri, arg.urun_listesi, arg.siparisler, set(maliyetler or {}))
         oneriler = {u["urun"]: (u["eylem"], Decimal(str(u["sayilar"]["bizim_liste_fiyati"]))) for u in urunler}
         kalemler, eksikler = kar_denetimi(oneriler, fiyatlar, fiyat_sorunlari, maliyetler, maliyet_sorunlari)
-        if veri["veri_turu"] != "sentetik_test":  # gerçek veride elle kontrol kaydı olmadan onay yok
-            eksikler += [f"{k['urun']} için geçerli {CANLI_KAYDI} yok" for k in kalemler if k["urun"] not in canli]
+        sayfa = {k["urun"]: canli_sayisi(k["urun"], oneriler[k["urun"]][1], satirlar, canli) for k in kalemler}
+        if veri["veri_turu"] != "sentetik_test":  # gerçek veride yeterli elle kontrol kaydı olmadan onay yok
+            for ad, (gereken, bakilan) in sayfa.items():
+                if not bakilan:
+                    eksikler.append(f"{ad} için geçerli {CANLI_KAYDI} yok")
+                elif bakilan < gereken:
+                    eksikler.append(f"{ad} için {CANLI_KAYDI} yetersiz: {bakilan}/{gereken} farklı rakip sayfası")
         eksikler += canli_eksik
     except Red as red:
         yaz_json(arg.cikis_zarf, {"durum": "red", "hedef_ajan": red.hedef, "gerekce": red.gerekce,
@@ -531,12 +544,20 @@ def calistir(arg, referans, argv):
             durum, kod, ciktilar = "beklemede", 3, [arg.rapor]
             print(f"BEKLEMEDE: veri kontrolleri geçti, onay yok: {'; '.join(eksikler)}.")
         else:
-            canli_tam = all(k["urun"] in canli for k in kalemler)
+            canli_tam = all(bakilan >= gereken for gereken, bakilan in sayfa.values())
             for k in kalemler:
                 if k["urun"] in canli:
                     k["canli_kontrol"] = canli[k["urun"]]
+            # Onay yalnız listelenen ürünler içindir; kalanlar raporda ve gerekçede ayrıca görünür.
+            kararsiz = [{"urun": u["urun"], "eylem": u["eylem"],
+                         "neden": ("Ajan 2 eylemi veri_topla (veri yetersiz)" if u["eylem"] == "veri_topla"
+                                   else "önerilen fiyat verilmedi")}
+                        for u in urunler if u["urun"] not in sayfa]
+            ozet = "Karara bağlanmadı: " + ", ".join(
+                f"{k['urun']} ({'veri_topla' if k['eylem'] == 'veri_topla' else 'önerilen fiyat yok'})"
+                for k in kararsiz) + "." if kararsiz else ""
             zarf = {"durum": "onay", "hedef_ajan": None,
-                    "gerekce": f"Raporda listelenen {len(kalemler)} ürün kaynak, hesap ve kâr kontrollerini geçti.",
+                    "gerekce": f"Raporda listelenen {len(kalemler)} ürün kaynak, hesap ve kâr kontrollerini geçti. {ozet}".strip(),
                     "sorunlu_alanlar": []}
             yaz_json(arg.nihai_rapor, {
                 "durum": "onay",
@@ -547,13 +568,14 @@ def calistir(arg, referans, argv):
                 "gecen_kontroller": GECEN_KONTROLLER + ["kâr eşiği"] + ([CANLI_KAYDI] if canli_tam else []),
                 "yapilmayan_kontroller": [] if canli_tam else [CANLI],
                 "urunler": kalemler,
+                "karara_baglanmayan_urunler": kararsiz,
                 "zarf": zarf,
             })
             yaz_json(arg.cikis_zarf, zarf)
             durum, kod, ciktilar = "onay", 0, [arg.nihai_rapor, arg.cikis_zarf]
             not_canli = ("Elle canlı fiyat kontrol kaydı denetlendi; kod sayfaya istek atmadı." if canli_tam
                          else "Canlı fiyat doğrulaması bu kodda yapılmadı.")
-            print(f"ONAY: {', '.join(k['urun'] for k in kalemler)}. {not_canli}")
+            print(f"ONAY: {', '.join(k['urun'] for k in kalemler)}. {ozet + ' ' if ozet else ''}{not_canli}")
     iz.update(sonuc=durum, cikis_kodu=kod, cikti={goreli(c): md5(c) for c in ciktilar},
               bitis=datetime.now(TR).isoformat(timespec="seconds"))
     yaz_json(Path(arg.iz_klasoru) / f"{datetime.now(TR):%Y%m%d-%H%M%S}-{durum}.json", iz)
