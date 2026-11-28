@@ -1,19 +1,23 @@
 {
   "durum": "beklemede",
-  "bekleme_nedeni": "Maliyet girdisi ve kâr eşiği tanımlı değil; kâr denetimi yapılmadı, onay verilmedi.",
+  "bekleme_nedeni": "Şampuan için geçerli birim maliyet yok. Onay verilmedi.",
   "veri_turu": "sentetik_test",
-  "denetim_referans_zamani": "2026-11-29T18:00:00+03:00",
+  "denetim_zamani": "2026-11-29T18:00:00+03:00",
+  "ajan1_csv": {
+    "yol": "data/ornek-ajan1.csv",
+    "md5": "7ae26d1c10de56d617b95e241ec6639b"
+  },
   "gecen_kontroller": [
+    "Ajan 1 CSV özeti (MD5)",
     "72 saat",
     "fiyat izi",
     "ürün adresi alan adı",
     "Ajan 2 zarfı",
     "sayıların bağımsız yeniden hesabı",
-    "kaynak kayıtları",
-    "maliyetsiz kâr iddiası yok"
+    "kaynak kayıtları"
   ],
   "yapilmayan_kontroller": [
-    "kâr eşiği",
+    "kâr eşiği (bütün kapsam için)",
     "sayfadan canlı fiyat doğrulaması"
   ],
   "urunler": [
@@ -28,8 +32,7 @@
         "elenen_rakip_sayisi": 1,
         "satis_adedi": 524,
         "ciro": 205723.88
-      },
-      "kar": "maliyet_eksik"
+      }
     },
     {
       "urun": "Saklama Kabı Seti",
@@ -42,8 +45,7 @@
         "elenen_rakip_sayisi": 0,
         "satis_adedi": 646,
         "ciro": 403147.1
-      },
-      "kar": "maliyet_eksik"
+      }
     },
     {
       "urun": "Şampuan",
@@ -56,8 +58,7 @@
         "elenen_rakip_sayisi": 0,
         "satis_adedi": 516,
         "ciro": 135773.81
-      },
-      "kar": "maliyet_eksik"
+      }
     }
   ],
   "iliskiler": {
