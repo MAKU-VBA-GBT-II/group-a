@@ -51,3 +51,5 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 27 Kasım 2026: Claude ile yazıldı ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: Ajan 3'ün maliyetten bağımsız ilk sürümünü hazırla (#116): üç skill, denetim kodu ve testleri, sentetik red ve ara rapor örnekleri; onay sonucu üretme. Sema Nur Doğan'ın incelemesi bekliyor.
 
 28 Kasım 2026: Claude ile onay yolu eklendi ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: PR #117 sözleşmesine göre Ajan 3'e CSV MD5 kontrolü, önerilen fiyat ve maliyet girdisi, kâr eşiği, nihai rapor ve onay zarfı ekle; testleri ve örnek çıktıları güncelle. Sema Nur Doğan'ın incelemesi bekliyor.
+
+28 Kasım 2026: Sema Nur Doğan cb37495'i kendi oturumunda çalıştırdı. Ardından kodu Claude okudu; bozuk girdide çökme ve `veri_topla` ürününe onay düzeltildi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: Ajan 3 kodunu ve skill'lerini incele, bulunan hataları düzelt ve testlerini ekle. Sema Nur Doğan ayrıca kod incelemesi yapmadı; düzeltilmiş sürümü henüz çalıştırmadı.
