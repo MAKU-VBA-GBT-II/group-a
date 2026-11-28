@@ -1,6 +1,6 @@
 ---
 name: ajan3-teslim
-description: Ajan 3'ün (denetim) son aşaması. Denetim sonucunu red zarfı ya da beklemede ara raporu olarak yazar, çalışma izi bırakır ve Issue kanıt yorumunu hazırlar. Doğrulama bittikten sonra kullan.
+description: Ajan 3'ün (denetim) son aşaması. Denetim sonucunu nihai rapor ve onay zarfı, red zarfı ya da beklemede ara raporu olarak yazar, çalışma izi bırakır ve Issue kanıt yorumunu hazırlar. Doğrulama bittikten sonra kullan.
 ---
 
 # ajan3-teslim: sonuç ve kanıt (Ajan 3)
@@ -11,22 +11,35 @@ description: Ajan 3'ün (denetim) son aşaması. Denetim sonucunu red zarfı ya 
 
 | Sonuç | Çıkış | Yazılan |
 |---|---|---|
+| Onay | 0 | `--nihai_rapor` (ürün başına fiyat, maliyet, kâr, eşik, kaynak, karar, gerekçe) ve `--cikis_zarf`: `durum = onay`, `hedef_ajan = null` |
 | Red | 2 | `--cikis_zarf`: `durum = red`, `hedef_ajan = ajan1` veya `ajan2`, gerekçe, alan yolları |
-| Beklemede | 3 | `--rapor`: kontrolleri geçen ürünler ve yapılmayan kontroller. **Zarf yazılmaz.** |
+| Beklemede | 3 | `--rapor`: bekleme nedeni ve yapılmayan kontroller. **Zarf yazılmaz.** |
 | Kullanım hatası | 1 | Hiçbir sonuç; eski rapor ve zarf silinmiş olur (argümanlar ayrıştırılabildiyse) |
 
-Her red ve beklemede çalıştırması `runs/ajan3/` altına komut, referans zamanı ve MD5'li iz bırakır.
+Her onay, red ve beklemede çalıştırması `runs/ajan3/` altına komut, referans zamanı ve MD5'li iz bırakır.
 
-**Nihai onay bu sürümde üretilmez.** Kâr denetimi eklenmeden `durum = onay` yazılmaz.
+Rapor `yapilmayan_kontroller` altında canlı fiyat doğrulamasını yazar; gerçek veride teslimden önce `ajan3-isleme`'deki elle karşılaştırmanın kaydı eklenir.
 
 ## Çalıştırma (sentetik örnekler)
 
+Onay:
+
 ```
-python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --referans 2026-11-29T18:00:00+03:00 --rapor data/ajan3-ara-rapor-ornek.json --cikis_zarf data/ajan3-zarf-ornek.json
-python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --referans 2026-12-01T12:00:00+03:00 --rapor data/ajan3-ara-rapor-red-ornek.json --cikis_zarf data/ajan3-zarf-red-ornek.json
+python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --ajan1_md5 7ae26d1c10de56d617b95e241ec6639b --fiyat data/ajan3-fiyat-ornek.csv --maliyet data/ajan3-maliyet-ornek.csv --referans 2026-11-29T18:00:00+03:00 --nihai_rapor data/ajan3-nihai-rapor-ornek.json --cikis_zarf data/ajan3-zarf-onay-ornek.json
 ```
 
-İlki beklemede (ara rapor), ikincisi 72 saat aşıldığı için `ajan1` redidir.
+Beklemede (maliyet verilmedi):
+
+```
+python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --ajan1_md5 7ae26d1c10de56d617b95e241ec6639b --fiyat data/ajan3-fiyat-ornek.csv --referans 2026-11-29T18:00:00+03:00 --rapor data/ajan3-ara-rapor-ornek.json --cikis_zarf data/ajan3-zarf-ornek.json
+```
+
+Red (72 saat aşıldı, `ajan1`):
+
+```
+python src/ajan3_denetim.py --girdi data/ajan2-cikti-ornek.json --zarf data/ajan2-zarf-ornek.json --ajan1 data/ornek-ajan1.csv --ajan1_md5 7ae26d1c10de56d617b95e241ec6639b --referans 2026-12-01T12:00:00+03:00 --rapor data/ajan3-ara-rapor-red-ornek.json --cikis_zarf data/ajan3-zarf-red-ornek.json
+```
+
 Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 
 ## Kanıt yorumu (Issue #116)
@@ -36,3 +49,5 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 ## Üretim kaydı
 
 27 Kasım 2026: Claude ile yazıldı ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: Ajan 3'ün maliyetten bağımsız ilk sürümünü hazırla (#116): üç skill, denetim kodu ve testleri, sentetik red ve ara rapor örnekleri; onay sonucu üretme. Sema Nur Doğan'ın incelemesi bekliyor.
+
+28 Kasım 2026: Claude ile onay yolu eklendi ve Claude'un bulut ortamında sentetik veriyle çalıştırıldı. Prompt özeti: PR #117 sözleşmesine göre Ajan 3'e CSV MD5 kontrolü, önerilen fiyat ve maliyet girdisi, kâr eşiği, nihai rapor ve onay zarfı ekle; testleri ve örnek çıktıları güncelle. Sema Nur Doğan'ın incelemesi bekliyor.
