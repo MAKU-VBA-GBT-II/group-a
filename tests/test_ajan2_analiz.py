@@ -50,6 +50,20 @@ class Ajan2Test(unittest.TestCase):
         self.assertEqual(cikti, beklenen)
         self.assertEqual(len(list((self.tmp / "runs").glob("*-onay.json"))), 1)
 
+    def test_git_z_zaman_bicimi_normalize_edilir(self):
+        from unittest import mock
+        gercek = a2.subprocess.run
+
+        def sahte(komut, **kw):
+            sonuc = gercek(komut, **kw)
+            if "log" in komut:
+                sonuc.stdout = sonuc.stdout.strip().replace("+00:00", "Z") + "\n"
+            return sonuc
+        with mock.patch.object(a2.subprocess, "run", side_effect=sahte):
+            self.test_ornek_girdi_sozlesme_ornegini_uretir()
+        self.assertEqual(a2.datetime.fromisoformat("2026-11-24T12:25:43+00:00").isoformat(),
+                         "2026-11-24T12:25:43+00:00")
+
     def test_tam_72_saat_gecerli_bir_saniye_fazlasi_red(self):
         # en eski satır 2026-11-27T15:00 → sınır 2026-11-30T15:00
         self.assertEqual(self.calistir(referans="2026-11-30T15:00:00+03:00")[0], 0)
