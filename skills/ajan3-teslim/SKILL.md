@@ -11,7 +11,7 @@ description: Ajan 3'ün (denetim) son aşaması. Denetim sonucunu nihai rapor ve
 
 | Sonuç | Çıkış | Yazılan |
 |---|---|---|
-| Onay | 0 | `--nihai_rapor` (ürün başına fiyat, maliyet, kâr, eşik, kaynak, karar, gerekçe) ve `--cikis_zarf`: `durum = onay`, `hedef_ajan = null` |
+| Onay | 0 | `--nihai_rapor` (ürün başına fiyat, maliyet, kâr, eşik, kaynak, karar, gerekçe; onaylanmayan ürünler `karara_baglanmayan_urunler`: ürün, eylem, neden) ve `--cikis_zarf`: `durum = onay`, `hedef_ajan = null` |
 | Red | 2 | `--cikis_zarf`: `durum = red`, `hedef_ajan = ajan1` veya `ajan2`, gerekçe, alan yolları |
 | Beklemede | 3 | `--rapor`: bekleme nedeni ve yapılmayan kontroller. **Zarf yazılmaz.** |
 | Kullanım hatası (verilen dosya bulunamadı dahil) | 1 | Hiçbir sonuç; eski rapor ve zarf silinmiş olur (argümanlar ayrıştırılabildiyse) |
@@ -59,3 +59,5 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 28 Kasım 2026: #123 karar 9 kontrolü Claude ile eklendi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: alma aşamasında aynı `bizim_urun` altında tekrar eden `urun_url` satırını Ajan 1'e gerekçeli red yap, farklı ürünümüzde aynı adresi kabul et, testlerini ve skill maddesini ekle.
 
 28 Kasım 2026: canlı kontrol için kampanya notu Claude ile eklendi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: canlı kontrolde fiyatı uyuşmayan `kampanya` satırının red gerekçesine kampanyanın bitmiş olabileceğini ve yeniden toplama gerektiğini ekle; skill'e koşulsuz fiyat kuralını yaz, testini ekle.
+
+28 Kasım 2026: #120 veri kalitesi incelemesi Claude ile uygulandı, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: onayda karara bağlanmayan ürünleri nihai raporda ve zarf gerekçesinde listele; gerçek veride onay için ürün başına en az 3 farklı rakip sayfasının (azsa hepsinin) canlı kontrol kaydını iste; testlerini, skill metinlerini ve örnek onay çıktısını güncelle.
