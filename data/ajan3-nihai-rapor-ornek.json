@@ -1,0 +1,45 @@
+{
+  "durum": "onay",
+  "veri_turu": "sentetik_test",
+  "denetim_zamani": "2026-11-29T18:00:00+03:00",
+  "ajan1_csv": {
+    "yol": "data/ornek-ajan1.csv",
+    "md5": "7ae26d1c10de56d617b95e241ec6639b"
+  },
+  "fiyat_dosyasi": "data/ajan3-fiyat-ornek.csv",
+  "maliyet_dosyasi": "data/ajan3-maliyet-ornek.csv",
+  "gecen_kontroller": [
+    "Ajan 1 CSV özeti (MD5)",
+    "72 saat",
+    "fiyat izi",
+    "ürün adresi alan adı",
+    "Ajan 2 zarfı",
+    "sayıların bağımsız yeniden hesabı",
+    "kaynak kayıtları",
+    "kâr eşiği"
+  ],
+  "yapilmayan_kontroller": [
+    "sayfadan canlı fiyat doğrulaması"
+  ],
+  "urunler": [
+    {
+      "urun": "Şampuan",
+      "onerilen_fiyat_tl": 250.0,
+      "birim_maliyet_tl": 220.0,
+      "birim_kar_tl": 30.0,
+      "esik_tl": 0.0,
+      "kaynak": "sentetik_test:kampanya-1",
+      "fiyat_uretim_zamani": "2026-11-29T17:00:00+03:00",
+      "maliyet_kaynagi": "sentetik_test:maliyet-1",
+      "maliyet_uretim_zamani": "2026-11-29T17:00:00+03:00",
+      "karar": "onay",
+      "gerekce": "250.00 − 220.00 = 30.00 TL; birim kâr eşiğin üstünde."
+    }
+  ],
+  "zarf": {
+    "durum": "onay",
+    "hedef_ajan": null,
+    "gerekce": "Raporda listelenen 1 ürün kaynak, hesap ve kâr kontrollerini geçti.",
+    "sorunlu_alanlar": []
+  }
+}
