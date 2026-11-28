@@ -11,13 +11,15 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from . import gratis, ortak
+from . import gratis, ikea, ortak
+
+SITELER = [gratis, ikea]   # yeni site: ajan1-kaynak-ekleme
 
 CIKTI = ortak.KOK / "data" / "ajan1-cikti.csv"
 RAPOR_KLASORU = ortak.KOK / "runs" / "ajan1"
 
 
-def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
+def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=gratis):
     """ajan1-isleme: fiyat okuma, eşleştirme, eleme, tekrar ayıklama, rapor notları."""
     kategori, liste = liste_fiyatlari[urun]
     t = tanim[urun]
@@ -25,11 +27,12 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
     rapor = {"okunan_kart": len(kartlar), "haric": Counter(), "kararsiz": [],
              "kosullu_fiyat": Counter(), "kosullu_ornek": [], "bilinmeyen_fiyat_etiketi": [],
              "rozet": Counter(), "taninmayan_rozet": [], "fiyat_okunamadi": [], "stokta_yok_fiyatsiz": [],
-             "ustu_cizili_dogrulanamadi": [], "tekrar": 0, "elendi": Counter()}
+             "ustu_cizili_dogrulanamadi": [], "tekrar": 0, "elendi": Counter(),
+             "kampanya_bitisleri": []}
     for k in kartlar:
         if not k.get("url") or not k.get("ad"):
             continue
-        url = (gratis.ALAN + k["url"]).split("?")[0]
+        url = (k["url"] if k["url"].startswith("http") else modul.ALAN + k["url"]).split("?")[0]
         if url in gorulen:
             rapor["tekrar"] += 1
             continue
@@ -44,7 +47,7 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
             continue
 
         stokta_yok = any(re.search(r"tükendi|stokta yok|gelince haber ver", s, re.I) for s in k["satirlar"])
-        f = gratis.kart_fiyatlari(k["satirlar"], k["ad"], k.get("ustu_cizili", ()))
+        f = modul.kart_fiyatlari(k["satirlar"], k["ad"], k.get("ustu_cizili", ()))
         if f is None:
             # Gratis stokta olmayan ürünün fiyatını göstermiyor, yerine "Gelince Haber Ver"
             # yazıyor (28 Kasım, 4 güneş ürünü). Fiyatsız satır yazılamaz; ayrı sayılır.
@@ -60,7 +63,12 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site):
         if not f["ustu_cizili_dogrulandi"]:
             rapor["ustu_cizili_dogrulanamadi"].append(url)
 
-        kampanya = False
+        kampanya = bool(f.get("kampanya_bitis"))
+        if f.get("kampanya_bitis"):
+            # Kampanyanın bitişi kategori sayfasında görünüyorsa rapora yazılır (ajan1-isleme §5):
+            # Ajan 3 fiyatı yeniden doğrularken kampanyanın bitmesinden doğan farkı hata sanmaz.
+            rapor["kampanya_bitisleri"].append({"ad": k["ad"], "url": url, "bitis": f["kampanya_bitis"],
+                                                "liste": f["liste"], "indirimli": f["indirimli"]})
         for r in k.get("rozet", []):
             bilgi = rozetler.get((site, r))
             if bilgi is None:
@@ -124,34 +132,35 @@ def main():
             baglam = tarayici.new_context(locale="tr-TR")
             sayfa = baglam.new_page()
 
-            robots_metni = baglam.request.get(f"{gratis.ALAN}/robots.txt").text()
-            robots = ortak.Robots(robots_metni)
-            bekleyici = ortak.Bekleyici(robots.crawl_delay)
-            rapor["site"][gratis.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
+            for modul in SITELER:
+                robots_metni = baglam.request.get(f"{modul.ALAN}/robots.txt").text()
+                robots = ortak.Robots(robots_metni)
+                bekleyici = ortak.Bekleyici(robots.crawl_delay)
+                rapor["site"][modul.SITE] = {"robots_okundu": ortak.simdi(), "crawl_delay": robots.crawl_delay}
 
-            urunler = list(gratis.KATEGORILER)
-            for i, urun in enumerate(urunler):
-                iz = []
-                try:
-                    kat_adi, kartlar = gratis.kategori_oku(sayfa, urun, robots, bekleyici, iz)
-                except ortak.SiteBirakildi as e:
-                    rapor["basarisiz"].append({"urun": urun, "gerekce": f"site bırakıldı ({e})"})
-                    for kalan in urunler[i + 1:]:
-                        rapor["basarisiz"].append({"urun": kalan, "gerekce": "denenmedi: site bırakıldı"})
-                    rapor["kategori"][urun] = {"iz": iz}
-                    break
-                except Exception as e:
-                    rapor["basarisiz"].append({"urun": urun, "gerekce": f"beklenmeyen hata: {str(e).splitlines()[0][:200]}"})
-                    rapor["kategori"][urun] = {"iz": iz}
-                    continue
-                if not kartlar:
-                    rapor["basarisiz"].append({"urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
-                    rapor["kategori"][urun] = {"iz": iz}
-                    continue
-                satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, gratis.SITE)
-                tum_satirlar.extend(satirlar)
-                rapor["kategori"][urun] = {"gratis_kategorisi": kat_adi, "iz": iz, **notlar}
-                print(f"{urun}: {len(kartlar)} kart, {len(satirlar)} satır")
+                urunler = list(modul.KATEGORILER)
+                for i, urun in enumerate(urunler):
+                    iz = []
+                    try:
+                        kat_adi, kartlar = modul.kategori_oku(sayfa, urun, robots, bekleyici, iz)
+                    except ortak.SiteBirakildi as e:
+                        rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce": f"site bırakıldı ({e})"})
+                        for kalan in urunler[i + 1:]:
+                            rapor["basarisiz"].append({"site": modul.SITE, "urun": kalan, "gerekce": "denenmedi: site bırakıldı"})
+                        rapor["kategori"][f"{modul.SITE}/{urun}"] = {"iz": iz}
+                        break   # bu site bırakılır, sıradaki siteye geçilir
+                    except Exception as e:
+                        rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce": f"beklenmeyen hata: {str(e).splitlines()[0][:200]}"})
+                        rapor["kategori"][f"{modul.SITE}/{urun}"] = {"iz": iz}
+                        continue
+                    if not kartlar:
+                        rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
+                        rapor["kategori"][f"{modul.SITE}/{urun}"] = {"iz": iz}
+                        continue
+                    satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, modul.SITE, modul)
+                    tum_satirlar.extend(satirlar)
+                    rapor["kategori"][f"{modul.SITE}/{urun}"] = {"site_kategorisi": kat_adi, "iz": iz, **notlar}
+                    print(f"{modul.SITE} / {urun}: {len(kartlar)} kart, {len(satirlar)} satır")
             tarayici.close()
     except Exception as e:
         rapor["basarisiz"].append({"urun": "-", "gerekce": f"çalışma yarıda kaldı: {str(e).splitlines()[0][:200]}"})

@@ -155,13 +155,27 @@ def birim_miktar(ad):
 
 
 def birim_uyumlu(beklenen, ad):
-    """'1 adet; 300–600 ml' ile ürün adındaki ml'yi karşılaştırır. Bilinmiyorsa None."""
-    aralik = re.search(r"(\d+)\s*[–-]\s*(\d+)\s*ml", beklenen)
-    miktar = re.search(r"(\d+(?:[.,]\d+)?)\s*ml\b", _kucuk(ad))
-    if not aralik or not miktar:
-        return None
-    ml = float(miktar.group(1).replace(",", "."))
-    return float(aralik.group(1)) <= ml <= float(aralik.group(2))
+    """Beklenen birim/miktar (eşleşme tanımları) ile ürün adındaki miktarı karşılaştırır.
+
+    - Aralık verilmişse ("300–600 ml", "10.000–20.000 mAh") adındaki aynı birimli sayı aralıkta mı?
+      Adında o birim yoksa bilinemez (None).
+    - Yalnız "1 adet" / "1 kitap" gibi tek parça bekleniyorsa uyumludur; çoklu paket ayrıca
+      elenir (kural 5). (28 Kasım: önceki sürüm bu ürünlerde None döndürüp Ruj ve Masa
+      Lambası'na hiç "yuksek" vermiyordu; Sema'nın #124 incelemesi.)
+    """
+    k = _kucuk(ad)
+    aralik = re.search(r"([\d.]+)\s*[–-]\s*([\d.]+)\s*(ml|mah|gr|g|cm)\b", _kucuk(beklenen))
+    if aralik:
+        birim = aralik.group(3)
+        miktar = re.search(r"(\d+(?:[.,]\d+)?)\s*" + birim + r"\b", k)
+        if not miktar:
+            return None
+        sayi = lambda x: float(x.replace(".", "").replace(",", ".")) if "." in x and len(x.split(".")[-1]) == 3 \
+            else float(x.replace(",", "."))
+        return sayi(aralik.group(1)) <= sayi(miktar.group(1)) <= sayi(aralik.group(2))
+    if re.match(r"\s*1\s+(adet|kitap|çift)\b", _kucuk(beklenen)):
+        return True
+    return None
 
 
 def eslestir(ad, tanim, site_kategorisi=None):
