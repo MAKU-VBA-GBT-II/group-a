@@ -28,6 +28,7 @@ Kaynak ve hesap kontrolleri geçtikten sonra yalnız `--fiyat` dosyasındaki ür
 |---|---|
 | Kâr ≤ 0, geçersiz fiyat satırı ya da veride olmayan ürün | Red → `ajan2`, bütün alan yolları |
 | Fiyat dosyası yok/boş, ürünün maliyeti yok ya da maliyet dosyasında geçersiz satır | Beklemede |
+| Listedeki bir ürünün Ajan 2 eylemi `veri_topla` (ör. Masa Lambası), kâr eşiğin üstünde olsa da | Beklemede |
 | Listedeki bütün ürünler geçti | Onay (yalnız listelenen ürünler) |
 
 Tutar biçimi: nokta ondalık, en çok iki hane. Ürün her dosyada tek satır. Zaman saat dilimli ISO 8601.
