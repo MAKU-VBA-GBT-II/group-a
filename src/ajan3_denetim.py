@@ -188,6 +188,7 @@ def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans, canli_yolu, katalog_
         sorunlar.append(("ajan1_csv.md5", "Ajan 1 CSV'sinin MD5'i devirde bildirilenle uyuşmuyor"))
     if any(s["arac"] != SENTETIK_ARAC for s in satirlar) and not Path(ajan1_yolu).resolve().is_relative_to(KOK):
         sorunlar.append(("ajan1_csv.yol", "gerçek veride Ajan 1 CSV'si repo içinde olmalı"))
+    gorulen = set()  # (bizim_urun, urun_url); eşleşme tanımları karar 9
     for no, satir in enumerate(satirlar, 2):
         cekilme = zaman(satir["cekilme_zamani"])
         if cekilme is None or not timedelta(0) <= referans - cekilme <= BAYATLIK:
@@ -205,6 +206,11 @@ def alma(girdi, zarf_yolu, ajan1_yolu, ajan1_md5, referans, canli_yolu, katalog_
             sorunlar.append((f"satir[{no}].para_birimi", "para birimi TRY değil"))
         if not alan_adi_uyumlu(satir):
             sorunlar.append((f"satir[{no}].urun_url", "ürün adresi https değil ya da alan adı rakip siteye ait değil"))
+        # Aynı adres farklı ürünümüzle geçebilir (çok işlevli); aynı ürünümüzle tekrarı hatadır.
+        anahtar = (satir["bizim_urun"], satir["urun_url"].strip())
+        if anahtar[1] and anahtar in gorulen and all(a != f"satir[{no}].urun_url" for a, _ in sorunlar):
+            sorunlar.append((f"satir[{no}].urun_url", "aynı ürünümüzde aynı ürün adresi ikinci kez geçiyor"))
+        gorulen.add(anahtar)
     if sorunlar:
         raise Red("ajan1", sorunlar)
     # Sayfayla uyuşmayan fiyat kaynak hatasıdır; Ajan 2 kontrollerinden önce gelir.
