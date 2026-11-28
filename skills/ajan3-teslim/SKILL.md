@@ -57,3 +57,5 @@ Test: `python3 -m unittest discover -s tests -p 'test_ajan3_denetim.py'`
 28 Kasım 2026: #120'deki inceleme ve PM kararı Claude ile uygulandı, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: bulunamayan fiyat/maliyet yolunu kullanım hatası yap; önerilen fiyatı Ajan 2 eylemiyle karşılaştır; gerçek veride elle canlı fiyat kontrol kaydı yoksa beklemede bırak; testlerini ve skill metinlerini güncelle. Sema Nur Doğan ayrıca kod incelemesi yapmadı; bu sürümü henüz çalıştırmadı.
 
 28 Kasım 2026: #123 karar 9 kontrolü Claude ile eklendi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: alma aşamasında aynı `bizim_urun` altında tekrar eden `urun_url` satırını Ajan 1'e gerekçeli red yap, farklı ürünümüzde aynı adresi kabul et, testlerini ve skill maddesini ekle.
+
+28 Kasım 2026: canlı kontrol için kampanya notu Claude ile eklendi, Claude'un bulut ortamında sentetik veriyle test edildi. Prompt özeti: canlı kontrolde fiyatı uyuşmayan `kampanya` satırının red gerekçesine kampanyanın bitmiş olabileceğini ve yeniden toplama gerektiğini ekle; skill'e koşulsuz fiyat kuralını yaz, testini ekle.
