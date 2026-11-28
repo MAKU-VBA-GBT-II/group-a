@@ -69,6 +69,55 @@ class Eslestirme(unittest.TestCase):
         self.assertEqual(ortak.eslestir("Kumaş abajur başlığı", TANIM["Masa Lambası"])[0], "haric")
 
 
+class YeniKurallar(unittest.TestCase):
+    """#123 kararları 7, 8, 10, 11 — gerçek eşleşme tanımlarıyla (docs/eslesme-tanimlari.md)."""
+    @classmethod
+    def setUpClass(cls):
+        cls.T = ortak.eslesme_tanimlari()
+        cls.S = ortak.bas_isim_sozlugu(cls.T, "Kozmetik")
+
+    def e(self, urun, ad, kategori=None):
+        return ortak.eslestir(ad, self.T[urun], kategori, self.S, (), urun)
+
+    def test_karar7_turkce_ek_ingilizce_ek_almaz(self):
+        self.assertEqual(self.e("Güneş Kremi", "Güneşten Koruyucu Yüz Kremi 50 ml")[0], "dahil")
+        self.assertEqual(self.e("Şampuan", "Urban Care Shampoo 250 ml")[0], "dahil")      # "car" + "e" değil
+        self.assertEqual(self.e("Şampuan", "Oto Car Shampoo 1 lt")[0], "haric")
+        self.assertIsNone(ortak.ifade_deseni("ayt").search("aydınlatıcı"))               # rastgele devam yok
+
+    def test_karar7_buyuk_harfli_ingilizce(self):
+        self.assertEqual(self.e("Ruj", "MAYBELLINE LIPSTICK MATTE 05"), ("dahil", True))
+        self.assertEqual(self.e("Nemlendirici", "NIGHT CREAM MOISTURIZER 50 ml"), ("dahil", True))
+
+    def test_karar11_bas_isim(self):
+        self.assertEqual(self.e("Nemlendirici", "Elseve Nemlendirici Şampuan 400 ml"), ("haric", "baş isim: şampuan"))
+        self.assertEqual(self.e("Güneş Kremi", "Güneş Pudrası SPF 30"), ("haric", "baş isim: pudra"))
+        self.assertEqual(self.e("Nemlendirici", "Nemlendirici Mat Ruj 05"), ("haric", "baş isim: mat ruj"))
+        self.assertEqual(self.e("Güneş Kremi", "Bioderma Güneş Serumu SPF50")[0], "dahil")  # genel isim
+        # Tek kelimelik nitelik ("saç") baş isim sayılmaz; tireden sonrası açıklamadır
+        self.assertEqual(self.e("Şampuan", "Clear Men Şampuan Yağlı Saç Derisi İçin 350 ml")[0], "dahil")
+        self.assertEqual(self.e("Ruj", "Lipstick Balm 09 - Moisturizing Lip Balm")[0], "dahil")
+        # Hariç listesi bağlaç kuralından önce gelir (Hilal'in kararı)
+        self.assertEqual(self.e("Şampuan", "Dove Şampuan & Saç Kremi 2'si 1 Arada 400 ml"), ("haric", "saç kremi"))
+        # Baş ismi belirsizse (genel isim, tamlayan yok) kategori kuralı geçerli
+        self.assertEqual(self.e("Nemlendirici", "Yoğun Gece Bakım Kremi 50 ml", "Yüz Nemlendirici Gece Kremleri"),
+                         ("dahil", False))
+
+    def test_karar10_spf_cilt_bakim_iki_kategoride(self):
+        ad = "Neutrogena Collagen Bank Nemlendirici Gündüz Kremi 30SPF 50 ml"
+        self.assertEqual(self.e("Nemlendirici", ad), ("dahil", True))
+        self.assertEqual(self.e("Güneş Kremi", ad), ("dahil", "cok_islevli"))
+        self.assertEqual(ortak.guven("cok_islevli", True, 600, (250, 1550)), "orta")
+        self.assertEqual(self.e("Güneş Kremi", "Koruyucu Nemlendirici Yüz Kremi 50 ml")[0], "haric")  # SPF yok
+        satir = {"bizim_urun": "Nemlendirici", "kategori": "Kozmetik", "rakip_urun_adi": ad,
+                 "liste_fiyati": "600.00", "indirimli_fiyat": "", "stok_durumu": "var",
+                 "urun_url": "https://www.gratis.com/x-p-1"}
+        ek, liste = calistir.cok_islevli_satirlar([satir], self.T, ortak.web_liste_fiyatlari(), self.S)
+        self.assertEqual([(e["bizim_urun"], e["eslesme_guveni"]) for e in ek], [("Güneş Kremi", "orta")])
+        ek2, _ = calistir.cok_islevli_satirlar([satir] + ek, self.T, ortak.web_liste_fiyatlari(), self.S)
+        self.assertEqual(ek2, [])   # karar 9: aynı ürün aynı ürünümüzde iki kez yazılmaz
+
+
 class ElemeVeBirim(unittest.TestCase):
     def test_coklu_paket(self):
         e = lambda ad: ortak.eleme_gerekcesi("Şampuan", ad, 300, 269, "var")

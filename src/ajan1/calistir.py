@@ -20,7 +20,7 @@ CIKTI = ortak.KOK / "data" / "ajan1-cikti.csv"
 RAPOR_KLASORU = ortak.KOK / "runs" / "ajan1"
 
 
-def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=gratis, onceki=None):
+def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=gratis, onceki=None, sozluk=None):
     """ajan1-isleme: fiyat okuma, eşleştirme, eleme, tekrar ayıklama, rapor notları."""
     kategori, liste = liste_fiyatlari[urun]
     t = tanim[urun]
@@ -39,7 +39,7 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=g
             continue
         gorulen.add(url)
 
-        karar, ayrinti = ortak.eslestir(k["ad"], t, kat_adi)
+        karar, ayrinti = ortak.eslestir(k["ad"], t, kat_adi, sozluk, k.get("markalar", ()), urun)
         if karar == "haric":
             rapor["haric"][ayrinti] += 1
             continue
@@ -114,6 +114,48 @@ def isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, site, modul=g
     return satirlar, {k: (dict(v) if isinstance(v, Counter) else v) for k, v in rapor.items()}
 
 
+def cok_islevli_satirlar(satirlar, tanim, liste_fiyatlari, sozluk):
+    """Karar 8, 10 ve 11.7: SPF'li cilt bakım ürünü iki kategoride yer alır.
+
+    - Nemlendirici satırında SPF ya da güneş koruması varsa, ürün Güneş Kremi'nde de
+      `orta` güvenle yer alır.
+    - Güneş Kremi sayfasında bulunan ama baş ismi nemlendirici olan SPF'li ürün (eşleştirmede
+      'cok_islevli'), asıl kategorisi Nemlendirici'de kural 4'e göre yer alır.
+    Aynı ürün aynı ürünümüzde iki kez yazılmaz (karar 9); kimlik urun_url'dir.
+    """
+    var = {(s["bizim_urun"], s["urun_url"]) for s in satirlar}
+    ek, liste = [], []
+
+    def ekle(kaynak, hedef, guven_ifadesi):
+        if hedef not in tanim or hedef not in liste_fiyatlari or (hedef, kaynak["urun_url"]) in var:
+            return
+        t = tanim[hedef]
+        kategori, liste_fiyati = liste_fiyatlari[hedef]
+        karsilastirma = float(kaynak["indirimli_fiyat"] or kaynak["liste_fiyati"])
+        yeni = dict(kaynak, bizim_urun=hedef, kategori=kategori,
+                    eslesme_guveni=ortak.guven(guven_ifadesi, ortak.birim_uyumlu(t["birim"], kaynak["rakip_urun_adi"]),
+                                               karsilastirma, t["makul"]),
+                    elendi=ortak.eleme_gerekcesi(hedef, kaynak["rakip_urun_adi"], karsilastirma,
+                                                 liste_fiyati, kaynak["stok_durumu"]))
+        ek.append(yeni)
+        var.add((hedef, kaynak["urun_url"]))
+        liste.append({"ad": kaynak["rakip_urun_adi"], "url": kaynak["urun_url"],
+                      "urunler": [kaynak["bizim_urun"], hedef]})
+
+    for s in list(satirlar):
+        ad = s["rakip_urun_adi"]
+        if s["bizim_urun"] in ortak.CILT_BAKIM and ortak.SPF.search(ortak._kucuk(ad)):
+            ekle(s, "Güneş Kremi", "cok_islevli")
+        elif s["bizim_urun"] == "Güneş Kremi":
+            karar, ayrinti = ortak.eslestir(ad, tanim["Güneş Kremi"], None, sozluk, (), "Güneş Kremi")
+            if ayrinti == "cok_islevli":
+                for hedef in ortak.CILT_BAKIM:
+                    k2, a2 = ortak.eslestir(ad, tanim[hedef], None, sozluk, (), hedef)
+                    if k2 == "dahil":
+                        ekle(s, hedef, a2)
+    return ek, liste
+
+
 DEGISIM_ESIGI = 0.05   # liste fiyatı medyanında %5'ten küçük fark "aynı" sayılır
 
 
@@ -178,6 +220,7 @@ def main(argv=None):
     liste_fiyatlari = ortak.web_liste_fiyatlari()
     rozetler = ortak.rozet_sozlugu()
     onceki = onceki_tarama()
+    sozluk = {k: ortak.bas_isim_sozlugu(tanim, k) for k in {t["kategori"] for t in tanim.values()}}  # karar 11
     sadece = set(arg.urun or [])
     bilinen = {u for m in SITELER for u in m.KATEGORILER}
     if sadece - bilinen:
@@ -224,7 +267,7 @@ def main(argv=None):
                         rapor["basarisiz"].append({"site": modul.SITE, "urun": urun, "gerekce": (iz[-1] if iz else {}).get("sonuc", "ürün okunamadı")})
                         rapor["kategori"][f"{modul.SITE}/{urun}"] = {"iz": iz}
                         continue
-                    satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, modul.SITE, modul, onceki)
+                    satirlar, notlar = isle(urun, kat_adi, kartlar, tanim, liste_fiyatlari, rozetler, modul.SITE, modul, onceki, sozluk.get(tanim[urun]["kategori"]))
                     tum_satirlar.extend(satirlar)
                     rapor["kategori"][f"{modul.SITE}/{urun}"] = {"site_kategorisi": kat_adi, "iz": iz, **notlar}
                     print(f"{modul.SITE} / {urun}: {len(kartlar)} kart, {len(satirlar)} satır")
@@ -245,6 +288,9 @@ def main(argv=None):
                 eski = [r for r in csv.DictReader(f) if r["bizim_urun"] not in toplanan]
         rapor["korunan_satir"] = len(eski)
         tum_satirlar = eski + tum_satirlar
+    ek, cok_islevli = cok_islevli_satirlar(tum_satirlar, tanim, liste_fiyatlari, sozluk["Kozmetik"])
+    tum_satirlar += ek
+    rapor["cok_islevli"] = cok_islevli
     ortak.tablo_yaz(tum_satirlar, CIKTI)
     RAPOR_KLASORU.mkdir(parents=True, exist_ok=True)
     rapor_yolu = RAPOR_KLASORU / (baslangic.replace(":", "-") + ".json")

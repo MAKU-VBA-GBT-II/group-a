@@ -34,6 +34,7 @@ KART_JS = r"""
   const s = c.innerText.split('\n').map(x => x.trim()).filter(Boolean);
   return {
     ad: s.length > 1 ? (s[0] + ' ' + s[1]) : (s[0] || ''),
+    markalar: s.length > 1 ? [s[0]] : [],   // seri adı (FADO, TERTIAL) ayrı satırda: marka gibi atılır (karar 11)
     url: a ? a.getAttribute('href') : null,
     satirlar: s,
     rozet: [],

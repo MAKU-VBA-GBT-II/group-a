@@ -39,6 +39,22 @@ KART_JS = """
 })
 """ % KART_SECICI
 
+# Filtre panelindeki "MARKA" listesi (karar 11, adım 1): marka adı ürün adının başından atılır;
+# ezberlenmez, site yeni marka ekledikçe kendiliğinden güncellenir.
+MARKA_JS = r"""
+() => {
+  const panel = [...document.querySelectorAll('div')].find(d => String(d.className).includes('lg:w-[288px]'));
+  if (!panel) return [];
+  const baslik = [...panel.querySelectorAll('span')].find(e => e.textContent.trim() === 'MARKA');
+  if (!baslik) return [];
+  let blok = baslik;
+  while (blok.parentElement && blok.parentElement.querySelectorAll('span.text-base.font-bold').length === 1)
+    blok = blok.parentElement;
+  return [...blok.querySelectorAll('*')].filter(x => x.children.length === 0 && x !== baslik)
+    .map(x => x.textContent.trim()).filter(Boolean);
+}
+"""
+
 FIYAT = re.compile(r"^[\d.,]+\s*TL$")
 KOSULLU = re.compile(r"gold|platinum|kart|kupon|banka|üye|uye|tutar|2\.|ikinci", re.I)
 SEPETTE = re.compile(r"sepet", re.I)
@@ -89,7 +105,7 @@ def sayfa_adresi(taban, n):
 def kategori_oku(sayfa, urun, robots, bekleyici, iz):
     """Bir kategorinin sayfalarını gezer; ham kartları döner. Hata olursa iz'e yazar."""
     kat_adi, taban = KATEGORILER[urun]
-    kartlar = []
+    kartlar, markalar = [], []
     n = 1
     while len(kartlar) < ortak.URUN_SINIRI:
         adres = sayfa_adresi(taban, n)
@@ -109,6 +125,9 @@ def kategori_oku(sayfa, urun, robots, bekleyici, iz):
             kayit["sonuc"] = "ürün kartı bulunamadı"
             break
         yeni = sayfa.evaluate(KART_JS)
+        if n == 1:
+            markalar = sayfa.evaluate(MARKA_JS)
+            kayit["marka_sayisi"] = len(markalar)
         for k in yeni:
             k["bulma_yolu"] = f"{taban} s.{n}"
             k["cekilme_zamani"] = kayit["zaman"]
@@ -117,6 +136,8 @@ def kategori_oku(sayfa, urun, robots, bekleyici, iz):
         if not sayfa.query_selector(f'a[href*="page={n + 1}"]'):
             break
         n += 1
+    for k in kartlar:
+        k["markalar"] = markalar
     return kat_adi, kartlar[: ortak.URUN_SINIRI]
 
 

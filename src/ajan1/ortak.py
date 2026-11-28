@@ -5,6 +5,7 @@ Site parçaları (gratis.py, ileride ikea.py ...) yalnızca kartları okur;
 bekleme, robots.txt, fiyat okuma, eşleştirme, eleme ve tablo burada.
 """
 import csv
+from functools import lru_cache
 import random
 import re
 import time
@@ -178,28 +179,190 @@ def birim_uyumlu(beklenen, ad):
     return None
 
 
-def eslestir(ad, tanim, site_kategorisi=None):
-    """Döner: ('dahil', dahil_ifadesi_var_mi) / ('haric', kelime) / ('kararsiz', None)."""
-    k = _kucuk(ad)
-    # Önünde harf varsa sayılmaz ("Pahalı" içindeki "halı"); önünde rakam varsa
-    # sayılır ("50SPF" içindeki "spf": nitelikler sayı + birim olarak yazılır).
-    # Ek almış hali ("şampuanı") sayılır.
-    var = lambda ifade: re.search(r"(?<![^\W\d_])" + re.escape(ifade), k) is not None
+# İngilizce ifadeler yazıldığı gibi aranır, Türkçe ifadeler ek alabilir (#123 karar 7).
+# Bir ifadenin bütün kelimeleri bu listedeyse İngilizce sayılır; eşleşme tanımlarındaki
+# İngilizce ifadelerin kelimeleri. Yeni İngilizce ifade eklenince kelimesi de buraya eklenir.
+INGILIZCE = set("""after balm body bronzer car carpet cat conditioner contour cream de dog dry eau edp
+edt eye foundation gloss hair hand humidifier lip lipstick liner liquid lotion mask matte mist
+moisturiser moisturizer moisturizing night parfum perfume pet protection room self set shampoo
+spray stick sun sunblock sunglasses sunscreen tan tanning tester toilette""".split())
+
+TR_HARF = "a-zçğıöşü"
+YUMUSAMA = {"k": "ğ", "p": "b", "t": "d", "ç": "c"}   # stik -> stiği, kitap -> kitabı
+
+
+# Türkçe ad ve isim ekleri (iyelik, tamlama, durum, çoğul, -lı): "şampuanı", "kremi",
+# "güneşten", "lambaları", "pudrası", "nemlendiricili". Yalnız bu ekler kabul edilir; rastgele
+# devam kabul edilmez, yoksa "ayt" kökü "Aydınlatıcı"yı yakalar.
+EK = (r"(?:lar|ler|ları|leri|sı|si|su|sü|nın|nin|nun|nün|ın|in|un|ün|ı|i|u|ü|dan|den|tan|ten|"
+      r"da|de|ta|te|ya|ye|yı|yi|yu|yü|a|e|la|le|yla|yle|lı|li|lu|lü|lık|lik)")
+UNLU = "aeıioöuü"
+
+
+def _kelime_deseni(kelime, turkce):
+    son = rf"(?![{TR_HARF}\d])"
+    if not turkce:
+        return re.escape(kelime) + son
+    govde = re.escape(kelime) + rf"(?:'?{EK}){{0,3}}"
+    if kelime[-1] in YUMUSAMA:   # ünsüz yumuşaması yalnız ünlüyle başlayan ekten önce: stik / stiği
+        yumusak = re.escape(kelime[:-1] + YUMUSAMA[kelime[-1]]) + rf"(?=[{UNLU}])(?:{EK}){{1,3}}"
+        govde = f"(?:{govde}|{yumusak})"
+    return govde + son
+
+
+@lru_cache(maxsize=None)
+def ifade_deseni(ifade):
+    """Bir dahil/hariç ifadesinin düzenli ifadesi (karar 7).
+
+    Kelime başından aranır; önünde harf olamaz ("Pahalı" içindeki "halı"), rakam olabilir
+    ("50SPF"). Türkçe ifadelerin her kelimesi ek alabilir ("güneşten koruyucu" →
+    "güneş koruyucu"); İngilizce ifadeler ek almaz ("car shampoo", "Care Shampoo"yu yakalamaz).
+    """
+    kelimeler = ifade.split()
+    turkce = not all(k in INGILIZCE for k in kelimeler)
+    govde = r"\s+".join(_kelime_deseni(k, turkce) for k in kelimeler)
+    return re.compile(rf"(?<![{TR_HARF}])" + govde)
+
+
+def _iki_kucuk(ad):
+    """Büyük "I" Türkçede "ı", İngilizcede "i" olur ("LIPSTICK"): iki okuma da denenir."""
+    return {_kucuk(ad), ad.replace("İ", "i").lower()}
+
+
+def _var(ifade, okumalar):
+    d = ifade_deseni(ifade)
+    return any(d.search(k) for k in okumalar)
+
+
+# ---------------------------------------------------------------- baş isim (karar 11)
+GENEL_ISIMLER = ["krem", "losyon", "serum", "sprey", "jel", "süt", "stik", "cream", "lotion", "spray"]
+# Eşleşme tanımlarında olmayan ama ürün adlarında baş isim olarak geçen kozmetik ürünleri
+# (#123 incelemesindeki örnekler: "Güneş Pudrası", "Nemlendirici Duş Jeli"). Bunlar bizim
+# ürünümüz değil; baş isim bunlardan biriyse ürün bizim kategorimize girmez.
+BASKA_URUNLER = ["pudra", "duş jeli", "allık", "maskara", "oje", "tonik", "yüz yıkama jeli",
+                 "temizleme jeli", "makyaj bazı", "kapatıcı", "fondöten", "foundation", "deodorant",
+                 "conditioner", "bronzer", "bronzlaştırıcı"]
+BIRIMLER = {"ml", "gr", "g", "cm", "mm", "lt", "l", "kg", "adet", "spf", "w", "mah", "x"}
+BAGLAC = re.compile(r"\s(?:&|ve|\+|and)\s|2'?si\s*1\s*arada", re.I)
+
+
+def bas_isim_sozlugu(tanimlar, kategori=None):
+    """İfade -> sahibi (bizim ürün adı ya da 'başka'); yalnız aynı kategorinin ürünleri.
+
+    Dahil ifadeleri ürünün kendisidir. Hariç listelerinden yalnız çok kelimeli ifadeler
+    ("saç kremi", "duş jeli", "kuru şampuan") başka bir ürün sayılır; tek kelimelik hariç
+    ifadeler ("saç", "dudak", "vücut") çoğu zaman bir niteliktir ("Yağlı Saç Derisi İçin"),
+    baş isim sayılmaz. Bilinen başka ürünler BASKA_URUNLER'dedir.
+    """
+    sozluk = {}
+    secili = {u: t for u, t in tanimlar.items() if kategori is None or t["kategori"] == kategori}
+    for urun, t in secili.items():
+        for h in t["haric"]:
+            if len(h.split()) > 1:
+                sozluk.setdefault(h, "başka")
+    for b in BASKA_URUNLER:
+        sozluk.setdefault(b, "başka")
+    for urun, t in secili.items():
+        for d in t["dahil"]:
+            if not d.startswith("d&r kategori"):
+                sozluk[d] = urun
+    return sozluk
+
+
+def _sadelestir(ad, markalar=()):
+    """Marka, sayı ve birimler atılır (karar 11, adım 1–2). Kelime listesi döner."""
+    k = ad
+    adaylar = {v for x in markalar if x for v in _iki_kucuk(x)}
+    for m in sorted(adaylar, key=len, reverse=True):
+        if k.startswith(m + " ") or k == m:
+            k = k[len(m):]
+            break
+    kelimeler = re.findall(rf"[{TR_HARF}0-9'&+.%]+", k)
+    return [w for w in kelimeler if not re.search(r"\d", w) and w.strip(".") not in BIRIMLER
+            and w not in {"&", "+", "%"}]
+
+
+def _genel_mi(kelime):
+    return any(re.fullmatch(_kelime_deseni(g, g not in INGILIZCE), kelime) for g in GENEL_ISIMLER)
+
+
+def _bas_isim_parca(kelimeler, sozluk):
+    """Kelimeleri sondan başa okur; ilk ürün adı baş isimdir (karar 11, adım 3–5).
+
+    Genel isimler (krem, serum, sprey...) tek başına baş isim sayılmaz, tür önündeki
+    tamlayandan gelir: "Güneş Serumu" → güneş, "Nemlendirici Gündüz Kremi" → nemlendirici.
+    Çok kelimeli ifadeler önce denenir ("saç kremi", "night cream").
+    Döner: (ifade, sahibi) ya da None (belirsiz).
+    """
+    ifadeler = sorted(sozluk, key=lambda x: -len(x.split()))
+    j = len(kelimeler)
+    while j > 0:
+        for ifade in ifadeler:
+            n = len(ifade.split())
+            if n > j or (n == 1 and _genel_mi(kelimeler[j - 1])):
+                continue
+            if ifade_deseni(ifade).fullmatch(" ".join(kelimeler[j - n:j])):
+                return ifade, sozluk[ifade]
+        j -= 1
+    return None
+
+
+def bas_isimler(ad, sozluk, markalar=()):
+    """Ürün adının baş isim(ler)i. Bağlaçla birleşen iki baş isim (karar 11, adım 6) çok
+    işlevli ürün demektir; her parça ayrı okunur."""
+    en_iyi = []
+    for okuma in sorted(_iki_kucuk(ad)):   # "LIPSTICK" hem "lıpstıck" hem "lipstick" okunur
+        okuma = re.split(r"\s[-–]\s", okuma)[0]   # "Ad - açıklama": açıklama baş isim taşımaz
+        parcalar = BAGLAC.split(" " + okuma + " ")
+        sonuc = []
+        for i, parca in enumerate(parcalar):
+            b = _bas_isim_parca(_sadelestir(parca, markalar if i == 0 else ()), sozluk)
+            if b:
+                sonuc.append(b)
+        if len(sonuc) > len(en_iyi):
+            en_iyi = sonuc
+    return en_iyi
+
+
+SPF = re.compile(r"\d+\s*\+?\s*spf|spf\s*\d+|güneş\s+koru(?:yucu|malı|ma)|uv\s+koruma", re.I)
+CILT_BAKIM = {"Nemlendirici"}   # karar 10: SPF'li cilt bakım ürünü Güneş Kremi'nde de yer alır
+
+
+def eslestir(ad, tanim, site_kategorisi=None, sozluk=None, markalar=(), urun=None):
+    """Döner: ('dahil', True|False|'cok_islevli') / ('haric', gerekçe) / ('kararsiz', None).
+
+    Kelime listeleri ürünü bulur, baş isim kuralı doğrular (karar 11.7). sozluk verilmezse
+    baş isim kuralı uygulanmaz (eski davranış, testler için).
+    """
+    okumalar = _iki_kucuk(ad)
     for h in tanim["haric"]:
-        if var(h):
+        if _var(h, okumalar):
             return "haric", h
-    if any(var(d) for d in tanim["dahil"]):
+    dahil = any(_var(d, okumalar) for d in tanim["dahil"])
+    kategori = bool(tanim.get("gratis_kategori") and site_kategorisi == tanim["gratis_kategori"])
+    if sozluk is not None and urun is not None:
+        basl = bas_isimler(ad, sozluk, markalar)
+        sahipler = {s for _, s in basl}
+        # 11.7 istisnası: baş ismi cilt bakım ürünü olan SPF'li ürün Güneş Kremi'nde orta güvenle
+        if urun == "Güneş Kremi" and SPF.search(_kucuk(ad)) and (
+                sahipler & CILT_BAKIM or (not basl and any(_genel_mi(w) for w in _sadelestir(_kucuk(ad), markalar)))):
+            return "dahil", "cok_islevli"
+        if basl and urun not in sahipler:
+            return "haric", f"baş isim: {basl[0][0]}"
+    if dahil:
         return "dahil", True
     # Kategori kuralı (#122): Gratis'in kendi kategorisi dahil sayılır, ad tutmasa da.
-    if tanim.get("gratis_kategori") and site_kategorisi == tanim["gratis_kategori"]:
+    if kategori:
         return "dahil", False
     return "kararsiz", None
 
 
 def guven(dahil_ifadesi, birim_ok, karsilastirma, makul):
-    """eslesme-tanimlari kural 4."""
+    """eslesme-tanimlari kural 4; çok işlevli ürün ikinci kategorisinde orta (karar 8)."""
     if not (makul[0] <= karsilastirma <= makul[1]):
         return "dusuk"
+    if dahil_ifadesi == "cok_islevli":
+        return "orta"
     return "yuksek" if (dahil_ifadesi and birim_ok) else "orta"
 
 
