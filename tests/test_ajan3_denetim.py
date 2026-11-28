@@ -9,6 +9,7 @@ import json
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 
 KOK = Path(__file__).resolve().parents[1]
@@ -41,7 +42,7 @@ class Ajan3Test(unittest.TestCase):
                 yazici.writerow(s if len(s) == 4 else (*s, "sentetik_test:birim", URETIM))
         return yol
 
-    def calistir(self, referans=REFERANS, fiyat=None, maliyet=None, md5=None):
+    def calistir(self, referans=REFERANS, fiyat=None, maliyet=None, md5=None, canli=None, ek=()):
         ajan1, girdi, zarf = self.tmp / "a1.csv", self.tmp / "a2.json", self.tmp / "a2-zarf.json"
         with ajan1.open("w", encoding="utf-8", newline="") as f:
             yazici = csv.DictWriter(f, list(self.satirlar[0]), lineterminator="\n")
@@ -57,9 +58,48 @@ class Ajan3Test(unittest.TestCase):
                              ("--maliyet", self.tablo("maliyet.csv", "birim_maliyet_tl", maliyet))):
             if yol:
                 argv += [secenek, str(yol)]
+        if canli is not None:
+            argv += ["--canli_kontrol", str(self.canli_tablosu(canli))]
         if referans:
             argv += ["--referans", referans]
-        return a3.main(argv)
+        return a3.main(argv + list(ek))
+
+    def canli_tablosu(self, satirlar):
+        """satirlar: (urun, urun_url, sayfa_fiyati, kaynak, zaman)."""
+        yol = self.tmp / "canli.csv"
+        with yol.open("w", encoding="utf-8", newline="") as f:
+            yazici = csv.writer(f, lineterminator="\n")
+            yazici.writerow(a3.CANLI_ALANLARI)
+            yazici.writerows(satirlar)
+        return yol
+
+    def gercek_veri(self):
+        """Sentetik örneği 'gerçek veri' biçimine çevirir (ağ isteği yok). Çekim zamanını döner."""
+        gecici = tempfile.TemporaryDirectory(dir=KOK / "tests")  # gerçek veride CSV repo içinde olmalı
+        self.addCleanup(gecici.cleanup)
+        self.tmp = Path(gecici.name)
+        simdi = datetime.now(a3.TR).replace(microsecond=0)
+        cekim = (simdi - timedelta(hours=2)).isoformat()
+        yeni_adres = {}
+        for satir in self.satirlar:
+            eski = satir["urun_url"]
+            satir["urun_url"] = yeni_adres[eski] = (eski.replace("ikea.example", "ikea.com.tr")
+                                                    .replace("koctas.example", "koctas.com.tr")
+                                                    .replace("gratis.example", "gratis.com"))
+            satir["cekilme_zamani"], satir["arac"] = cekim, "playwright"
+        self.veri["veri_turu"] = "web_ve_sentetik_siparis"
+        for urun in self.veri["urunler"]:
+            for kayit in urun["kaynaklar"]:
+                if kayit["kaynak"] in yeni_adres:
+                    kayit.update(kaynak=yeni_adres[kayit["kaynak"]], uretim_zamani=cekim)
+        return simdi
+
+    def sampuan_kontrolu(self, an, **degisen):
+        satir = next(s for s in self.satirlar if s["bizim_urun"] == "Şampuan")
+        kayit = {"urun": "Şampuan", "urun_url": satir["urun_url"], "sayfa_fiyati_tl": "239.00",
+                 "kaynak": "sentetik_test:elle-kontrol", "uretim_zamani": an.isoformat()}
+        kayit.update(degisen)
+        return tuple(kayit[a] for a in a3.CANLI_ALANLARI)
 
     def oku(self, ad):
         yol = self.tmp / ad
@@ -246,6 +286,88 @@ class Ajan3Test(unittest.TestCase):
     def test_float_a_sigmayan_sayi_cokmeden_ajan2ye_doner(self):
         self.veri["urunler"][0]["satis_adedi"] = 10 ** 400
         self.red_bekle("ajan2", "urunler[0].satis_adedi")
+
+
+    def test_bulunamayan_girdi_yolu_kullanim_hatasi_ve_eski_sonuc_silinir(self):
+        girdi = dict(fiyat=[("Şampuan", "250.00")], maliyet=[("Şampuan", "220.00")])
+        for secenek in ("--fiyat", "--maliyet", "--canli_kontrol"):
+            for yol in (str(self.tmp / "YOK.csv"), str(self.tmp), ""):
+                with self.subTest(secenek=secenek, yol=yol):
+                    self.assertEqual(self.calistir(**girdi), 0)
+                    with self.assertRaises(SystemExit) as hata:
+                        self.calistir(**girdi, ek=[secenek, yol])
+                    self.assertEqual(hata.exception.code, 1)
+                    for ad in ("zarf.json", "nihai.json", "rapor.json"):
+                        self.assertIsNone(self.oku(ad))
+
+    def test_fiyati_koru_yalniz_liste_fiyatina_esitse_onaylanir(self):
+        maliyet = [("Saklama Kabı Seti", "300.00")]
+        for deger in ("639", "639.00"):
+            self.assertEqual(self.calistir(fiyat=[("Saklama Kabı Seti", deger)], maliyet=maliyet), 0)
+        for deger in ("900.00", "638.99", "639.01"):
+            with self.subTest(deger=deger):
+                self.red_bekle("ajan2", "fiyat.satir[2].onerilen_fiyat_tl",
+                               fiyat=[("Saklama Kabı Seti", deger)], maliyet=maliyet)
+
+    def test_kampanya_yalniz_liste_fiyatindan_dusukse_onaylanir(self):
+        maliyet = [("Şampuan", "220.00")]
+        self.assertEqual(self.calistir(fiyat=[("Şampuan", "268.99")], maliyet=maliyet), 0)
+        for deger in ("269.00", "300.00"):
+            with self.subTest(deger=deger):
+                self.red_bekle("ajan2", "fiyat.satir[2].onerilen_fiyat_tl",
+                               fiyat=[("Şampuan", deger)], maliyet=maliyet)
+
+    def test_eyleme_uymayan_fiyat_maliyet_eksik_olsa_da_red(self):
+        self.red_bekle("ajan2", "fiyat.satir[2].onerilen_fiyat_tl", fiyat=[("Şampuan", "300.00")])
+
+    def test_gercek_veride_canli_kontrol_kaydi_yoksa_beklemede(self):
+        self.gercek_veri()
+        self.beklemede_bekle("Şampuan için geçerli elle canlı fiyat kontrol kaydı yok", referans=None,
+                             fiyat=[("Şampuan", "250.00")], maliyet=[("Şampuan", "220.00")])
+
+    def test_gercek_veride_gecerli_canli_kontrol_kaydiyla_onay(self):
+        simdi = self.gercek_veri()
+        self.assertEqual(self.calistir(None, fiyat=[("Şampuan", "250.00")], maliyet=[("Şampuan", "220.00")],
+                                       canli=[self.sampuan_kontrolu(simdi)]), 0)
+        rapor = self.oku("nihai.json")
+        self.assertEqual(rapor["yapilmayan_kontroller"], [])
+        self.assertIn(a3.CANLI_KAYDI, rapor["gecen_kontroller"])
+        self.assertEqual(rapor["urunler"][0]["canli_kontrol"][0]["sayfa_fiyati_tl"], 239.0)
+
+    def test_gecersiz_canli_kontrol_kaydi_onay_uretmez(self):
+        simdi = self.gercek_veri()
+        durumlar = {
+            "baska adres": dict(urun_url="https://www.gratis.com/urun/baska"),
+            "bos kaynak": dict(kaynak=""),
+            "bozuk fiyat": dict(sayfa_fiyati_tl="239,00"),
+            "saat dilimsiz": dict(uretim_zamani=simdi.replace(tzinfo=None).isoformat()),
+            "gelecekte": dict(uretim_zamani=(simdi + timedelta(hours=1)).isoformat()),
+            "cekimden once": dict(uretim_zamani=(simdi - timedelta(hours=3)).isoformat()),
+            "bayat": dict(uretim_zamani=(simdi - timedelta(hours=73)).isoformat()),
+        }
+        for ad, degisen in durumlar.items():
+            with self.subTest(ad):
+                self.beklemede_bekle("canlı kontrol dosyasında satır 2 geçersiz", referans=None,
+                                     fiyat=[("Şampuan", "250.00")], maliyet=[("Şampuan", "220.00")],
+                                     canli=[self.sampuan_kontrolu(simdi, **degisen)])
+
+    def test_bir_urunun_canli_kaydi_eksikse_kismi_onay_yok(self):
+        simdi = self.gercek_veri()
+        self.beklemede_bekle("Saklama Kabı Seti için geçerli elle canlı fiyat kontrol kaydı yok", referans=None,
+                             fiyat=[("Şampuan", "250.00"), ("Saklama Kabı Seti", "639.00")],
+                             maliyet=[("Şampuan", "220.00"), ("Saklama Kabı Seti", "300.00")],
+                             canli=[self.sampuan_kontrolu(simdi)])
+
+    def test_sayfa_fiyati_uyusmazsa_ajan2_hatasindan_once_ajan1e_doner(self):
+        simdi = self.gercek_veri()
+        self.veri["urunler"][0]["ciro"] += 1
+        self.red_bekle("ajan1", "satir[6].liste_fiyati", referans=None,
+                       canli=[self.sampuan_kontrolu(simdi, sayfa_fiyati_tl="249.00")])
+
+    def test_sentetik_veride_uyusmayan_canli_kayit_da_red(self):
+        an = datetime.fromisoformat(URETIM)
+        self.red_bekle("ajan1", "satir[6].liste_fiyati",
+                       canli=[self.sampuan_kontrolu(an, sayfa_fiyati_tl="249.00")])
 
 
 if __name__ == "__main__":
