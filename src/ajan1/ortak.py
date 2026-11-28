@@ -203,7 +203,11 @@ def guven(dahil_ifadesi, birim_ok, karsilastirma, makul):
     return "yuksek" if (dahil_ifadesi and birim_ok) else "orta"
 
 
-COKLU = re.compile(r"\b(\d+\s*'?\s*(li|lı|lu|lü)|\d+\s*x|x\s*\d+|set|paket|ikili|üçlü)\b")
+# Çoklu paket: "3'lü", "3x", "2x400 ml", "400 ml x 2", "set", "paket".
+# "x" ile sayı yan yana olması tek başına yetmez: "Lazer X3", "X5 Max" ürün adıdır;
+# "60x20 cm" ölçüdür (28 Kasım, Nemlendirici'de tek krem yanlışlıkla eleniyordu).
+COKLU = re.compile(r"\b(\d+\s*'?\s*(li|lı|lu|lü)|\d+\s*x\s*\d+\s*(ml|gr|g|adet)|\d+\s*x\b"
+                   r"|(ml|gr|g|adet)\s*x\s*\d+|set|paket|ikili|üçlü)\b")
 
 
 def eleme_gerekcesi(urun, ad, karsilastirma, liste, stok):
