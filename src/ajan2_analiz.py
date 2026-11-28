@@ -259,10 +259,6 @@ def eleme_gerekcesi(satir, bizim_fiyat):
     fiyat = Decimal(satir["indirimli_fiyat"] or satir["liste_fiyati"])
     if fiyat < bizim_fiyat * Decimal("0.3") or fiyat > bizim_fiyat * 3:
         return "fiyat bandı dışı"
-    if satir["eslesme_guveni"] != "yuksek":
-        # #115 Hilal önerisi (28 Kasım): farklı miktar, makul aralık dışı ve çok işlevli
-        # ürünün ikinci kategorisi medyanı kaydırmasın. Satır silinmez, gerekçeyle sayılır.
-        return "güven yüksek değil"
     if satir["stok_durumu"] == "yok":
         return "stok yok"
     if satir["kdv_dahil"] != "evet":

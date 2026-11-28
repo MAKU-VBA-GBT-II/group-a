@@ -127,22 +127,6 @@ class Ajan2Test(unittest.TestCase):
         kod, zarf, _ = self.calistir(satirlar)
         self.assertEqual((kod, zarf["durum"]), (0, "onay"), zarf)
 
-    def test_yalniz_yuksek_guven_medyana_girer(self):
-        satirlar = [dict(s) for s in self.satirlar]
-        sampuan = next(s for s in satirlar if s["bizim_urun"] == "Şampuan")
-        for guven, fiyat in (("orta", "199.00"), ("dusuk", "149.00")):
-            ek = dict(sampuan)
-            ek.update(eslesme_guveni=guven, liste_fiyati=fiyat, ham_fiyat_metni=f"{fiyat.replace('.', ',')} TL",
-                      urun_url=sampuan["urun_url"] + guven)
-            satirlar.append(ek)
-        kod, zarf, cikti = self.calistir(satirlar)
-        self.assertEqual(kod, 0, zarf)
-        u = next(u for u in cikti["urunler"] if u["urun"] == "Şampuan")
-        self.assertEqual((u["rakip_medyan_fiyati"], u["kullanilan_rakip_sayisi"], u["elenen_rakip_sayisi"]),
-                         (239.0, 1, 2))
-        secimler = [k["secim"] for k in u["kaynaklar"]]
-        self.assertEqual(sum("güven yüksek değil" in s for s in secimler), 2)
-
     def test_git_z_zaman_bicimi_normalize_edilir(self):
         from unittest import mock
         gercek = a2.subprocess.run
