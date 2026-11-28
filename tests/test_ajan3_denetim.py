@@ -221,5 +221,32 @@ class Ajan3Test(unittest.TestCase):
         self.assertIsNone(self.oku("zarf.json"))
 
 
+    def test_veri_topla_urunu_kar_yeterli_olsa_da_beklemede(self):
+        self.beklemede_bekle("Masa Lambası için Ajan 2 eylemi veri_topla",
+                             fiyat=[("Şampuan", "250.00"), ("Masa Lambası", "1000.00")],
+                             maliyet=[("Şampuan", "220.00"), ("Masa Lambası", "1.00")])
+
+    def test_veri_topla_urununde_esik_alti_kar_yine_red(self):
+        self.red_bekle("ajan2", "fiyat.satir[2].onerilen_fiyat_tl",
+                       fiyat=[("Masa Lambası", "100.00")], maliyet=[("Masa Lambası", "150.00")])
+
+    def test_bozuk_adres_cokmeden_ajan1e_doner(self):
+        self.satirlar[0]["urun_url"] = "https://[bozuk"
+        self.red_bekle("ajan1", "satir[2].urun_url")
+
+    def test_yanlis_tipte_oneri_alani_cokmeden_ajan2ye_doner(self):
+        asil = json.dumps(self.veri)
+        for alan in ("eylem", "kar_durumu"):
+            for deger in (["x"], {"a": 1}, 5, None):
+                with self.subTest(alan=alan, deger=deger):
+                    self.veri = json.loads(asil)
+                    self.veri["urunler"][0]["oneri"][alan] = deger
+                    self.red_bekle("ajan2", f"urunler[0].oneri.{alan}")
+
+    def test_float_a_sigmayan_sayi_cokmeden_ajan2ye_doner(self):
+        self.veri["urunler"][0]["satis_adedi"] = 10 ** 400
+        self.red_bekle("ajan2", "urunler[0].satis_adedi")
+
+
 if __name__ == "__main__":
     unittest.main()
